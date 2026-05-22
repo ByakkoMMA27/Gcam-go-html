@@ -510,6 +510,14 @@
         </div>
 
         <div class="section">
+          <div class="sectionTitle"><span>Vista</span><span>espejo</span></div>
+          <button class="chip" id="mirrorBtn" type="button">Espejo: desactivado</button>
+          <div class="fineprint">
+            Úsalo si la cámara frontal o el navegador te muestran la imagen invertida. La foto guardada saldrá con la misma orientación que ves en pantalla.
+          </div>
+        </div>
+
+        <div class="section">
           <div class="sectionTitle"><span>Guardado</span><span>automático</span></div>
           <button class="good" id="autoSaveBtn" type="button">Auto-guardar: activado</button>
           <button class="warn" id="pickFolderInsideBtn" type="button">Elegir carpeta de guardado</button>
@@ -522,7 +530,7 @@
           <div class="sectionTitle"><span>Ayuda</span><span>web</span></div>
           <div class="fineprint">
             La cámara solo funciona en HTTPS o localhost. El acceso directo en el celular funciona mejor como icono de pantalla de inicio.
-            En navegador no siempre es posible escribir directamente en la galería; con File System Access API puedes guardar en una carpeta elegida, y si no está disponible la app cae a descarga automática.
+            En navegador no siempre es posible escribir directamente en la galería; con File System Access API puedes guardar en una carpeta elegida, y si no está disponible la app cae a descarga automática. El modo espejo corrige cámaras que salen invertidas.
           </div>
         </div>
 
@@ -565,6 +573,7 @@
   const resetBtn = document.getElementById('resetBtn');
   const autoSaveBtn = document.getElementById('autoSaveBtn');
   const pickFolderInsideBtn = document.getElementById('pickFolderInsideBtn');
+  const mirrorBtn = document.getElementById('mirrorBtn');
 
   const fastModeBtn = document.getElementById('fastModeBtn');
   const qualityModeBtn = document.getElementById('qualityModeBtn');
@@ -602,7 +611,8 @@
     contrast:1.12,
     saturation:1.10,
     sharpness:0.24,
-    denoise:0.16
+    denoise:0.16,
+    mirror:false
   };
 
   let stream = null;
@@ -610,9 +620,10 @@
   let currentPreset = defaults.preset;
   let mode = defaults.mode;
   let autoSave = true;
+  let mirror = defaults.mirror;
   let saveDirHandle = null;
   let currentResultUrl = '';
-  let currentBlob = null;
+  let processedBlob = null;
 
   function clamp(v){ return Math.max(0, Math.min(255, Math.round(v))); }
 
@@ -635,6 +646,10 @@
     presetBadge.textContent = `Preset: ${presets[currentPreset].title}`;
     modeBadge.textContent = `Modo ${mode === 'fast' ? 'rápido' : 'calidad'} · Salida ${sizePreset.value} px`;
     autoSaveBtn.textContent = `Auto-guardar: ${autoSave ? 'activado' : 'desactivado'}`;
+    mirrorBtn.textContent = `Espejo: ${mirror ? 'activado' : 'desactivado'}`;
+    mirrorBtn.classList.toggle('active', mirror);
+    video.style.transform = mirror ? 'scaleX(-1)' : 'none';
+    video.style.transformOrigin = 'center center';
   }
 
   function stopStream(){
@@ -697,6 +712,7 @@
     applyPreset(defaults.preset);
     sizePreset.value = defaults.size;
     autoSave = true;
+    mirror = defaults.mirror;
     setMode(defaults.mode);
     syncLabels();
     setStatus('ok', 'Restablecido', 'Se aplicaron los valores por defecto.');
@@ -865,10 +881,10 @@
   }
 
   function finalizeCapture(){
-    if (!currentBlob) return;
+    if (!processedBlob) return;
     if (autoSave) {
       saveBtnPulse(true);
-      saveBlob(currentBlob).finally(() => saveBtnPulse(false));
+      saveBlob(processedBlob).finally(() => saveBtnPulse(false));
     } else {
       setToast('Listo');
     }
@@ -895,7 +911,15 @@
     const ctx = photoCanvas.getContext('2d', { willReadFrequently:true, alpha:false });
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = mode === 'quality' ? 'high' : 'medium';
-    ctx.drawImage(sourceImage, 0, 0, targetWidth, targetHeight);
+    if (mirror) {
+      ctx.save();
+      ctx.translate(targetWidth, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(sourceImage, 0, 0, targetWidth, targetHeight);
+      ctx.restore();
+    } else {
+      ctx.drawImage(sourceImage, 0, 0, targetWidth, targetHeight);
+    }
 
     const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
     const processed = postProcessPixels(imageData.data, targetWidth, targetHeight);
@@ -910,7 +934,7 @@
         setStatus('bad', 'Error', 'No se pudo generar el JPEG.');
         return;
       }
-      currentBlob = blob;
+      processedBlob = blob;
       await blobToObjectUrl(blob);
       setStatus('ok', 'Procesado', `Imagen lista: ${targetWidth}×${targetHeight}`);
       if (autoSave) {
@@ -1008,6 +1032,15 @@
     setToast(autoSave ? 'Auto-guardar activado' : 'Auto-guardar desactivado');
   }
 
+  function toggleMirror(){
+    mirror = !mirror;
+    syncLabels();
+    setToast(mirror ? 'Espejo activado' : 'Espejo desactivado');
+    if (video.srcObject) {
+      video.style.transform = mirror ? 'scaleX(-1)' : 'none';
+    }
+  }
+
   startBtn.addEventListener('click', startCamera);
   switchBtn.addEventListener('click', switchCamera);
   captureBtn.addEventListener('click', captureFrame);
@@ -1031,6 +1064,7 @@
 
   resetBtn.addEventListener('click', resetAll);
   autoSaveBtn.addEventListener('click', toggleAutoSave);
+  mirrorBtn.addEventListener('click', toggleMirror);
 
   document.querySelectorAll('[data-preset]').forEach(btn => {
     btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
@@ -1046,6 +1080,7 @@
   function initialState(){
     applyPreset(defaults.preset);
     sizePreset.value = defaults.size;
+    mirror = defaults.mirror;
     setMode(defaults.mode);
     syncLabels();
 
