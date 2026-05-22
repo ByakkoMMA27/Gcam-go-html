@@ -620,6 +620,7 @@
   let currentResultUrl = '';
   let currentBlob = null;
   let mirrorEnabled = defaults.mirror;
+  let currentPreviewDataUrl = '';
 
   function clamp(v){ return Math.max(0, Math.min(255, Math.round(v))); }
 
@@ -818,11 +819,17 @@
   }
 
   function updateResultPreview(blob){
-    const url = URL.createObjectURL(blob);
-    if (currentResultUrl && currentResultUrl.startsWith('blob:')) URL.revokeObjectURL(currentResultUrl);
-    currentResultUrl = url;
-    resultImage.src = url;
-    resultPreview.src = url;
+    const previewQuality = mode === 'quality' ? 0.95 : 0.91;
+    const previewUrl = exportCanvas.toDataURL('image/jpeg', previewQuality);
+
+    if (currentPreviewDataUrl && currentPreviewDataUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(currentPreviewDataUrl);
+    }
+    currentPreviewDataUrl = previewUrl;
+    currentResultUrl = previewUrl;
+
+    resultImage.src = previewUrl;
+    resultPreview.src = previewUrl;
     downloadBtn.disabled = false;
   }
 
@@ -834,6 +841,27 @@
 
   async function saveBlob(blob){
     const filename = `gcam_${new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0,19)}.jpg`;
+    const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+
+    if ('showSaveFilePicker' in window) {
+      try {
+        const fileHandle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{
+            description: 'JPEG image',
+            accept: { 'image/jpeg': ['.jpg', '.jpeg'] }
+          }]
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        setToast(`Guardada: ${filename}`);
+        setStatus('ok', 'Guardada', 'Foto escrita en el dispositivo.');
+        return;
+      } catch (err) {
+        if (err?.name !== 'AbortError') console.warn(err);
+      }
+    }
 
     if (saveDirHandle && 'showDirectoryPicker' in window) {
       try {
@@ -856,17 +884,35 @@
       }
     }
 
+    if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: 'Foto procesada',
+          text: 'Imagen procesada por la cámara'
+        });
+        setToast('Compartir abierto');
+        setStatus('ok', 'Compartida', 'El panel del sistema se abrió con la foto.');
+        return;
+      } catch (err) {
+        if (err?.name !== 'AbortError') console.warn(err);
+      }
+    }
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
     a.rel = 'noopener';
+    a.style.display = 'none';
     document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 2500);
+    requestAnimationFrame(() => a.click());
+    setTimeout(() => {
+      a.remove();
+      URL.revokeObjectURL(url);
+    }, 2500);
     setToast('Descarga iniciada');
-    setStatus('warn', 'Descarga', 'El navegador descargó la foto automáticamente.');
+    setStatus('warn', 'Descarga', 'El navegador inició la descarga automática.');
   }
 
   async function exportFinalFromProcessedCanvas(){
