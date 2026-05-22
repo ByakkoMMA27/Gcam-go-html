@@ -593,6 +593,14 @@
             <input type="range" id="sharpness" min="0" max="1" step="0.01" value="0.25" />
           </div>
         </div>
+        <div class="section">
+          <div class="sectionTitle"><span>IA Lite</span><span>mejora opcional</span></div>
+          <button class="chip" id="aiLiteBtn" type="button">IA Lite: desactivada</button>
+          <div class="fineprint">
+            Esta capa no usa un modelo pesado. Aplica una mejora heurística final para proteger luces, levantar sombras suaves y sostener detalle sin volver la foto “plástica”.
+          </div>
+        </div>
+
 
         <div class="section">
           <div class="sectionTitle"><span>Salida</span><span>guardado</span></div>
@@ -675,6 +683,7 @@
     resetBtn: document.getElementById('resetBtn'),
     autoSaveBtn: document.getElementById('autoSaveBtn'),
     mirrorBtn: document.getElementById('mirrorBtn'),
+    aiLiteBtn: document.getElementById('aiLiteBtn'),
     pickFolderInsideBtn: document.getElementById('pickFolderInsideBtn'),
     fastModeBtn: document.getElementById('fastModeBtn'),
     qualityModeBtn: document.getElementById('qualityModeBtn'),
@@ -702,12 +711,12 @@
   };
 
   const STORAGE = {
-    settings: 'gcam_lite_studio_settings_v1',
-    gallery: 'gcam_lite_studio_gallery_v1',
-    lastDevice: 'gcam_lite_studio_device_v1'
+    settings: 'gcam_lite_studio_settings_v2',
+    gallery: 'gcam_lite_studio_gallery_v2',
+    lastDevice: 'gcam_lite_studio_device_v2'
   };
 
-  const DB_NAME = 'gcam_lite_studio_db';
+  const DB_NAME = 'gcam_lite_studio_db_v2';
   const DB_VERSION = 1;
   const STORE = 'photos';
 
@@ -759,7 +768,8 @@
     saturation: 1.06,
     sharpness: 0.25,
     autoSave: false,
-    mirror: false
+    mirror: false,
+    aiLite: true
   };
 
   const state = {
@@ -772,6 +782,7 @@
     preset: defaults.preset,
     autoSave: defaults.autoSave,
     mirror: defaults.mirror,
+    aiLite: defaults.aiLite,
     saveDirHandle: null,
     currentBlob: null,
     currentUrl: '',
@@ -831,7 +842,8 @@
       saturation: Number(ui.saturation.value),
       sharpness: Number(ui.sharpness.value),
       autoSave: state.autoSave,
-      mirror: state.mirror
+      mirror: state.mirror,
+      aiLite: state.aiLite
     };
     try { localStorage.setItem(STORAGE.settings, JSON.stringify(data)); } catch (_) {}
   }
@@ -855,6 +867,7 @@
         ui.sharpness.value = String(data.sharpness ?? defaults.sharpness);
         state.autoSave = !!data.autoSave;
         state.mirror = !!data.mirror;
+        state.aiLite = data.aiLite !== undefined ? !!data.aiLite : defaults.aiLite;
       }
     } catch (_) {}
   }
@@ -875,6 +888,10 @@
 
     ui.autoSaveBtn.textContent = `Auto-guardar: ${state.autoSave ? 'on' : 'off'}`;
     ui.mirrorBtn.textContent = `Espejo: ${state.mirror ? 'on' : 'off'}`;
+    if (ui.aiLiteBtn) {
+      ui.aiLiteBtn.textContent = `IA Lite: ${state.aiLite ? 'activada' : 'desactivada'}`;
+      ui.aiLiteBtn.classList.toggle('active', state.aiLite);
+    }
     ui.previewVideo.classList.toggle('mirrored', state.mirror);
 
     ui.fastModeBtn.classList.toggle('active', state.mode === 'fast');
@@ -919,9 +936,14 @@
   }
 
   function resetAll() {
-    state.preset = defaults.preset;
-    state.mode = defaults.mode;
-    state.facing = defaults.facing;
+    Object.assign(state, {
+      preset: defaults.preset,
+      mode: defaults.mode,
+      facing: defaults.facing,
+      autoSave: defaults.autoSave,
+      mirror: defaults.mirror,
+      aiLite: defaults.aiLite
+    });
     ui.sizePreset.value = defaults.output;
     ui.burstCount.value = String(defaults.burst);
     ui.detailBoost.value = String(defaults.detail);
@@ -930,11 +952,8 @@
     ui.contrast.value = String(defaults.contrast);
     ui.saturation.value = String(defaults.saturation);
     ui.sharpness.value = String(defaults.sharpness);
-    state.autoSave = defaults.autoSave;
-    state.mirror = defaults.mirror;
     syncLabels();
     saveSettings();
-    setStatus('ok', 'Restablecido', 'Se volvieron a cargar los valores base.');
     setToast('Valores restaurados');
   }
 
@@ -1085,6 +1104,13 @@
     syncLabels();
     saveSettings();
     setToast(state.mirror ? 'Espejo activado' : 'Espejo desactivado');
+  }
+
+  function toggleAiLite() {
+    state.aiLite = !state.aiLite;
+    syncLabels();
+    saveSettings();
+    setToast(state.aiLite ? 'IA Lite activada' : 'IA Lite desactivada');
   }
 
   function setBusy(flag) {
@@ -1260,185 +1286,298 @@
     acc.weight += weight;
   }
 
-  function averageFrames(frameCanvases, width, height, cameraType) {
-    const base = frameCanvases[0].getContext('2d', { willReadFrequently: true, alpha: false }).getImageData(0, 0, width, height).data;
-    const accumulator = {
-      data: new Float32Array(width * height * 4),
-      weight: 0
-    };
-
-    // Use the first frame as reference.
-    applyShiftedFrame(accumulator, base, width, height, 0, 0, 1);
-
-    if (frameCanvases.length > 1) {
-      const downW = Math.max(180, Math.round(width / 10));
-      const downH = Math.max(180, Math.round(height / 10));
-
-      const refSmall = document.createElement('canvas');
-      refSmall.width = downW;
-      refSmall.height = downH;
-      const rctx = refSmall.getContext('2d', { willReadFrequently: true, alpha: false });
-      rctx.drawImage(frameCanvases[0], 0, 0, downW, downH);
-      const refData = rctx.getImageData(0, 0, downW, downH).data;
-
-      for (let i = 1; i < frameCanvases.length; i++) {
-        const small = document.createElement('canvas');
-        small.width = downW;
-        small.height = downH;
-        const sctx = small.getContext('2d', { willReadFrequently: true, alpha: false });
-        sctx.drawImage(frameCanvases[i], 0, 0, downW, downH);
-        const imgData = sctx.getImageData(0, 0, downW, downH).data;
-
-        const shift = estimateShift(refSmall.getContext('2d').getImageData(0, 0, downW, downH).data, imgData, downW, downH, cameraType === 'environment' ? 5 : 3, 4);
-        const sx = Math.round(shift.dx * (width / downW));
-        const sy = Math.round(shift.dy * (height / downH));
-        const data = frameCanvases[i].getContext('2d', { willReadFrequently: true, alpha: false }).getImageData(0, 0, width, height).data;
-        applyShiftedFrame(accumulator, data, width, height, sx, sy, 1);
-      }
+  
+function focusScore(data, width, height) {
+  let sum = 0;
+  let count = 0;
+  for (let y = 1; y < height; y += 2) {
+    for (let x = 1; x < width; x += 2) {
+      const i = (y * width + x) * 4;
+      const l = rgbToGray(data[i], data[i + 1], data[i + 2]);
+      const l1 = rgbToGray(data[i - 4], data[i - 3], data[i - 2]);
+      const l2 = rgbToGray(data[i - width * 4], data[i - width * 4 + 1], data[i - width * 4 + 2]);
+      sum += Math.abs(l - l1) + Math.abs(l - l2);
+      count += 2;
     }
+  }
+  return count ? sum / count : 0;
+}
 
-    const avg = new Uint8ClampedArray(width * height * 4);
-    const denom = Math.max(1, accumulator.weight);
-    for (let i = 0; i < avg.length; i++) {
-      avg[i] = clamp(accumulator.data[i] / denom);
-    }
-    return avg;
+function downscaleCanvasData(canvas, width, height) {
+  const temp = document.createElement('canvas');
+  temp.width = width;
+  temp.height = height;
+  const ctx = temp.getContext('2d', { willReadFrequently: true, alpha: false });
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(canvas, 0, 0, width, height);
+  return ctx.getImageData(0, 0, width, height).data;
+}
+
+function averageFrames(frameCanvases, width, height, cameraType) {
+  if (!frameCanvases.length) return new Uint8ClampedArray(width * height * 4);
+  if (frameCanvases.length === 1) {
+    return frameCanvases[0].getContext('2d', { willReadFrequently: true, alpha: false }).getImageData(0, 0, width, height).data;
   }
 
-  function estimateWhiteBalance(data) {
-    let rSum = 0, gSum = 0, bSum = 0, n = 0;
-    const step = Math.max(16, Math.floor(data.length / 22000));
+  const downW = Math.max(160, Math.round(width / 12));
+  const downH = Math.max(160, Math.round(height / 12));
+  const smallFrames = frameCanvases.map(c => downscaleCanvasData(c, downW, downH));
+  const scores = smallFrames.map(d => focusScore(d, downW, downH));
+  const refIndex = scores.indexOf(Math.max(...scores));
+  const refSmall = smallFrames[refIndex];
+  const refScore = scores[refIndex] || 1;
+
+  const shifts = [];
+  let motionSum = 0;
+  for (let i = 0; i < smallFrames.length; i++) {
+    if (i === refIndex) continue;
+    const shift = estimateShift(refSmall, smallFrames[i], downW, downH, cameraType === 'environment' ? 5 : 3, 4);
+    const dx = Math.round(shift.dx * (width / downW));
+    const dy = Math.round(shift.dy * (height / downH));
+    const mag = Math.abs(dx) + Math.abs(dy);
+    motionSum += mag;
+    shifts.push({ i, dx, dy, mag });
+  }
+
+  const avgMotion = shifts.length ? motionSum / shifts.length : 0;
+  const motionLimit = cameraType === 'environment' ? 2.3 : 1.7;
+
+  // Si hay movimiento, priorizamos la foto más nítida en vez de mezclar borroso.
+  if (avgMotion > motionLimit) {
+    return frameCanvases[refIndex].getContext('2d', { willReadFrequently: true, alpha: false }).getImageData(0, 0, width, height).data;
+  }
+
+  const accumulator = {
+    data: new Float32Array(width * height * 4),
+    weight: 0
+  };
+
+  const refData = frameCanvases[refIndex].getContext('2d', { willReadFrequently: true, alpha: false }).getImageData(0, 0, width, height).data;
+  applyShiftedFrame(accumulator, refData, width, height, 0, 0, 1.08);
+
+  for (const s of shifts) {
+    const canvas = frameCanvases[s.i];
+    const data = canvas.getContext('2d', { willReadFrequently: true, alpha: false }).getImageData(0, 0, width, height).data;
+    const scoreWeight = q01(scores[s.i] / refScore);
+    const weight = 0.68 + scoreWeight * 0.42;
+    applyShiftedFrame(accumulator, data, width, height, s.dx, s.dy, weight);
+  }
+
+  const avg = new Uint8ClampedArray(width * height * 4);
+  const denom = Math.max(1, accumulator.weight);
+  for (let i = 0; i < avg.length; i++) {
+    avg[i] = clamp(accumulator.data[i] / denom);
+  }
+  return avg;
+}
+
+function estimateWhiteBalance(data, cameraType) {
+  let rSum = 0;
+  let gSum = 0;
+  let bSum = 0;
+  let n = 0;
+  const step = Math.max(12, Math.floor((data.length / 4) / 18000));
+
+  for (let i = 0; i < data.length; i += 4 * step) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const l = rgbToGray(r, g, b);
+    const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+
+    // Ignora negros, blancos quemados y píxeles demasiado saturados.
+    if (l < 14 || l > 242 || chroma > 120) continue;
+
+    rSum += r;
+    gSum += g;
+    bSum += b;
+    n++;
+  }
+
+  if (n < 24) {
     for (let i = 0; i < data.length; i += 4 * step) {
       rSum += data[i];
       gSum += data[i + 1];
       bSum += data[i + 2];
       n++;
     }
-    const rAvg = rSum / n || 1;
-    const gAvg = gSum / n || 1;
-    const bAvg = bSum / n || 1;
-    const gray = (rAvg + gAvg + bAvg) / 3;
-    return {
-      r: gray / rAvg,
-      g: gray / gAvg,
-      b: gray / bAvg
-    };
   }
 
-  function applyToneMap(data, width, height, strength, cameraType) {
-    const out = new Uint8ClampedArray(data.length);
-    const wb = estimateWhiteBalance(data);
-    const exposure = Number(ui.exposure.value);
-    const contrast = Number(ui.contrast.value);
-    const saturation = Number(ui.saturation.value);
-    const sharpness = Number(ui.sharpness.value);
-    const detailBoost = Number(ui.detailBoost.value);
-    const noiseBoost = Number(ui.noiseReduction.value);
+  const rAvg = rSum / Math.max(1, n);
+  const gAvg = gSum / Math.max(1, n);
+  const bAvg = bSum / Math.max(1, n);
+  const gray = (rAvg + gAvg + bAvg) / 3 || 1;
 
-    const rear = cameraType === 'environment';
-    const saturationBoost = rear ? 1.0 : 0.92;
-    const sharpenBoost = rear ? 1.05 : 0.78;
-    const softShadow = rear ? 0.08 : 0.14;
-    const highlightCut = rear ? 0.92 : 0.88;
+  let rGain = gray / Math.max(1, rAvg);
+  let gGain = gray / Math.max(1, gAvg);
+  let bGain = gray / Math.max(1, bAvg);
 
-    for (let i = 0; i < data.length; i += 4) {
-      let r = data[i] * wb.r;
-      let g = data[i + 1] * wb.g;
-      let b = data[i + 2] * wb.b;
+  const rear = cameraType === 'environment';
+  const warmBias = rear ? 1.00 : 0.98;
+  const coolBias = rear ? 1.00 : 1.02;
 
-      r *= exposure;
-      g *= exposure;
-      b *= exposure;
+  rGain *= warmBias;
+  bGain *= coolBias;
 
-      // Soft tone curve with highlight compression.
-      const lum = rgbToGray(r, g, b) / 255;
-      const shadowLift = softShadow * (1 - lum);
-      const curve = lum < 0.5 ? lum * (1 + shadowLift) : 1 - (1 - lum) * (1 + (1 - highlightCut) * 0.45);
-      const k = q01(curve);
-      const t = contrast;
-      const r2 = k * 255 + (r - k * 255) * t;
-      const g2 = k * 255 + (g - k * 255) * t;
-      const b2 = k * 255 + (b - k * 255) * t;
+  return {
+    r: Math.min(1.45, Math.max(0.72, rGain)),
+    g: Math.min(1.35, Math.max(0.75, gGain)),
+    b: Math.min(1.45, Math.max(0.72, bGain))
+  };
+}
 
-      const gray = rgbToGray(r2, g2, b2);
-      const sat = saturation * saturationBoost;
-      r = gray + (r2 - gray) * sat;
-      g = gray + (g2 - gray) * sat;
-      b = gray + (b2 - gray) * sat;
+function acesTonemap(x) {
+  const v = Math.max(0, x);
+  return Math.min(1, (v * (2.51 * v + 0.03)) / (v * (2.43 * v + 0.59) + 0.14));
+}
 
-      // Gentle local tone shaping.
-      const local = 1 + (detailBoost - 0.5) * 0.16;
-      r *= local;
-      g *= local;
-      b *= local;
+function applyToneMap(data, width, height, strength, cameraType) {
+  const out = new Uint8ClampedArray(data.length);
+  const wb = estimateWhiteBalance(data, cameraType);
+  const exposure = Number(ui.exposure.value);
+  const contrast = Number(ui.contrast.value);
+  const saturation = Number(ui.saturation.value);
+  const sharpness = Number(ui.sharpness.value);
+  const detailBoost = Number(ui.detailBoost.value);
+  const noiseBoost = Number(ui.noiseReduction.value);
+  const rear = cameraType === 'environment';
+  const ai = !!state.aiLite;
 
-      out[i] = clamp(r);
-      out[i + 1] = clamp(g);
-      out[i + 2] = clamp(b);
-      out[i + 3] = data[i + 3];
+  const saturationBoost = rear ? 1.00 : 0.93;
+  const sharpenBoost = rear ? 1.08 : 0.76;
+  const shadowLift = rear ? 0.10 : 0.15;
+  const highlightProtect = rear ? 0.22 : 0.28;
+  const localPop = 1 + (detailBoost - 0.5) * 0.16 + (ai ? 0.04 : 0);
+
+  for (let i = 0; i < data.length; i += 4) {
+    let r = (data[i] / 255) * wb.r * exposure;
+    let g = (data[i + 1] / 255) * wb.g * exposure;
+    let b = (data[i + 2] / 255) * wb.b * exposure;
+
+    // Compresión suave de altas luces + levantado de sombras.
+    let lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    const shadow = shadowLift * (1 - Math.min(1, Math.max(0, lum)));
+    const highlight = highlightProtect * Math.max(0, lum - 0.60);
+    lum = acesTonemap(lum * (1.14 + (ai ? 0.04 : 0))) + shadow - highlight;
+    lum = q01(lum);
+
+    const scale = lum / Math.max(0.0001, 0.2126 * r + 0.7152 * g + 0.0722 * b);
+    r *= scale;
+    g *= scale;
+    b *= scale;
+
+    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+    const sat = saturation * saturationBoost * (ai ? 1.02 : 1.0);
+    r = gray + (r - gray) * sat;
+    g = gray + (g - gray) * sat;
+    b = gray + (b - gray) * sat;
+
+    r = 0.5 + (r - 0.5) * contrast;
+    g = 0.5 + (g - 0.5) * contrast;
+    b = 0.5 + (b - 0.5) * contrast;
+
+    r *= localPop;
+    g *= localPop;
+    b *= localPop;
+
+    out[i] = clamp(r * 255);
+    out[i + 1] = clamp(g * 255);
+    out[i + 2] = clamp(b * 255);
+    out[i + 3] = data[i + 3];
+  }
+
+  // Reducción de ruido preservando detalle en luminancia.
+  const blurMix = q01(noiseBoost * (rear ? 0.42 : 0.52) + (cameraType === 'user' ? 0.05 : 0) + (ai ? 0.04 : 0));
+  if (blurMix > 0.001) {
+    const blurred = boxBlurRGBA(out, width, height, rear ? 1 : 1);
+    const preserve = rear ? 0.50 : 0.62;
+    for (let i = 0; i < out.length; i += 4) {
+      const oldL = rgbToGray(out[i], out[i + 1], out[i + 2]);
+      const blurL = rgbToGray(blurred[i], blurred[i + 1], blurred[i + 2]);
+      const lDetail = (oldL - blurL) * preserve;
+
+      out[i] = clamp(lerp(out[i], blurred[i], blurMix) + lDetail);
+      out[i + 1] = clamp(lerp(out[i + 1], blurred[i + 1], blurMix) + lDetail);
+      out[i + 2] = clamp(lerp(out[i + 2], blurred[i + 2], blurMix) + lDetail);
     }
+  }
 
-    // Noise reduction by channel blur mix.
-    const blurMix = q01(noiseBoost * 0.58 + (cameraType === 'user' ? 0.10 : 0));
-    if (blurMix > 0.001) {
-      const blurred = boxBlurRGBA(out, width, height, cameraType === 'environment' ? 1 : 1);
-      for (let i = 0; i < out.length; i += 4) {
-        out[i] = clamp(lerp(out[i], blurred[i], blurMix));
-        out[i + 1] = clamp(lerp(out[i + 1], blurred[i + 1], blurMix));
-        out[i + 2] = clamp(lerp(out[i + 2], blurred[i + 2], blurMix));
+  // Enfoque final tipo unsharp, pero con margen para no arruinar piel/fondos.
+  const amount = q01(sharpness * sharpenBoost + (ai ? 0.03 : 0)) * 1.25;
+  if (amount > 0.001) {
+    const blurred = boxBlurRGBA(out, width, height, 1);
+    for (let i = 0; i < out.length; i += 4) {
+      const detail = rgbToGray(out[i], out[i + 1], out[i + 2]) - rgbToGray(blurred[i], blurred[i + 1], blurred[i + 2]);
+      const boost = detail * amount;
+      out[i] = clamp(out[i] + boost);
+      out[i + 1] = clamp(out[i + 1] + boost);
+      out[i + 2] = clamp(out[i + 2] + boost);
+    }
+  }
+
+  return out;
+}
+
+function boxBlurRGBA(data, width, height, radius = 1) {
+  const r = Math.max(1, radius | 0);
+  if (r <= 0) return data.slice();
+
+  const temp = new Float32Array(data.length);
+  const out = new Uint8ClampedArray(data.length);
+  const w4 = width * 4;
+
+  // Horizontal pass.
+  for (let y = 0; y < height; y++) {
+    const row = y * w4;
+    for (let x = 0; x < width; x++) {
+      let rs = 0, gs = 0, bs = 0, as = 0, count = 0;
+      for (let dx = -r; dx <= r; dx++) {
+        const sx = x + dx;
+        if (sx < 0 || sx >= width) continue;
+        const i = row + sx * 4;
+        rs += data[i];
+        gs += data[i + 1];
+        bs += data[i + 2];
+        as += data[i + 3];
+        count++;
       }
+      const o = row + x * 4;
+      temp[o] = rs / count;
+      temp[o + 1] = gs / count;
+      temp[o + 2] = bs / count;
+      temp[o + 3] = as / count;
     }
+  }
 
-    // Unsharp mask.
-    const amount = q01(sharpness * sharpenBoost) * 1.5;
-    if (amount > 0.001) {
-      const blurred = boxBlurRGBA(out, width, height, 1);
-      for (let i = 0; i < out.length; i += 4) {
-        out[i] = clamp(out[i] + (out[i] - blurred[i]) * amount);
-        out[i + 1] = clamp(out[i + 1] + (out[i + 1] - blurred[i + 1]) * amount);
-        out[i + 2] = clamp(out[i + 2] + (out[i + 2] - blurred[i + 2]) * amount);
+  // Vertical pass.
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let rs = 0, gs = 0, bs = 0, as = 0, count = 0;
+      for (let dy = -r; dy <= r; dy++) {
+        const sy = y + dy;
+        if (sy < 0 || sy >= height) continue;
+        const i = (sy * width + x) * 4;
+        rs += temp[i];
+        gs += temp[i + 1];
+        bs += temp[i + 2];
+        as += temp[i + 3];
+        count++;
       }
+      const o = (y * width + x) * 4;
+      out[o] = rs / count;
+      out[o + 1] = gs / count;
+      out[o + 2] = bs / count;
+      out[o + 3] = as / count;
     }
-
-    return out;
   }
+  return out;
+}
 
-  function boxBlurRGBA(data, width, height, radius = 1) {
-    const out = new Uint8ClampedArray(data.length);
-    const w = width;
-    const h = height;
-    const r = Math.max(1, radius);
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        let rs = 0, gs = 0, bs = 0, as = 0, count = 0;
-        for (let yy = -r; yy <= r; yy++) {
-          const sy = y + yy;
-          if (sy < 0 || sy >= h) continue;
-          for (let xx = -r; xx <= r; xx++) {
-            const sx = x + xx;
-            if (sx < 0 || sx >= w) continue;
-            const i = (sy * w + sx) * 4;
-            rs += data[i];
-            gs += data[i + 1];
-            bs += data[i + 2];
-            as += data[i + 3];
-            count++;
-          }
-        }
-        const o = (y * w + x) * 4;
-        out[o] = rs / count;
-        out[o + 1] = gs / count;
-        out[o + 2] = bs / count;
-        out[o + 3] = as / count;
-      }
-    }
-    return out;
-  }
-
-  function applyGlobalFinish(data, width, height, cameraType) {
-    const out = applyToneMap(data, width, height, 1, cameraType);
-    return new ImageData(out, width, height);
-  }
+function applyGlobalFinish(data, width, height, cameraType) {
+  const out = applyToneMap(data, width, height, 1, cameraType);
+  return new ImageData(out, width, height);
+}
 
   async function renderFramesToResult(frameBitmaps) {
     if (!frameBitmaps.length) return null;
