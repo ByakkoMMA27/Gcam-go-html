@@ -149,7 +149,8 @@
       object-fit:cover;
       background:#000;
     }
-    #photoCanvas,#workCanvas,#resultImage{display:none}
+    #video.mirrored{transform:scaleX(-1);}
+    #photoCanvas,#workCanvas,#exportCanvas,#resultImage{display:none}
 
     .overlayHints{
       position:absolute;
@@ -411,6 +412,7 @@
       <video id="video" autoplay playsinline muted></video>
       <canvas id="photoCanvas"></canvas>
       <canvas id="workCanvas"></canvas>
+      <canvas id="exportCanvas"></canvas>
       <img id="resultImage" alt="Resultado procesado" />
       <div class="overlayHints">
         <div class="hintBox">
@@ -510,16 +512,9 @@
         </div>
 
         <div class="section">
-          <div class="sectionTitle"><span>Vista</span><span>espejo</span></div>
-          <button class="chip" id="mirrorBtn" type="button">Espejo: desactivado</button>
-          <div class="fineprint">
-            Úsalo si la cámara frontal o el navegador te muestran la imagen invertida. La foto guardada saldrá con la misma orientación que ves en pantalla.
-          </div>
-        </div>
-
-        <div class="section">
           <div class="sectionTitle"><span>Guardado</span><span>automático</span></div>
           <button class="good" id="autoSaveBtn" type="button">Auto-guardar: activado</button>
+          <button class="ghost" id="mirrorBtn" type="button">Espejo: desactivado</button>
           <button class="warn" id="pickFolderInsideBtn" type="button">Elegir carpeta de guardado</button>
           <div class="fineprint">
             Si eliges una carpeta, cada foto se guarda allí automáticamente con nombre único. Si el navegador no soporta esa función, la foto se descarga sola.
@@ -530,7 +525,7 @@
           <div class="sectionTitle"><span>Ayuda</span><span>web</span></div>
           <div class="fineprint">
             La cámara solo funciona en HTTPS o localhost. El acceso directo en el celular funciona mejor como icono de pantalla de inicio.
-            En navegador no siempre es posible escribir directamente en la galería; con File System Access API puedes guardar en una carpeta elegida, y si no está disponible la app cae a descarga automática. El modo espejo corrige cámaras que salen invertidas.
+            En navegador no siempre es posible escribir directamente en la galería; con File System Access API puedes guardar en una carpeta elegida, y si no está disponible la app cae a descarga automática.
           </div>
         </div>
 
@@ -548,6 +543,7 @@
   const video = document.getElementById('video');
   const photoCanvas = document.getElementById('photoCanvas');
   const workCanvas = document.getElementById('workCanvas');
+  const exportCanvas = document.getElementById('exportCanvas');
   const resultImage = document.getElementById('resultImage');
   const resultPreview = document.getElementById('resultPreview');
 
@@ -572,8 +568,8 @@
   const downloadBtn = document.getElementById('downloadBtn');
   const resetBtn = document.getElementById('resetBtn');
   const autoSaveBtn = document.getElementById('autoSaveBtn');
-  const pickFolderInsideBtn = document.getElementById('pickFolderInsideBtn');
   const mirrorBtn = document.getElementById('mirrorBtn');
+  const pickFolderInsideBtn = document.getElementById('pickFolderInsideBtn');
 
   const fastModeBtn = document.getElementById('fastModeBtn');
   const qualityModeBtn = document.getElementById('qualityModeBtn');
@@ -620,10 +616,10 @@
   let currentPreset = defaults.preset;
   let mode = defaults.mode;
   let autoSave = true;
-  let mirror = defaults.mirror;
   let saveDirHandle = null;
   let currentResultUrl = '';
-  let processedBlob = null;
+  let currentBlob = null;
+  let mirrorEnabled = defaults.mirror;
 
   function clamp(v){ return Math.max(0, Math.min(255, Math.round(v))); }
 
@@ -646,10 +642,8 @@
     presetBadge.textContent = `Preset: ${presets[currentPreset].title}`;
     modeBadge.textContent = `Modo ${mode === 'fast' ? 'rápido' : 'calidad'} · Salida ${sizePreset.value} px`;
     autoSaveBtn.textContent = `Auto-guardar: ${autoSave ? 'activado' : 'desactivado'}`;
-    mirrorBtn.textContent = `Espejo: ${mirror ? 'activado' : 'desactivado'}`;
-    mirrorBtn.classList.toggle('active', mirror);
-    video.style.transform = mirror ? 'scaleX(-1)' : 'none';
-    video.style.transformOrigin = 'center center';
+    mirrorBtn.textContent = `Espejo: ${mirrorEnabled ? 'activado' : 'desactivado'}`;
+    video.classList.toggle('mirrored', mirrorEnabled);
   }
 
   function stopStream(){
@@ -712,7 +706,6 @@
     applyPreset(defaults.preset);
     sizePreset.value = defaults.size;
     autoSave = true;
-    mirror = defaults.mirror;
     setMode(defaults.mode);
     syncLabels();
     setStatus('ok', 'Restablecido', 'Se aplicaron los valores por defecto.');
@@ -824,8 +817,8 @@
     return new ImageData(out, width, height);
   }
 
-  function renderResultFromCanvas(canvas){
-    const url = canvas.toDataURL('image/jpeg', mode === 'quality' ? 0.96 : 0.92);
+  function updateResultPreview(blob){
+    const url = URL.createObjectURL(blob);
     if (currentResultUrl && currentResultUrl.startsWith('blob:')) URL.revokeObjectURL(currentResultUrl);
     currentResultUrl = url;
     resultImage.src = url;
@@ -833,14 +826,10 @@
     downloadBtn.disabled = false;
   }
 
-  async function blobToObjectUrl(blob){
-    const url = URL.createObjectURL(blob);
-    if (currentResultUrl && currentResultUrl.startsWith('blob:')) URL.revokeObjectURL(currentResultUrl);
-    currentResultUrl = url;
-    resultImage.src = url;
-    resultPreview.src = url;
-    downloadBtn.disabled = false;
-    return url;
+  async function canvasToBlob(canvas, type='image/jpeg', quality=0.94){
+    return await new Promise((resolve) => {
+      canvas.toBlob((blob) => resolve(blob), type, quality);
+    });
   }
 
   async function saveBlob(blob){
@@ -880,28 +869,34 @@
     setStatus('warn', 'Descarga', 'El navegador descargó la foto automáticamente.');
   }
 
-  function finalizeCapture(){
-    if (!processedBlob) return;
-    if (autoSave) {
-      saveBtnPulse(true);
-      saveBlob(processedBlob).finally(() => saveBtnPulse(false));
+  async function exportFinalFromProcessedCanvas(){
+    exportCanvas.width = workCanvas.width;
+    exportCanvas.height = workCanvas.height;
+    const ectx = exportCanvas.getContext('2d', { willReadFrequently:true, alpha:false });
+    ectx.clearRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+    if (mirrorEnabled) {
+      ectx.save();
+      ectx.translate(exportCanvas.width, 0);
+      ectx.scale(-1, 1);
+      ectx.drawImage(workCanvas, 0, 0);
+      ectx.restore();
     } else {
-      setToast('Listo');
+      ectx.drawImage(workCanvas, 0, 0);
     }
+
+    const blob = await canvasToBlob(exportCanvas, 'image/jpeg', mode === 'quality' ? 0.96 : 0.92);
+    if (!blob) {
+      setStatus('bad', 'Error', 'No se pudo generar el JPEG.');
+      return null;
+    }
+    currentBlob = blob;
+    updateResultPreview(blob);
+    setStatus('ok', 'Procesado', `Imagen lista: ${exportCanvas.width}×${exportCanvas.height}`);
+    return blob;
   }
 
-  function saveBtnPulse(on){
-    const shutter = document.getElementById('captureBtn');
-    if (on) {
-      shutter.classList.add('saving');
-      shutter.disabled = true;
-    } else {
-      shutter.classList.remove('saving');
-      shutter.disabled = false;
-    }
-  }
-
-  function drawAndProcessImage(sourceImage, width, height){
+  async function drawAndProcessImage(sourceImage, width, height){
     const targetWidth = targetSize();
     const aspect = width / height || 3 / 4;
     const targetHeight = Math.max(1, Math.round(targetWidth / aspect));
@@ -911,7 +906,8 @@
     const ctx = photoCanvas.getContext('2d', { willReadFrequently:true, alpha:false });
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = mode === 'quality' ? 'high' : 'medium';
-    if (mirror) {
+
+    if (mirrorEnabled) {
       ctx.save();
       ctx.translate(targetWidth, 0);
       ctx.scale(-1, 1);
@@ -929,20 +925,19 @@
     const wctx = workCanvas.getContext('2d', { willReadFrequently:true, alpha:false });
     wctx.putImageData(processed, 0, 0);
 
-    workCanvas.toBlob(async (blob) => {
-      if (!blob) {
-        setStatus('bad', 'Error', 'No se pudo generar el JPEG.');
-        return;
-      }
-      processedBlob = blob;
-      await blobToObjectUrl(blob);
-      setStatus('ok', 'Procesado', `Imagen lista: ${targetWidth}×${targetHeight}`);
-      if (autoSave) {
+    const blob = await exportFinalFromProcessedCanvas();
+    if (!blob) return;
+
+    if (autoSave) {
+      saveBtnPulse(true);
+      try {
         await saveBlob(blob);
-      } else {
-        setToast('Foto lista');
+      } finally {
+        saveBtnPulse(false);
       }
-    }, 'image/jpeg', mode === 'quality' ? 0.96 : 0.92);
+    } else {
+      setToast('Foto lista');
+    }
   }
 
   function captureFrame(){
@@ -1033,12 +1028,9 @@
   }
 
   function toggleMirror(){
-    mirror = !mirror;
+    mirrorEnabled = !mirrorEnabled;
     syncLabels();
-    setToast(mirror ? 'Espejo activado' : 'Espejo desactivado');
-    if (video.srcObject) {
-      video.style.transform = mirror ? 'scaleX(-1)' : 'none';
-    }
+    setToast(mirrorEnabled ? 'Espejo activado' : 'Espejo desactivado');
   }
 
   startBtn.addEventListener('click', startCamera);
@@ -1054,12 +1046,9 @@
     fileInput.value = '';
   });
 
-  downloadBtn.addEventListener('click', () => {
-    if (!currentResultUrl) return;
-    const a = document.createElement('a');
-    a.href = currentResultUrl;
-    a.download = `gcam_${Date.now()}.jpg`;
-    a.click();
+  downloadBtn.addEventListener('click', async () => {
+    if (!currentBlob) return;
+    await saveBlob(currentBlob);
   });
 
   resetBtn.addEventListener('click', resetAll);
@@ -1080,7 +1069,6 @@
   function initialState(){
     applyPreset(defaults.preset);
     sizePreset.value = defaults.size;
-    mirror = defaults.mirror;
     setMode(defaults.mode);
     syncLabels();
 
