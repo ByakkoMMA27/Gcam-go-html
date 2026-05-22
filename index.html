@@ -687,6 +687,27 @@
     soft: { title:'Suave', desc:'Poco agresivo, pensado para evitar artefactos.', exposure:1.00, contrast:1.04, saturation:0.98, sharpness:0.08, denoise:0.28 }
   };
 
+  const cameraProfiles = {
+    environment: {
+      label: 'trasera',
+      exposureBoost: 1.03,
+      contrastBoost: 1.00,
+      saturationBoost: 1.02,
+      sharpnessBoost: 1.18,
+      denoiseBoost: 0.90,
+      qualitySize: 1280
+    },
+    user: {
+      label: 'frontal',
+      exposureBoost: 1.00,
+      contrastBoost: 0.98,
+      saturationBoost: 0.96,
+      sharpnessBoost: 0.82,
+      denoiseBoost: 1.22,
+      qualitySize: 960
+    }
+  };
+
   const defaults = {
     preset:'balanced',
     mode:'fast',
@@ -708,7 +729,9 @@
   let currentResultUrl = '';
   let currentBlob = null;
   let mirrorEnabled = defaults.mirror;
-  let currentPreviewDataUrl = '';
+  let activeFacingMode = 'environment';
+  let activeCameraLabel = 'trasera';
+  let activeDeviceId = '';
   const GALLERY_KEY = 'gcam_lite_gallery_v3';
   const MAX_GALLERY_ITEMS = 12;
   let galleryItems = loadGalleryItems();
@@ -733,7 +756,7 @@
     Object.keys(controls).forEach(k => valueLabels[k].textContent = Number(controls[k].value).toFixed(2));
     sizeVal.textContent = `${sizePreset.value} px`;
     presetBadge.textContent = `Preset: ${presets[currentPreset].title}`;
-    modeBadge.textContent = `Modo ${mode === 'fast' ? 'rápido' : 'calidad'} · Salida ${sizePreset.value} px`;
+    modeBadge.textContent = `Modo ${mode === 'fast' ? 'rápido' : 'calidad'} · ${activeCameraLabel} · Salida ${sizePreset.value} px`;
     autoSaveBtn.textContent = `Auto-guardar: ${autoSave ? 'activado' : 'desactivado'}`;
     mirrorBtn.textContent = `Espejo: ${mirrorEnabled ? 'activado' : 'desactivado'}`;
     video.classList.toggle('mirrored', mirrorEnabled);
@@ -744,6 +767,10 @@
       stream.getTracks().forEach(t => t.stop());
       stream = null;
     }
+  }
+
+  function saveBtnPulse(on){
+    captureBtn.classList.toggle('saving', !!on);
   }
 
   function openSheet(){
@@ -759,6 +786,24 @@
     if (e.target === sheet) closeSheet();
   });
 
+  function applyCameraProfile(facing){
+    const profile = cameraProfiles[facing] || cameraProfiles.environment;
+    activeFacingMode = facing;
+    activeCameraLabel = profile.label;
+    if (mode === 'quality') {
+      sizePreset.value = String(profile.qualitySize);
+    }
+    if (facing === 'user') {
+      controls.sharpness.value = String(Math.min(Number(controls.sharpness.value), 0.20));
+      controls.denoise.value = String(Math.max(Number(controls.denoise.value), 0.22));
+      controls.contrast.value = String(Math.min(Number(controls.contrast.value), 1.08));
+    } else {
+      controls.sharpness.value = String(Math.max(Number(controls.sharpness.value), 0.22));
+      controls.denoise.value = String(Math.min(Number(controls.denoise.value), 0.18));
+    }
+    syncLabels();
+  }
+
   function setMode(nextMode){
     mode = nextMode;
     fastModeBtn.classList.toggle('active', mode === 'fast');
@@ -769,7 +814,7 @@
       if (Number(controls.sharpness.value) > 0.24) controls.sharpness.value = '0.24';
       if (Number(controls.denoise.value) > 0.18) controls.denoise.value = '0.18';
     } else {
-      if (Number(sizePreset.value) < 1280) sizePreset.value = '1280';
+      if (Number(sizePreset.value) < (cameraProfiles[activeFacingMode] || cameraProfiles.environment).qualitySize) sizePreset.value = String((cameraProfiles[activeFacingMode] || cameraProfiles.environment).qualitySize);
       if (Number(controls.sharpness.value) < 0.22) controls.sharpness.value = '0.22';
       if (Number(controls.denoise.value) < 0.14) controls.denoise.value = '0.14';
     }
@@ -865,11 +910,12 @@
 
   function postProcessPixels(source, width, height) {
     const out = new Uint8ClampedArray(source.length);
-    const exposure = Number(controls.exposure.value);
-    const contrast = Number(controls.contrast.value);
-    const saturation = Number(controls.saturation.value);
-    const sharpness = Number(controls.sharpness.value);
-    const denoise = Number(controls.denoise.value);
+    const profile = cameraProfiles[activeFacingMode] || cameraProfiles.environment;
+    const exposure = Number(controls.exposure.value) * profile.exposureBoost;
+    const contrast = Number(controls.contrast.value) * profile.contrastBoost;
+    const saturation = Number(controls.saturation.value) * profile.saturationBoost;
+    const sharpness = Number(controls.sharpness.value) * profile.sharpnessBoost;
+    const denoise = Number(controls.denoise.value) * profile.denoiseBoost;
 
     for (let i = 0; i < source.length; i += 4) {
       let r = source[i] * exposure;
@@ -911,10 +957,11 @@
   }
 
   function updateResultPreview(blob){
-    const previewQuality = mode === 'quality' ? 0.95 : 0.91;
-    const previewUrl = exportCanvas.toDataURL('image/jpeg', previewQuality);
+    if (currentResultUrl && currentResultUrl.startsWith('blob:')) {
+      try { URL.revokeObjectURL(currentResultUrl); } catch (_) {}
+    }
 
-    currentPreviewDataUrl = previewUrl;
+    const previewUrl = URL.createObjectURL(blob);
     currentResultUrl = previewUrl;
 
     resultImage.src = previewUrl;
@@ -1142,16 +1189,7 @@
     exportCanvas.height = workCanvas.height;
     const ectx = exportCanvas.getContext('2d', { willReadFrequently:true, alpha:false });
     ectx.clearRect(0, 0, exportCanvas.width, exportCanvas.height);
-
-    if (mirrorEnabled) {
-      ectx.save();
-      ectx.translate(exportCanvas.width, 0);
-      ectx.scale(-1, 1);
-      ectx.drawImage(workCanvas, 0, 0);
-      ectx.restore();
-    } else {
-      ectx.drawImage(workCanvas, 0, 0);
-    }
+    ectx.drawImage(workCanvas, 0, 0);
 
     const blob = await canvasToBlob(exportCanvas, 'image/jpeg', mode === 'quality' ? 0.96 : 0.92);
     if (!blob) {
@@ -1260,10 +1298,31 @@
       video.srcObject = stream;
       await video.play();
 
+      const track = stream.getVideoTracks()[0];
+      const settings = track?.getSettings?.() || {};
+      activeFacingMode = settings.facingMode || facingMode || 'environment';
+      activeDeviceId = settings.deviceId || '';
+
+      if (!settings.facingMode && navigator.mediaDevices.enumerateDevices) {
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const videoInput = devices.find(d =>
+            d.kind === 'videoinput' &&
+            /back|rear|environment|trasera/i.test(d.label)
+          ) || devices.find(d => d.kind === 'videoinput' && /front|user|frontal/i.test(d.label));
+          if (videoInput) {
+            activeDeviceId = videoInput.deviceId || activeDeviceId;
+            activeFacingMode = /front|user|frontal/i.test(videoInput.label) ? 'user' : 'environment';
+          }
+        } catch (_) {}
+      }
+
+      applyCameraProfile(activeFacingMode);
+
       captureBtn.disabled = false;
       switchBtn.disabled = false;
-      setStatus('ok', 'Cámara activa', `Cámara ${facingMode === 'environment' ? 'trasera' : 'frontal'} lista.`);
-      setToast('Cámara iniciada');
+      setStatus('ok', 'Cámara activa', `Cámara ${activeCameraLabel} lista.`);
+      setToast(`Cámara ${activeCameraLabel} iniciada`);
     } catch (err) {
       console.error(err);
       setStatus('bad', 'No se pudo iniciar', `${err.name || 'Error'}: ${err.message || 'No se pudo abrir la cámara.'}`);
@@ -1352,6 +1411,7 @@
   function initialState(){
     applyPreset(defaults.preset);
     sizePreset.value = defaults.size;
+    applyCameraProfile('environment');
     setMode(defaults.mode);
     syncLabels();
     renderGallery();
