@@ -1,58 +1,57 @@
-
 <!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#05070b" />
-  <title>GCam Lite Mobile</title>
+  <title>GCam Lite Studio</title>
   <style>
     :root{
       color-scheme: dark;
       --bg:#05070b;
-      --panel:rgba(17,20,28,.74);
-      --panel-solid:#11141c;
-      --panel2:#171c27;
+      --panel:rgba(16,20,28,.78);
+      --panel-strong:#10141c;
+      --panel-soft:#151a25;
       --line:rgba(255,255,255,.10);
       --text:#edf3ff;
-      --muted:#9aa6ba;
-      --accent:#79a8ff;
-      --accent2:#7de0b2;
-      --warn:#ffd264;
-      --good:#71e1a1;
+      --muted:#99a6bb;
+      --accent:#77a6ff;
+      --accent2:#7be0b1;
+      --warn:#ffd166;
+      --good:#72e09d;
       --bad:#ff8b8b;
-      --shadow:0 16px 50px rgba(0,0,0,.42);
       --radius:24px;
       --radius-sm:18px;
+      --shadow:0 18px 50px rgba(0,0,0,.42);
     }
 
     *{box-sizing:border-box}
     html,body{height:100%; margin:0}
     body{
       background:
-        radial-gradient(circle at top, rgba(121,168,255,.15), transparent 34%),
-        radial-gradient(circle at 80% 10%, rgba(125,224,178,.10), transparent 26%),
-        linear-gradient(180deg, #080b11, #040509);
+        radial-gradient(circle at top, rgba(119,166,255,.16), transparent 32%),
+        radial-gradient(circle at 80% 8%, rgba(123,224,177,.10), transparent 26%),
+        linear-gradient(180deg, #090c12 0%, #040509 100%);
       color:var(--text);
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,sans-serif;
       overflow:hidden;
     }
-    button, select, input{font:inherit; color:inherit}
+    button,select,input{font:inherit; color:inherit}
     button{
       border:1px solid var(--line);
       background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
       border-radius:16px;
       padding:12px 14px;
       cursor:pointer;
-      transition:transform .12s ease, opacity .12s ease, background .12s ease, border-color .12s ease;
+      transition:transform .12s ease, opacity .12s ease, border-color .12s ease, background .12s ease;
       touch-action:manipulation;
       -webkit-tap-highlight-color:transparent;
     }
     button:active{transform:scale(.98)}
-    button:disabled{opacity:.55; cursor:not-allowed}
-    button.primary{background:linear-gradient(180deg,#4e7dff,#2c58dc); border-color:#5f87ff}
-    button.good{background:linear-gradient(180deg,#38b67f,#228a5d); border-color:#2ea46f}
-    button.warn{background:linear-gradient(180deg,#d2a337,#a67811); border-color:#b9861c}
+    button:disabled{opacity:.5; cursor:not-allowed}
+    button.primary{background:linear-gradient(180deg,#527ff0,#2f5cd8); border-color:#5f87ff}
+    button.good{background:linear-gradient(180deg,#3bb883,#228a5d); border-color:#2fa56d}
+    button.warn{background:linear-gradient(180deg,#d7a838,#a87612); border-color:#bd8d1c}
     button.ghost{background:rgba(255,255,255,.03)}
     button.icon{
       width:46px; height:46px; padding:0;
@@ -68,9 +67,9 @@
       flex:0 0 auto;
     }
     button.chip.active{
-      background:linear-gradient(180deg, rgba(121,168,255,.24), rgba(121,168,255,.10));
-      border-color:rgba(121,168,255,.55);
-      box-shadow:0 0 0 1px rgba(121,168,255,.10) inset;
+      background:linear-gradient(180deg, rgba(119,166,255,.24), rgba(119,166,255,.10));
+      border-color:rgba(119,166,255,.60);
+      box-shadow:0 0 0 1px rgba(119,166,255,.10) inset;
     }
 
     .app{
@@ -92,7 +91,6 @@
       pointer-events:none;
     }
     .topbar > *{pointer-events:auto}
-
     .pill{
       display:inline-flex;
       align-items:center;
@@ -108,7 +106,7 @@
     }
     .pill strong{
       font-size:12px;
-      font-weight:700;
+      font-weight:750;
       letter-spacing:.2px;
     }
     .pill span{
@@ -122,10 +120,10 @@
     .statusDot{
       width:10px; height:10px; border-radius:999px;
       background:var(--good);
-      box-shadow:0 0 0 4px rgba(113,225,161,.12);
+      box-shadow:0 0 0 4px rgba(114,224,157,.12);
       flex:0 0 auto;
     }
-    .statusDot.warn{background:var(--warn); box-shadow:0 0 0 4px rgba(255,210,100,.12)}
+    .statusDot.warn{background:var(--warn); box-shadow:0 0 0 4px rgba(255,209,102,.12)}
     .statusDot.bad{background:var(--bad); box-shadow:0 0 0 4px rgba(255,139,139,.12)}
 
     .stageWrap{
@@ -134,7 +132,6 @@
       display:grid;
       grid-template-rows:1fr auto;
     }
-
     .stage{
       position:relative;
       overflow:hidden;
@@ -149,8 +146,8 @@
       object-fit:cover;
       background:#000;
     }
-    #video.mirrored{transform:scaleX(-1);}
-    #photoCanvas,#workCanvas,#exportCanvas,#resultImage{display:none}
+    #previewVideo.mirrored{transform:scaleX(-1);}
+    #photoCanvas,#workCanvas,#exportCanvas,#fileImage{display:none}
 
     .overlayHints{
       position:absolute;
@@ -167,7 +164,7 @@
     .hintBox{
       display:grid;
       gap:4px;
-      max-width:60%;
+      max-width:62%;
     }
     .hintBox strong{
       font-size:13px;
@@ -179,8 +176,8 @@
       line-height:1.35;
     }
     .thumb{
-      width:74px;
-      height:74px;
+      width:76px;
+      height:76px;
       border-radius:18px;
       overflow:hidden;
       border:1px solid rgba(255,255,255,.13);
@@ -190,6 +187,32 @@
     }
     .thumb img{
       width:100%; height:100%; object-fit:cover;
+    }
+    .toast{
+      position:absolute;
+      left:50%;
+      bottom:110px;
+      transform:translateX(-50%) translateY(12px);
+      opacity:0;
+      z-index:12;
+      max-width:min(92vw, 420px);
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(0,0,0,.72);
+      border:1px solid rgba(255,255,255,.12);
+      color:#f3f6ff;
+      font-size:13px;
+      box-shadow:var(--shadow);
+      pointer-events:none;
+      transition:opacity .22s ease, transform .22s ease;
+      text-align:center;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
     }
 
     .bottomBar{
@@ -222,7 +245,7 @@
       width:74px; height:74px;
       border-radius:999px;
       border:4px solid rgba(255,255,255,.85);
-      background:linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,.08));
+      background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.06));
       box-shadow:0 12px 34px rgba(0,0,0,.45);
       position:relative;
     }
@@ -263,7 +286,7 @@
       border-radius:28px;
       box-shadow:0 -20px 40px rgba(0,0,0,.38);
       overflow:hidden;
-      max-height:min(76vh, 760px);
+      max-height:min(76vh, 780px);
       display:grid;
       grid-template-rows:auto 1fr;
     }
@@ -288,7 +311,6 @@
       display:grid;
       gap:14px;
     }
-
     .section{
       border:1px solid var(--line);
       background:rgba(255,255,255,.03);
@@ -307,7 +329,6 @@
       text-transform:uppercase;
       letter-spacing:.3px;
     }
-
     .presetRow{
       display:flex;
       gap:8px;
@@ -317,7 +338,6 @@
     }
     .presetRow::-webkit-scrollbar{height:8px}
     .presetRow::-webkit-scrollbar-thumb{background:rgba(255,255,255,.10); border-radius:999px}
-
     .sliderCard{
       display:grid;
       gap:8px;
@@ -338,7 +358,7 @@
     select{
       width:100%;
       border:1px solid var(--line);
-      background:var(--panel2);
+      background:var(--panel-soft);
       border-radius:14px;
       padding:12px 14px;
     }
@@ -347,6 +367,7 @@
       font-size:12px;
       line-height:1.5;
     }
+
     .galleryHeader{
       display:flex;
       justify-content:space-between;
@@ -374,8 +395,8 @@
       text-align:left;
     }
     .galleryItem.selected{
-      border-color:rgba(121,168,255,.7);
-      box-shadow:0 0 0 1px rgba(121,168,255,.12) inset;
+      border-color:rgba(119,166,255,.72);
+      box-shadow:0 0 0 1px rgba(119,166,255,.12) inset;
     }
     .galleryThumb{
       aspect-ratio:3 / 4;
@@ -421,46 +442,19 @@
       gap:10px;
     }
     .hidden{display:none !important}
-    .toast{
-      position:absolute;
-      left:50%;
-      bottom:110px;
-      transform:translateX(-50%) translateY(12px);
-      opacity:0;
-      z-index:12;
-      max-width:min(92vw, 420px);
-      padding:10px 14px;
-      border-radius:999px;
-      background:rgba(0,0,0,.72);
-      border:1px solid rgba(255,255,255,.12);
-      color:#f3f6ff;
-      font-size:13px;
-      box-shadow:var(--shadow);
-      pointer-events:none;
-      transition:opacity .22s ease, transform .22s ease;
-      text-align:center;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .toast.show{
-      opacity:1;
-      transform:translateX(-50%) translateY(0);
-    }
 
     @media (min-width: 900px){
       .topbar{padding:16px 16px 8px}
-      .stageWrap{grid-template-rows:1fr auto}
       .bottomBar{padding:14px 16px calc(14px + env(safe-area-inset-bottom))}
       .bottomRow{max-width:760px; margin:0 auto}
       .sheetCard{max-width:760px; margin:0 auto 12px}
     }
-
     @media (max-width: 520px){
       .thumb{width:64px; height:64px; border-radius:16px}
       .shutter{width:68px; height:68px}
       .cameraButton{width:44px; height:44px}
       .hintBox{max-width:54%}
+      .galleryGrid{grid-template-columns:repeat(2, minmax(0, 1fr))}
     }
   </style>
 </head>
@@ -469,29 +463,29 @@
   <div class="topbar">
     <div class="pill" style="min-width:0">
       <span class="statusDot" id="statusDot"></span>
-      <strong id="statusBadgeText">Listo</strong>
-      <span id="statusMini">Pulsa iniciar cámara</span>
+      <strong id="statusTitle">Listo</strong>
+      <span id="statusText">Pulsa iniciar cámara</span>
     </div>
     <button class="icon" id="settingsBtn" aria-label="Abrir ajustes">⚙</button>
   </div>
 
   <div class="stageWrap">
     <section class="stage">
-      <video id="video" autoplay playsinline muted></video>
+      <video id="previewVideo" autoplay playsinline muted></video>
       <canvas id="photoCanvas"></canvas>
       <canvas id="workCanvas"></canvas>
       <canvas id="exportCanvas"></canvas>
-      <img id="resultImage" alt="Resultado procesado" />
+      <img id="fileImage" alt="Imagen cargada" />
       <div class="overlayHints">
         <div class="hintBox">
-          <strong id="presetBadge">Preset: Equilibrado</strong>
-          <small id="modeBadge">Modo rápido · Salida 960 px</small>
+          <strong id="profileBadge">Perfil: Equilibrado</strong>
+          <small id="modeBadge">Modo rápido · Salida 1600 px</small>
         </div>
         <div class="thumb">
-          <img id="resultPreview" alt="Última foto" />
+          <img id="lastPreview" alt="Última foto" />
         </div>
       </div>
-      <div class="toast" id="toast">Guardado</div>
+      <div class="toast" id="toast">Listo</div>
     </section>
   </div>
 
@@ -508,10 +502,10 @@
 
       <div class="rightCluster">
         <button class="cameraButton" id="folderBtn" title="Elegir carpeta" aria-label="Elegir carpeta de guardado">📁</button>
-        <button class="cameraButton" id="fileBtn" title="Usar foto / cámara del sistema" aria-label="Usar foto o cámara del sistema">⌁</button>
+        <button class="cameraButton" id="fileBtn" title="Abrir imagen" aria-label="Abrir imagen de la galería">⌁</button>
       </div>
     </div>
-    <input id="fileInput" class="hidden" type="file" accept="image/*" capture="environment" />
+    <input id="fileInput" class="hidden" type="file" accept="image/*" />
   </div>
 
   <section class="sheet" id="sheet">
@@ -519,15 +513,27 @@
       <div class="sheetHandle"></div>
       <div class="sheetHeader">
         <div>
-          <strong>Ajustes de cámara</strong><br />
-          <span>Presets, salida y guardado</span>
+          <strong>GCam Lite Studio</strong><br />
+          <span>Cámara, procesado y galería</span>
         </div>
         <button class="ghost" id="closeSheetBtn">Cerrar</button>
       </div>
 
       <div class="sheetBody">
         <div class="section">
-          <div class="sectionTitle"><span>Presets</span><span>tipo GCam</span></div>
+          <div class="sectionTitle"><span>Modo</span><span>rápido / calidad / noche</span></div>
+          <div class="footerActions">
+            <button class="chip active" id="fastModeBtn" type="button">Rápido</button>
+            <button class="chip" id="qualityModeBtn" type="button">Calidad</button>
+          </div>
+          <div class="footerActions">
+            <button class="chip" id="nightModeBtn" type="button">Noche</button>
+            <button class="chip" id="portraitModeBtn" type="button">Retrato</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sectionTitle"><span>Perfil</span><span>ajustes rápidos</span></div>
           <div class="presetRow" id="presetRow">
             <button class="chip active" data-preset="balanced">Equilibrado</button>
             <button class="chip" data-preset="vivid">Vivo</button>
@@ -535,67 +541,79 @@
             <button class="chip" data-preset="night">Nocturno</button>
             <button class="chip" data-preset="soft">Suave</button>
           </div>
-          <div class="fineprint" id="presetDesc">Un balance general para fotos diarias.</div>
+          <div class="fineprint" id="presetDesc">Balance general para fotos diarias.</div>
         </div>
 
         <div class="section">
-          <div class="sectionTitle"><span>Captura</span><span>liviana / alta</span></div>
+          <div class="sectionTitle"><span>Cámara</span><span>frontal / trasera</span></div>
           <div class="footerActions">
-            <button class="chip active" id="fastModeBtn" type="button">Rápida</button>
-            <button class="chip" id="qualityModeBtn" type="button">Calidad</button>
+            <button class="ghost" id="rearBtn" type="button">Trasera</button>
+            <button class="ghost" id="frontBtn" type="button">Frontal</button>
           </div>
           <div class="sliderCard">
-            <label><strong>Salida</strong><small id="sizeVal">960 px</small></label>
+            <label><strong>Resolución</strong><small id="sizeLabel">1600 px</small></label>
             <select id="sizePreset">
-              <option value="800">800 px</option>
-              <option value="960" selected>960 px</option>
               <option value="1280">1280 px</option>
-              <option value="1600">1600 px</option>
+              <option value="1600" selected>1600 px</option>
+              <option value="2400">2400 px</option>
+              <option value="3200">3200 px</option>
+              <option value="native">Nativa si existe</option>
             </select>
           </div>
-        </div>
-
-        <div class="section">
-          <div class="sectionTitle"><span>Procesado</span><span>ajustes finos</span></div>
           <div class="sliderCard">
-            <label><strong>Exposición</strong><small id="exposureVal">1.05</small></label>
-            <input type="range" id="exposure" min="0.60" max="1.45" step="0.01" value="1.05" />
+            <label><strong>Burst</strong><small id="burstLabel">3 fotos</small></label>
+            <input type="range" id="burstCount" min="1" max="7" step="1" value="3" />
           </div>
           <div class="sliderCard">
-            <label><strong>Contraste</strong><small id="contrastVal">1.12</small></label>
-            <input type="range" id="contrast" min="0.85" max="1.45" step="0.01" value="1.12" />
+            <label><strong>Enfoque de detalle</strong><small id="detailLabel">0.65</small></label>
+            <input type="range" id="detailBoost" min="0" max="1" step="0.01" value="0.65" />
           </div>
           <div class="sliderCard">
-            <label><strong>Saturación</strong><small id="saturationVal">1.10</small></label>
-            <input type="range" id="saturation" min="0.70" max="1.65" step="0.01" value="1.10" />
-          </div>
-          <div class="sliderCard">
-            <label><strong>Nitidez</strong><small id="sharpnessVal">0.24</small></label>
-            <input type="range" id="sharpness" min="0" max="0.55" step="0.01" value="0.24" />
-          </div>
-          <div class="sliderCard">
-            <label><strong>Reducción de ruido</strong><small id="denoiseVal">0.16</small></label>
-            <input type="range" id="denoise" min="0" max="0.45" step="0.01" value="0.16" />
+            <label><strong>Reducción de ruido</strong><small id="noiseLabel">0.30</small></label>
+            <input type="range" id="noiseReduction" min="0" max="1" step="0.01" value="0.30" />
           </div>
         </div>
 
         <div class="section">
-          <div class="sectionTitle"><span>Guardado</span><span>automático</span></div>
-          <button class="good" id="autoSaveBtn" type="button">Auto-guardar: desactivado</button>
-          <button class="ghost" id="mirrorBtn" type="button">Espejo: desactivado</button>
+          <div class="sectionTitle"><span>Procesado</span><span>fino</span></div>
+          <div class="sliderCard">
+            <label><strong>Exposición</strong><small id="exposureLabel">1.05</small></label>
+            <input type="range" id="exposure" min="0.70" max="1.45" step="0.01" value="1.05" />
+          </div>
+          <div class="sliderCard">
+            <label><strong>Contraste</strong><small id="contrastLabel">1.10</small></label>
+            <input type="range" id="contrast" min="0.85" max="1.40" step="0.01" value="1.10" />
+          </div>
+          <div class="sliderCard">
+            <label><strong>Saturación</strong><small id="saturationLabel">1.06</small></label>
+            <input type="range" id="saturation" min="0.70" max="1.40" step="0.01" value="1.06" />
+          </div>
+          <div class="sliderCard">
+            <label><strong>Nitidez</strong><small id="sharpnessLabel">0.25</small></label>
+            <input type="range" id="sharpness" min="0" max="1" step="0.01" value="0.25" />
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sectionTitle"><span>Salida</span><span>guardado</span></div>
+          <div class="footerActions">
+            <button class="good" id="autoSaveBtn" type="button">Auto-guardar: off</button>
+            <button class="ghost" id="mirrorBtn" type="button">Espejo: off</button>
+          </div>
           <button class="warn" id="pickFolderInsideBtn" type="button">Elegir carpeta de guardado</button>
           <div class="fineprint">
-            Las fotos se guardan primero en la galería interna. Si activas el auto-guardado y el navegador lo permite, también se exportan fuera del navegador.
+            La foto final intenta salir en la mayor resolución posible que permita el navegador y el hardware. Si el navegador soporta
+            captura fotográfica nativa, la app la usa; si no, cae a captura por canvas.
           </div>
         </div>
 
         <div class="section">
           <div class="galleryHeader">
-            <div class="sectionTitle" style="margin:0; padding:0; border:0;"><span>Galería interna</span><span>fotos guardadas</span></div>
+            <div class="sectionTitle" style="margin:0; padding:0; border:0;"><span>Galería</span><span>local</span></div>
             <div class="galleryCount" id="galleryCount">0 fotos</div>
           </div>
           <div class="galleryGrid" id="galleryGrid"></div>
-          <div class="emptyGallery" id="galleryEmpty">Todavía no hay fotos. Toca el disparador para empezar a guardar capturas aquí.</div>
+          <div class="emptyGallery" id="galleryEmpty">Todavía no hay fotos guardadas.</div>
           <div class="galleryActions">
             <button class="ghost full" id="downloadSelectedBtn" type="button" disabled>Descargar seleccionada</button>
             <button class="ghost" id="deleteSelectedBtn" type="button" disabled>Eliminar seleccionada</button>
@@ -604,10 +622,10 @@
         </div>
 
         <div class="section">
-          <div class="sectionTitle"><span>Ayuda</span><span>web</span></div>
+          <div class="sectionTitle"><span>Ayuda</span><span>rápida</span></div>
           <div class="fineprint">
-            La cámara solo funciona en HTTPS o localhost. El acceso directo en el celular funciona mejor como icono de pantalla de inicio.
-            La galería interna guarda tus fotos dentro del navegador para que las revises y descargues manualmente cuando quieras.
+            Usa HTTPS o localhost para abrir la cámara. En móvil, la resolución real depende del navegador y del sensor.
+            Esta versión intenta sumar varias fotos, ajustar balance de blancos y recuperar detalle con un flujo simple de entender.
           </div>
         </div>
 
@@ -622,330 +640,759 @@
 
 <script>
 (() => {
-  const video = document.getElementById('video');
-  const photoCanvas = document.getElementById('photoCanvas');
-  const workCanvas = document.getElementById('workCanvas');
-  const exportCanvas = document.getElementById('exportCanvas');
-  const resultImage = document.getElementById('resultImage');
-  const resultPreview = document.getElementById('resultPreview');
-  const galleryCount = document.getElementById('galleryCount');
-  const galleryGrid = document.getElementById('galleryGrid');
-  const galleryEmpty = document.getElementById('galleryEmpty');
-  const downloadSelectedBtn = document.getElementById('downloadSelectedBtn');
-  const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
-  const clearGalleryBtn = document.getElementById('clearGalleryBtn');
+  'use strict';
 
-  const statusDot = document.getElementById('statusDot');
-  const statusBadgeText = document.getElementById('statusBadgeText');
-  const statusMini = document.getElementById('statusMini');
-  const presetBadge = document.getElementById('presetBadge');
-  const modeBadge = document.getElementById('modeBadge');
-  const presetDesc = document.getElementById('presetDesc');
-  const toast = document.getElementById('toast');
-
-  const settingsBtn = document.getElementById('settingsBtn');
-  const sheet = document.getElementById('sheet');
-  const closeSheetBtn = document.getElementById('closeSheetBtn');
-
-  const startBtn = document.getElementById('startBtn');
-  const switchBtn = document.getElementById('switchBtn');
-  const captureBtn = document.getElementById('captureBtn');
-  const fileBtn = document.getElementById('fileBtn');
-  const folderBtn = document.getElementById('folderBtn');
-  const fileInput = document.getElementById('fileInput');
-  const downloadBtn = document.getElementById('downloadBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const autoSaveBtn = document.getElementById('autoSaveBtn');
-  const mirrorBtn = document.getElementById('mirrorBtn');
-  const pickFolderInsideBtn = document.getElementById('pickFolderInsideBtn');
-
-  const fastModeBtn = document.getElementById('fastModeBtn');
-  const qualityModeBtn = document.getElementById('qualityModeBtn');
-  const sizePreset = document.getElementById('sizePreset');
-  const sizeVal = document.getElementById('sizeVal');
-
-  const controls = {
+  const ui = {
+    previewVideo: document.getElementById('previewVideo'),
+    photoCanvas: document.getElementById('photoCanvas'),
+    workCanvas: document.getElementById('workCanvas'),
+    exportCanvas: document.getElementById('exportCanvas'),
+    fileImage: document.getElementById('fileImage'),
+    lastPreview: document.getElementById('lastPreview'),
+    galleryCount: document.getElementById('galleryCount'),
+    galleryGrid: document.getElementById('galleryGrid'),
+    galleryEmpty: document.getElementById('galleryEmpty'),
+    downloadSelectedBtn: document.getElementById('downloadSelectedBtn'),
+    deleteSelectedBtn: document.getElementById('deleteSelectedBtn'),
+    clearGalleryBtn: document.getElementById('clearGalleryBtn'),
+    statusDot: document.getElementById('statusDot'),
+    statusTitle: document.getElementById('statusTitle'),
+    statusText: document.getElementById('statusText'),
+    profileBadge: document.getElementById('profileBadge'),
+    modeBadge: document.getElementById('modeBadge'),
+    presetDesc: document.getElementById('presetDesc'),
+    toast: document.getElementById('toast'),
+    sheet: document.getElementById('sheet'),
+    settingsBtn: document.getElementById('settingsBtn'),
+    closeSheetBtn: document.getElementById('closeSheetBtn'),
+    startBtn: document.getElementById('startBtn'),
+    switchBtn: document.getElementById('switchBtn'),
+    captureBtn: document.getElementById('captureBtn'),
+    fileBtn: document.getElementById('fileBtn'),
+    folderBtn: document.getElementById('folderBtn'),
+    fileInput: document.getElementById('fileInput'),
+    downloadBtn: document.getElementById('downloadBtn'),
+    resetBtn: document.getElementById('resetBtn'),
+    autoSaveBtn: document.getElementById('autoSaveBtn'),
+    mirrorBtn: document.getElementById('mirrorBtn'),
+    pickFolderInsideBtn: document.getElementById('pickFolderInsideBtn'),
+    fastModeBtn: document.getElementById('fastModeBtn'),
+    qualityModeBtn: document.getElementById('qualityModeBtn'),
+    nightModeBtn: document.getElementById('nightModeBtn'),
+    portraitModeBtn: document.getElementById('portraitModeBtn'),
+    rearBtn: document.getElementById('rearBtn'),
+    frontBtn: document.getElementById('frontBtn'),
+    sizePreset: document.getElementById('sizePreset'),
+    sizeLabel: document.getElementById('sizeLabel'),
+    burstCount: document.getElementById('burstCount'),
+    burstLabel: document.getElementById('burstLabel'),
+    detailBoost: document.getElementById('detailBoost'),
+    detailLabel: document.getElementById('detailLabel'),
+    noiseReduction: document.getElementById('noiseReduction'),
+    noiseLabel: document.getElementById('noiseLabel'),
     exposure: document.getElementById('exposure'),
+    exposureLabel: document.getElementById('exposureLabel'),
     contrast: document.getElementById('contrast'),
+    contrastLabel: document.getElementById('contrastLabel'),
     saturation: document.getElementById('saturation'),
+    saturationLabel: document.getElementById('saturationLabel'),
     sharpness: document.getElementById('sharpness'),
-    denoise: document.getElementById('denoise')
+    sharpnessLabel: document.getElementById('sharpnessLabel'),
+    presetButtons: Array.from(document.querySelectorAll('[data-preset]'))
   };
-  const valueLabels = {
-    exposure: document.getElementById('exposureVal'),
-    contrast: document.getElementById('contrastVal'),
-    saturation: document.getElementById('saturationVal'),
-    sharpness: document.getElementById('sharpnessVal'),
-    denoise: document.getElementById('denoiseVal')
+
+  const STORAGE = {
+    settings: 'gcam_lite_studio_settings_v1',
+    gallery: 'gcam_lite_studio_gallery_v1',
+    lastDevice: 'gcam_lite_studio_device_v1'
   };
+
+  const DB_NAME = 'gcam_lite_studio_db';
+  const DB_VERSION = 1;
+  const STORE = 'photos';
 
   const presets = {
-    balanced: { title:'Equilibrado', desc:'Un balance general para fotos diarias.', exposure:1.05, contrast:1.12, saturation:1.10, sharpness:0.24, denoise:0.16 },
-    vivid: { title:'Vivo', desc:'Más color y contraste para exteriores.', exposure:1.02, contrast:1.20, saturation:1.30, sharpness:0.26, denoise:0.12 },
-    portrait: { title:'Retrato', desc:'Suave, con menos ruido y contraste moderado.', exposure:1.08, contrast:1.06, saturation:1.00, sharpness:0.18, denoise:0.22 },
-    night: { title:'Nocturno', desc:'Levanta sombras y suaviza ruido para baja luz.', exposure:1.22, contrast:1.00, saturation:0.96, sharpness:0.10, denoise:0.34 },
-    soft: { title:'Suave', desc:'Poco agresivo, pensado para evitar artefactos.', exposure:1.00, contrast:1.04, saturation:0.98, sharpness:0.08, denoise:0.28 }
+    balanced: {
+      title: 'Equilibrado',
+      desc: 'Balance general para fotos diarias.',
+      exposure: 1.05, contrast: 1.10, saturation: 1.06, sharpness: 0.25, noise: 0.30, detail: 0.65
+    },
+    vivid: {
+      title: 'Vivo',
+      desc: 'Más color y presencia para exteriores.',
+      exposure: 1.02, contrast: 1.18, saturation: 1.24, sharpness: 0.30, noise: 0.22, detail: 0.74
+    },
+    portrait: {
+      title: 'Retrato',
+      desc: 'Más suave, pensado para piel y tonos agradables.',
+      exposure: 1.05, contrast: 1.04, saturation: 0.98, sharpness: 0.18, noise: 0.40, detail: 0.44
+    },
+    night: {
+      title: 'Nocturno',
+      desc: 'Levanta sombras y limpia ruido para baja luz.',
+      exposure: 1.20, contrast: 1.00, saturation: 0.96, sharpness: 0.10, noise: 0.62, detail: 0.34
+    },
+    soft: {
+      title: 'Suave',
+      desc: 'Menos agresivo, útil para evitar artefactos.',
+      exposure: 1.00, contrast: 1.03, saturation: 0.97, sharpness: 0.10, noise: 0.45, detail: 0.28
+    }
   };
 
-  const cameraProfiles = {
-    environment: {
-      label: 'trasera',
-      exposureBoost: 1.03,
-      contrastBoost: 1.00,
-      saturationBoost: 1.02,
-      sharpnessBoost: 1.18,
-      denoiseBoost: 0.90,
-      qualitySize: 1280
-    },
-    user: {
-      label: 'frontal',
-      exposureBoost: 1.00,
-      contrastBoost: 0.98,
-      saturationBoost: 0.96,
-      sharpnessBoost: 0.82,
-      denoiseBoost: 1.22,
-      qualitySize: 960
-    }
+  const modePresets = {
+    fast:   { burst: 1, output: '1600', sharpnessBoost: 0.00, noiseBoost: 0.00, detailBoost: 0.55 },
+    quality:{ burst: 3, output: '2400', sharpnessBoost: 0.04, noiseBoost: 0.12, detailBoost: 0.72 },
+    night:  { burst: 5, output: '2400', sharpnessBoost: -0.04, noiseBoost: 0.28, detailBoost: 0.40 },
+    portrait:{ burst: 3, output: '1920', sharpnessBoost: -0.02, noiseBoost: 0.20, detailBoost: 0.48 }
   };
 
   const defaults = {
-    preset:'balanced',
-    mode:'fast',
-    size:'960',
-    exposure:1.05,
-    contrast:1.12,
-    saturation:1.10,
-    sharpness:0.24,
-    denoise:0.16,
-    mirror:false
+    preset: 'balanced',
+    mode: 'fast',
+    facing: 'environment',
+    output: '1600',
+    burst: 1,
+    detail: 0.65,
+    noise: 0.30,
+    exposure: 1.05,
+    contrast: 1.10,
+    saturation: 1.06,
+    sharpness: 0.25,
+    autoSave: false,
+    mirror: false
   };
 
-  let stream = null;
-  let facingMode = 'environment';
-  let currentPreset = defaults.preset;
-  let mode = defaults.mode;
-  let autoSave = false;
-  let saveDirHandle = null;
-  let currentResultUrl = '';
-  let currentBlob = null;
-  let mirrorEnabled = defaults.mirror;
-  let activeFacingMode = 'environment';
-  let activeCameraLabel = 'trasera';
-  let activeDeviceId = '';
-  const GALLERY_KEY = 'gcam_lite_gallery_v3';
-  const MAX_GALLERY_ITEMS = 12;
-  let galleryItems = loadGalleryItems();
-  let selectedGalleryId = galleryItems[0]?.id || '';
+  const state = {
+    stream: null,
+    track: null,
+    imageCapture: null,
+    cameraId: '',
+    facing: defaults.facing,
+    mode: defaults.mode,
+    preset: defaults.preset,
+    autoSave: defaults.autoSave,
+    mirror: defaults.mirror,
+    saveDirHandle: null,
+    currentBlob: null,
+    currentUrl: '',
+    gallery: [],
+    selectedId: '',
+    db: null,
+    busy: false
+  };
 
-  function clamp(v){ return Math.max(0, Math.min(255, Math.round(v))); }
+  function clamp(v, min = 0, max = 255) {
+    return Math.min(max, Math.max(min, v));
+  }
 
-  function setToast(message){
-    toast.textContent = message;
-    toast.classList.add('show');
+  function lerp(a, b, t) {
+    return a + (b - a) * t;
+  }
+
+  function q01(v) {
+    return Math.min(1, Math.max(0, v));
+  }
+
+  function formatDate(ts) {
+    return new Date(ts).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+  }
+
+  function setToast(text) {
+    ui.toast.textContent = text;
+    ui.toast.classList.add('show');
     clearTimeout(setToast._t);
-    setToast._t = setTimeout(() => toast.classList.remove('show'), 1800);
+    setToast._t = setTimeout(() => ui.toast.classList.remove('show'), 1800);
   }
 
-  function setStatus(kind, title, text){
-    statusBadgeText.textContent = title;
-    statusMini.textContent = text;
-    statusDot.className = 'statusDot' + (kind === 'warn' ? ' warn' : kind === 'bad' ? ' bad' : '');
+  function setStatus(kind, title, text) {
+    ui.statusTitle.textContent = title;
+    ui.statusText.textContent = text;
+    ui.statusDot.className = 'statusDot' + (kind === 'warn' ? ' warn' : kind === 'bad' ? ' bad' : '');
   }
 
-  function syncLabels(){
-    Object.keys(controls).forEach(k => valueLabels[k].textContent = Number(controls[k].value).toFixed(2));
-    sizeVal.textContent = `${sizePreset.value} px`;
-    presetBadge.textContent = `Preset: ${presets[currentPreset].title}`;
-    modeBadge.textContent = `Modo ${mode === 'fast' ? 'rápido' : 'calidad'} · ${activeCameraLabel} · Salida ${sizePreset.value} px`;
-    autoSaveBtn.textContent = `Auto-guardar: ${autoSave ? 'activado' : 'desactivado'}`;
-    mirrorBtn.textContent = `Espejo: ${mirrorEnabled ? 'activado' : 'desactivado'}`;
-    video.classList.toggle('mirrored', mirrorEnabled);
+  function openSheet() {
+    ui.sheet.classList.add('open');
+  }
+  function closeSheet() {
+    ui.sheet.classList.remove('open');
   }
 
-  function stopStream(){
-    if (stream) {
-      stream.getTracks().forEach(t => t.stop());
-      stream = null;
+  function saveSettings() {
+    const data = {
+      preset: state.preset,
+      mode: state.mode,
+      facing: state.facing,
+      output: ui.sizePreset.value,
+      burst: Number(ui.burstCount.value),
+      detail: Number(ui.detailBoost.value),
+      noise: Number(ui.noiseReduction.value),
+      exposure: Number(ui.exposure.value),
+      contrast: Number(ui.contrast.value),
+      saturation: Number(ui.saturation.value),
+      sharpness: Number(ui.sharpness.value),
+      autoSave: state.autoSave,
+      mirror: state.mirror
+    };
+    try { localStorage.setItem(STORAGE.settings, JSON.stringify(data)); } catch (_) {}
+  }
+
+  function loadSettings() {
+    try {
+      const raw = localStorage.getItem(STORAGE.settings);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data && typeof data === 'object') {
+        state.preset = data.preset || defaults.preset;
+        state.mode = data.mode || defaults.mode;
+        state.facing = data.facing || defaults.facing;
+        ui.sizePreset.value = data.output || defaults.output;
+        ui.burstCount.value = String(data.burst ?? defaults.burst);
+        ui.detailBoost.value = String(data.detail ?? defaults.detail);
+        ui.noiseReduction.value = String(data.noise ?? defaults.noise);
+        ui.exposure.value = String(data.exposure ?? defaults.exposure);
+        ui.contrast.value = String(data.contrast ?? defaults.contrast);
+        ui.saturation.value = String(data.saturation ?? defaults.saturation);
+        ui.sharpness.value = String(data.sharpness ?? defaults.sharpness);
+        state.autoSave = !!data.autoSave;
+        state.mirror = !!data.mirror;
+      }
+    } catch (_) {}
+  }
+
+  function syncLabels() {
+    ui.profileBadge.textContent = `Perfil: ${presets[state.preset].title}`;
+    ui.modeBadge.textContent = `Modo ${state.mode} · Salida ${ui.sizePreset.value === 'native' ? 'nativa' : `${ui.sizePreset.value} px`} · Burst ${ui.burstCount.value}`;
+    ui.presetDesc.textContent = presets[state.preset].desc;
+
+    ui.sizeLabel.textContent = ui.sizePreset.value === 'native' ? 'Nativa si existe' : `${ui.sizePreset.value} px`;
+    ui.burstLabel.textContent = `${ui.burstCount.value} foto${Number(ui.burstCount.value) === 1 ? '' : 's'}`;
+    ui.detailLabel.textContent = Number(ui.detailBoost.value).toFixed(2);
+    ui.noiseLabel.textContent = Number(ui.noiseReduction.value).toFixed(2);
+    ui.exposureLabel.textContent = Number(ui.exposure.value).toFixed(2);
+    ui.contrastLabel.textContent = Number(ui.contrast.value).toFixed(2);
+    ui.saturationLabel.textContent = Number(ui.saturation.value).toFixed(2);
+    ui.sharpnessLabel.textContent = Number(ui.sharpness.value).toFixed(2);
+
+    ui.autoSaveBtn.textContent = `Auto-guardar: ${state.autoSave ? 'on' : 'off'}`;
+    ui.mirrorBtn.textContent = `Espejo: ${state.mirror ? 'on' : 'off'}`;
+    ui.previewVideo.classList.toggle('mirrored', state.mirror);
+
+    ui.fastModeBtn.classList.toggle('active', state.mode === 'fast');
+    ui.qualityModeBtn.classList.toggle('active', state.mode === 'quality');
+    ui.nightModeBtn.classList.toggle('active', state.mode === 'night');
+    ui.portraitModeBtn.classList.toggle('active', state.mode === 'portrait');
+
+    ui.rearBtn.classList.toggle('active', state.facing === 'environment');
+    ui.frontBtn.classList.toggle('active', state.facing === 'user');
+
+    ui.presetButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.preset === state.preset));
+  }
+
+  function applyMode(mode) {
+    state.mode = mode;
+    const m = modePresets[mode];
+    ui.burstCount.value = String(m.burst);
+    if (ui.sizePreset.value !== 'native') ui.sizePreset.value = m.output;
+    if (Number(ui.sharpness.value) < 0.15 && m.sharpnessBoost > 0) {
+      ui.sharpness.value = String(0.15 + m.sharpnessBoost);
     }
-  }
-
-  function saveBtnPulse(on){
-    captureBtn.classList.toggle('saving', !!on);
-  }
-
-  function openSheet(){
-    sheet.classList.add('open');
-  }
-  function closeSheet(){
-    sheet.classList.remove('open');
-  }
-
-  settingsBtn.addEventListener('click', openSheet);
-  closeSheetBtn.addEventListener('click', closeSheet);
-  sheet.addEventListener('click', (e) => {
-    if (e.target === sheet) closeSheet();
-  });
-
-  function applyCameraProfile(facing){
-    const profile = cameraProfiles[facing] || cameraProfiles.environment;
-    activeFacingMode = facing;
-    activeCameraLabel = profile.label;
-    if (mode === 'quality') {
-      sizePreset.value = String(profile.qualitySize);
-    }
-    if (facing === 'user') {
-      controls.sharpness.value = String(Math.min(Number(controls.sharpness.value), 0.20));
-      controls.denoise.value = String(Math.max(Number(controls.denoise.value), 0.22));
-      controls.contrast.value = String(Math.min(Number(controls.contrast.value), 1.08));
-    } else {
-      controls.sharpness.value = String(Math.max(Number(controls.sharpness.value), 0.22));
-      controls.denoise.value = String(Math.min(Number(controls.denoise.value), 0.18));
+    if (mode === 'night') {
+      ui.noiseReduction.value = String(Math.max(Number(ui.noiseReduction.value), 0.50));
     }
     syncLabels();
+    saveSettings();
+    setStatus('ok', 'Modo cargado', mode === 'fast' ? 'Procesado ligero.' : mode === 'quality' ? 'Más detalle y más mezcla.' : mode === 'night' ? 'Reducción de ruido reforzada.' : 'Tono más suave.');
   }
 
-  function setMode(nextMode){
-    mode = nextMode;
-    fastModeBtn.classList.toggle('active', mode === 'fast');
-    qualityModeBtn.classList.toggle('active', mode === 'quality');
-
-    if (mode === 'fast') {
-      sizePreset.value = '960';
-      if (Number(controls.sharpness.value) > 0.24) controls.sharpness.value = '0.24';
-      if (Number(controls.denoise.value) > 0.18) controls.denoise.value = '0.18';
-    } else {
-      if (Number(sizePreset.value) < (cameraProfiles[activeFacingMode] || cameraProfiles.environment).qualitySize) sizePreset.value = String((cameraProfiles[activeFacingMode] || cameraProfiles.environment).qualitySize);
-      if (Number(controls.sharpness.value) < 0.22) controls.sharpness.value = '0.22';
-      if (Number(controls.denoise.value) < 0.14) controls.denoise.value = '0.14';
-    }
-    syncLabels();
-    setStatus('ok', 'Listo', mode === 'fast' ? 'Modo rápido activado.' : 'Modo calidad activado.');
-  }
-
-  function applyPreset(name){
-    currentPreset = name;
+  function applyPreset(name) {
     const p = presets[name];
-    controls.exposure.value = p.exposure;
-    controls.contrast.value = p.contrast;
-    controls.saturation.value = p.saturation;
-    controls.sharpness.value = p.sharpness;
-    controls.denoise.value = p.denoise;
-
-    document.querySelectorAll('[data-preset]').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.preset === name);
-    });
-
-    presetDesc.textContent = p.desc;
+    state.preset = name;
+    ui.exposure.value = String(p.exposure);
+    ui.contrast.value = String(p.contrast);
+    ui.saturation.value = String(p.saturation);
+    ui.sharpness.value = String(p.sharpness);
+    ui.noiseReduction.value = String(p.noise);
+    ui.detailBoost.value = String(p.detail);
     syncLabels();
-    setStatus('ok', 'Preset cargado', `${p.title}: ${p.desc}`);
+    saveSettings();
+    setStatus('ok', 'Perfil cargado', p.desc);
   }
 
-  function resetAll(){
-    applyPreset(defaults.preset);
-    sizePreset.value = defaults.size;
-    autoSave = true;
-    setMode(defaults.mode);
+  function resetAll() {
+    state.preset = defaults.preset;
+    state.mode = defaults.mode;
+    state.facing = defaults.facing;
+    ui.sizePreset.value = defaults.output;
+    ui.burstCount.value = String(defaults.burst);
+    ui.detailBoost.value = String(defaults.detail);
+    ui.noiseReduction.value = String(defaults.noise);
+    ui.exposure.value = String(defaults.exposure);
+    ui.contrast.value = String(defaults.contrast);
+    ui.saturation.value = String(defaults.saturation);
+    ui.sharpness.value = String(defaults.sharpness);
+    state.autoSave = defaults.autoSave;
+    state.mirror = defaults.mirror;
     syncLabels();
-    setStatus('ok', 'Restablecido', 'Se aplicaron los valores por defecto.');
+    saveSettings();
+    setStatus('ok', 'Restablecido', 'Se volvieron a cargar los valores base.');
     setToast('Valores restaurados');
   }
 
-  function targetSize(){
-    return Number(sizePreset.value);
-  }
-
-  function buildKernel(radius){
-    const size = radius * 2 + 1;
-    const kernel = new Float32Array(size);
-    let sum = 0;
-    const sigma = Math.max(0.8, radius * 0.72);
-    for (let i = -radius; i <= radius; i++) {
-      const v = Math.exp(-(i * i) / (2 * sigma * sigma));
-      kernel[i + radius] = v;
-      sum += v;
+  function stopStream() {
+    if (state.stream) {
+      state.stream.getTracks().forEach(t => t.stop());
+      state.stream = null;
+      state.track = null;
+      state.imageCapture = null;
     }
-    for (let i = 0; i < kernel.length; i++) kernel[i] /= sum;
-    return kernel;
   }
 
-  function blurSeparable(src, width, height, radius){
-    if (radius <= 0) return src.slice();
-    const kernel = buildKernel(radius);
-    const temp = new Float32Array(src.length);
-    const out = new Uint8ClampedArray(src.length);
-    const channels = 4;
-    const maxX = width - 1;
-    const maxY = height - 1;
+  function buildConstraints() {
+    const preferredWidth = state.mode === 'fast' ? 1280 : 1920;
+    const preferredHeight = state.mode === 'fast' ? 720 : 1080;
+    const camera = {
+      audio: false,
+      video: {
+        width: { ideal: preferredWidth },
+        height: { ideal: preferredHeight },
+        facingMode: { exact: state.facing }
+      }
+    };
+    if (state.cameraId) {
+      camera.video = {
+        width: { ideal: preferredWidth },
+        height: { ideal: preferredHeight },
+        deviceId: { exact: state.cameraId }
+      };
+    }
+    return camera;
+  }
 
-    for (let y = 0; y < height; y++) {
-      const row = y * width * channels;
-      for (let x = 0; x < width; x++) {
-        const base = row + x * channels;
-        for (let c = 0; c < 4; c++) {
-          let acc = 0;
-          for (let k = -radius; k <= radius; k++) {
-            const xx = Math.min(maxX, Math.max(0, x + k));
-            acc += src[row + xx * channels + c] * kernel[k + radius];
-          }
-          temp[base + c] = acc;
+  async function listDevices() {
+    if (!navigator.mediaDevices?.enumerateDevices) return [];
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices.filter(d => d.kind === 'videoinput');
+  }
+
+  function guessFacingFromLabel(label = '') {
+    const text = label.toLowerCase();
+    if (/(back|rear|environment|trasera|posterior)/.test(text)) return 'environment';
+    if (/(front|user|frontal|selfie)/.test(text)) return 'user';
+    return '';
+  }
+
+  async function chooseDeviceIdForFacing(facing) {
+    try {
+      const devices = await listDevices();
+      const guessed = devices.find(d => guessFacingFromLabel(d.label) === facing);
+      return guessed ? guessed.deviceId : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function trackFacing(track) {
+    const s = track?.getSettings?.() || {};
+    const deviceLabel = '';
+    if (s.facingMode) return s.facingMode;
+    return deviceLabel;
+  }
+
+  async function startCamera() {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setStatus('bad', 'Sin soporte', 'Este navegador no soporta cámara.');
+      return;
+    }
+    if (!window.isSecureContext) {
+      setStatus('warn', 'Contexto inseguro', 'Usa HTTPS o localhost para abrir la cámara.');
+      return;
+    }
+
+    try {
+      stopStream();
+      if (!state.cameraId) {
+        state.cameraId = await chooseDeviceIdForFacing(state.facing);
+      }
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(buildConstraints());
+      } catch (err) {
+        if (state.cameraId) {
+          state.cameraId = '';
+          stream = await navigator.mediaDevices.getUserMedia(buildConstraints());
+        } else if (err && (err.name === 'OverconstrainedError' || err.name === 'NotReadableError')) {
+          const fallback = {
+            audio: false,
+            video: {
+              width: { ideal: state.mode === 'fast' ? 1280 : 1920 },
+              height: { ideal: state.mode === 'fast' ? 720 : 1080 },
+              facingMode: state.facing
+            }
+          };
+          stream = await navigator.mediaDevices.getUserMedia(fallback);
+        } else {
+          throw err;
         }
+      }
+
+      state.stream = stream;
+      state.track = stream.getVideoTracks()[0] || null;
+      state.imageCapture = state.track && 'ImageCapture' in window ? new ImageCapture(state.track) : null;
+      state.previewFacing = trackFacing(state.track);
+
+      ui.previewVideo.srcObject = stream;
+      await ui.previewVideo.play();
+
+      ui.captureBtn.disabled = false;
+      ui.switchBtn.disabled = false;
+
+      const label = state.facing === 'environment' ? 'trasera' : 'frontal';
+      setStatus('ok', 'Cámara activa', `Cámara ${label} lista.`);
+      setToast('Cámara iniciada');
+      saveSettings();
+    } catch (err) {
+      console.error(err);
+      setStatus('bad', 'No se pudo iniciar', `${err.name || 'Error'}: ${err.message || 'falló la cámara'}`);
+    }
+  }
+
+  async function switchCamera() {
+    state.facing = state.facing === 'environment' ? 'user' : 'environment';
+    state.cameraId = await chooseDeviceIdForFacing(state.facing);
+    syncLabels();
+    saveSettings();
+    await startCamera();
+  }
+
+  function setFacing(facing) {
+    state.facing = facing;
+    state.cameraId = '';
+    syncLabels();
+    saveSettings();
+    setStatus('ok', facing === 'environment' ? 'Trasera seleccionada' : 'Frontal seleccionada', 'Reiniciando cámara.');
+    void startCamera();
+  }
+
+  function toggleAutoSave() {
+    state.autoSave = !state.autoSave;
+    syncLabels();
+    saveSettings();
+    setToast(state.autoSave ? 'Auto-guardar activado' : 'Auto-guardar desactivado');
+  }
+
+  function toggleMirror() {
+    state.mirror = !state.mirror;
+    syncLabels();
+    saveSettings();
+    setToast(state.mirror ? 'Espejo activado' : 'Espejo desactivado');
+  }
+
+  function setBusy(flag) {
+    state.busy = flag;
+    ui.captureBtn.disabled = flag || !state.stream;
+    ui.startBtn.disabled = flag;
+    ui.switchBtn.disabled = flag || !state.stream;
+    ui.captureBtn.classList.toggle('saving', flag);
+  }
+
+  function canvasToBlob(canvas, type = 'image/jpeg', quality = 0.94) {
+    return new Promise(resolve => canvas.toBlob(resolve, type, quality));
+  }
+
+  function imageBlobToBitmap(blob) {
+    if ('createImageBitmap' in window) {
+      return createImageBitmap(blob);
+    }
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+      img.src = url;
+    });
+  }
+
+  function bitmapToCanvas(bitmap, canvas, width, height) {
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.clearRect(0, 0, width, height);
+    ctx.drawImage(bitmap, 0, 0, width, height);
+  }
+
+  async function captureOneBlob() {
+    if (state.imageCapture?.takePhoto) {
+      try {
+        return await state.imageCapture.takePhoto();
+      } catch (err) {
+        console.warn('takePhoto falló, uso canvas', err);
+      }
+    }
+    if (!ui.previewVideo.videoWidth || !ui.previewVideo.videoHeight) {
+      throw new Error('La cámara todavía no está lista');
+    }
+    const c = ui.photoCanvas;
+    c.width = ui.previewVideo.videoWidth;
+    c.height = ui.previewVideo.videoHeight;
+    const ctx = c.getContext('2d', { willReadFrequently: true, alpha: false });
+    ctx.drawImage(ui.previewVideo, 0, 0, c.width, c.height);
+    return await canvasToBlob(c, 'image/jpeg', 0.96);
+  }
+
+  async function captureBurst() {
+    const count = Math.max(1, Number(ui.burstCount.value || 1));
+    const delayMs = state.mode === 'fast' ? 60 : 85;
+    const frames = [];
+    for (let i = 0; i < count; i++) {
+      const blob = await captureOneBlob();
+      const bitmap = await imageBlobToBitmap(blob);
+      frames.push(bitmap);
+      if (i < count - 1) await new Promise(r => setTimeout(r, delayMs));
+    }
+    return frames;
+  }
+
+  function targetLongSide() {
+    if (ui.sizePreset.value === 'native') return 0;
+    return Number(ui.sizePreset.value);
+  }
+
+  function computeOutputSize(sourceW, sourceH) {
+    const longSide = targetLongSide();
+    if (!longSide) return { width: sourceW, height: sourceH };
+    const scale = longSide / Math.max(sourceW, sourceH);
+    return {
+      width: Math.max(1, Math.round(sourceW * scale)),
+      height: Math.max(1, Math.round(sourceH * scale))
+    };
+  }
+
+  function fitCover(srcW, srcH, dstW, dstH) {
+    const srcRatio = srcW / srcH;
+    const dstRatio = dstW / dstH;
+    if (srcRatio > dstRatio) {
+      const cropW = Math.round(srcH * dstRatio);
+      const sx = Math.floor((srcW - cropW) / 2);
+      return { sx, sy: 0, sw: cropW, sh: srcH };
+    }
+    const cropH = Math.round(srcW / dstRatio);
+    const sy = Math.floor((srcH - cropH) / 2);
+    return { sx: 0, sy, sw: srcW, sh: cropH };
+  }
+
+  function drawBitmapToCanvas(bitmap, canvas, width, height, cameraType) {
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.clearRect(0, 0, width, height);
+    if (cameraType === 'user' && state.mirror) {
+      ctx.save();
+      ctx.translate(width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(bitmap, 0, 0, width, height);
+      ctx.restore();
+    } else {
+      ctx.drawImage(bitmap, 0, 0, width, height);
+    }
+  }
+
+  function rgbToGray(r, g, b) {
+    return 0.299 * r + 0.587 * g + 0.114 * b;
+  }
+
+  function estimateShift(ref, img, width, height, range = 6, sampleStep = 4) {
+    const cx = Math.floor(width * 0.5);
+    const cy = Math.floor(height * 0.5);
+    const roiW = Math.floor(width * 0.5);
+    const roiH = Math.floor(height * 0.5);
+    const x0 = Math.max(0, cx - Math.floor(roiW / 2));
+    const y0 = Math.max(0, cy - Math.floor(roiH / 2));
+    let best = { dx: 0, dy: 0, score: Infinity };
+
+    for (let dy = -range; dy <= range; dy++) {
+      for (let dx = -range; dx <= range; dx++) {
+        let score = 0;
+        let count = 0;
+        for (let y = 0; y < roiH; y += sampleStep) {
+          const yy = y0 + y;
+          const yy2 = yy + dy;
+          if (yy2 < 0 || yy2 >= height) continue;
+          for (let x = 0; x < roiW; x += sampleStep) {
+            const xx = x0 + x;
+            const xx2 = xx + dx;
+            if (xx2 < 0 || xx2 >= width) continue;
+            const i1 = (yy * width + xx) * 4;
+            const i2 = (yy2 * width + xx2) * 4;
+            const g1 = rgbToGray(ref[i1], ref[i1 + 1], ref[i1 + 2]);
+            const g2 = rgbToGray(img[i2], img[i2 + 1], img[i2 + 2]);
+            score += Math.abs(g1 - g2);
+            count++;
+          }
+        }
+        score = score / Math.max(1, count);
+        if (score < best.score) best = { dx, dy, score };
+      }
+    }
+    return best;
+  }
+
+  function applyShiftedFrame(acc, img, width, height, dx, dy, weight) {
+    const out = acc.data;
+    const src = img;
+    for (let y = 0; y < height; y++) {
+      const sy = y + dy;
+      if (sy < 0 || sy >= height) continue;
+      for (let x = 0; x < width; x++) {
+        const sx = x + dx;
+        if (sx < 0 || sx >= width) continue;
+        const di = (y * width + x) * 4;
+        const si = (sy * width + sx) * 4;
+        out[di] += src[si] * weight;
+        out[di + 1] += src[si + 1] * weight;
+        out[di + 2] += src[si + 2] * weight;
+        out[di + 3] += src[si + 3] * weight;
+      }
+    }
+    acc.weight += weight;
+  }
+
+  function averageFrames(frameCanvases, width, height, cameraType) {
+    const base = frameCanvases[0].getContext('2d', { willReadFrequently: true, alpha: false }).getImageData(0, 0, width, height).data;
+    const accumulator = {
+      data: new Float32Array(width * height * 4),
+      weight: 0
+    };
+
+    // Use the first frame as reference.
+    applyShiftedFrame(accumulator, base, width, height, 0, 0, 1);
+
+    if (frameCanvases.length > 1) {
+      const downW = Math.max(180, Math.round(width / 10));
+      const downH = Math.max(180, Math.round(height / 10));
+
+      const refSmall = document.createElement('canvas');
+      refSmall.width = downW;
+      refSmall.height = downH;
+      const rctx = refSmall.getContext('2d', { willReadFrequently: true, alpha: false });
+      rctx.drawImage(frameCanvases[0], 0, 0, downW, downH);
+      const refData = rctx.getImageData(0, 0, downW, downH).data;
+
+      for (let i = 1; i < frameCanvases.length; i++) {
+        const small = document.createElement('canvas');
+        small.width = downW;
+        small.height = downH;
+        const sctx = small.getContext('2d', { willReadFrequently: true, alpha: false });
+        sctx.drawImage(frameCanvases[i], 0, 0, downW, downH);
+        const imgData = sctx.getImageData(0, 0, downW, downH).data;
+
+        const shift = estimateShift(refSmall.getContext('2d').getImageData(0, 0, downW, downH).data, imgData, downW, downH, cameraType === 'environment' ? 5 : 3, 4);
+        const sx = Math.round(shift.dx * (width / downW));
+        const sy = Math.round(shift.dy * (height / downH));
+        const data = frameCanvases[i].getContext('2d', { willReadFrequently: true, alpha: false }).getImageData(0, 0, width, height).data;
+        applyShiftedFrame(accumulator, data, width, height, sx, sy, 1);
       }
     }
 
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const base = (y * width + x) * channels;
-        for (let c = 0; c < 4; c++) {
-          let acc = 0;
-          for (let k = -radius; k <= radius; k++) {
-            const yy = Math.min(maxY, Math.max(0, y + k));
-            acc += temp[(yy * width + x) * channels + c] * kernel[k + radius];
-          }
-          out[base + c] = clamp(acc);
-        }
-      }
+    const avg = new Uint8ClampedArray(width * height * 4);
+    const denom = Math.max(1, accumulator.weight);
+    for (let i = 0; i < avg.length; i++) {
+      avg[i] = clamp(accumulator.data[i] / denom);
     }
-    return out;
+    return avg;
   }
 
-  function postProcessPixels(source, width, height) {
-    const out = new Uint8ClampedArray(source.length);
-    const profile = cameraProfiles[activeFacingMode] || cameraProfiles.environment;
-    const exposure = Number(controls.exposure.value) * profile.exposureBoost;
-    const contrast = Number(controls.contrast.value) * profile.contrastBoost;
-    const saturation = Number(controls.saturation.value) * profile.saturationBoost;
-    const sharpness = Number(controls.sharpness.value) * profile.sharpnessBoost;
-    const denoise = Number(controls.denoise.value) * profile.denoiseBoost;
+  function estimateWhiteBalance(data) {
+    let rSum = 0, gSum = 0, bSum = 0, n = 0;
+    const step = Math.max(16, Math.floor(data.length / 22000));
+    for (let i = 0; i < data.length; i += 4 * step) {
+      rSum += data[i];
+      gSum += data[i + 1];
+      bSum += data[i + 2];
+      n++;
+    }
+    const rAvg = rSum / n || 1;
+    const gAvg = gSum / n || 1;
+    const bAvg = bSum / n || 1;
+    const gray = (rAvg + gAvg + bAvg) / 3;
+    return {
+      r: gray / rAvg,
+      g: gray / gAvg,
+      b: gray / bAvg
+    };
+  }
 
-    for (let i = 0; i < source.length; i += 4) {
-      let r = source[i] * exposure;
-      let g = source[i + 1] * exposure;
-      let b = source[i + 2] * exposure;
+  function applyToneMap(data, width, height, strength, cameraType) {
+    const out = new Uint8ClampedArray(data.length);
+    const wb = estimateWhiteBalance(data);
+    const exposure = Number(ui.exposure.value);
+    const contrast = Number(ui.contrast.value);
+    const saturation = Number(ui.saturation.value);
+    const sharpness = Number(ui.sharpness.value);
+    const detailBoost = Number(ui.detailBoost.value);
+    const noiseBoost = Number(ui.noiseReduction.value);
 
-      const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      r = luma + (r - luma) * contrast;
-      g = luma + (g - luma) * contrast;
-      b = luma + (b - luma) * contrast;
+    const rear = cameraType === 'environment';
+    const saturationBoost = rear ? 1.0 : 0.92;
+    const sharpenBoost = rear ? 1.05 : 0.78;
+    const softShadow = rear ? 0.08 : 0.14;
+    const highlightCut = rear ? 0.92 : 0.88;
 
-      const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-      r = gray + (r - gray) * saturation;
-      g = gray + (g - gray) * saturation;
-      b = gray + (b - gray) * saturation;
+    for (let i = 0; i < data.length; i += 4) {
+      let r = data[i] * wb.r;
+      let g = data[i + 1] * wb.g;
+      let b = data[i + 2] * wb.b;
+
+      r *= exposure;
+      g *= exposure;
+      b *= exposure;
+
+      // Soft tone curve with highlight compression.
+      const lum = rgbToGray(r, g, b) / 255;
+      const shadowLift = softShadow * (1 - lum);
+      const curve = lum < 0.5 ? lum * (1 + shadowLift) : 1 - (1 - lum) * (1 + (1 - highlightCut) * 0.45);
+      const k = q01(curve);
+      const t = contrast;
+      const r2 = k * 255 + (r - k * 255) * t;
+      const g2 = k * 255 + (g - k * 255) * t;
+      const b2 = k * 255 + (b - k * 255) * t;
+
+      const gray = rgbToGray(r2, g2, b2);
+      const sat = saturation * saturationBoost;
+      r = gray + (r2 - gray) * sat;
+      g = gray + (g2 - gray) * sat;
+      b = gray + (b2 - gray) * sat;
+
+      // Gentle local tone shaping.
+      const local = 1 + (detailBoost - 0.5) * 0.16;
+      r *= local;
+      g *= local;
+      b *= local;
 
       out[i] = clamp(r);
       out[i + 1] = clamp(g);
       out[i + 2] = clamp(b);
-      out[i + 3] = source[i + 3];
+      out[i + 3] = data[i + 3];
     }
 
-    const blurRadius = Math.max(0, Math.round(denoise * 3));
-    if (blurRadius > 0) {
-      out.set(blurSeparable(out, width, height, blurRadius));
+    // Noise reduction by channel blur mix.
+    const blurMix = q01(noiseBoost * 0.58 + (cameraType === 'user' ? 0.10 : 0));
+    if (blurMix > 0.001) {
+      const blurred = boxBlurRGBA(out, width, height, cameraType === 'environment' ? 1 : 1);
+      for (let i = 0; i < out.length; i += 4) {
+        out[i] = clamp(lerp(out[i], blurred[i], blurMix));
+        out[i + 1] = clamp(lerp(out[i + 1], blurred[i + 1], blurMix));
+        out[i + 2] = clamp(lerp(out[i + 2], blurred[i + 2], blurMix));
+      }
     }
 
-    if (sharpness > 0) {
-      const blurred = blurSeparable(out, width, height, 1);
-      const amount = 1.45 * sharpness;
+    // Unsharp mask.
+    const amount = q01(sharpness * sharpenBoost) * 1.5;
+    if (amount > 0.001) {
+      const blurred = boxBlurRGBA(out, width, height, 1);
       for (let i = 0; i < out.length; i += 4) {
         out[i] = clamp(out[i] + (out[i] - blurred[i]) * amount);
         out[i + 1] = clamp(out[i + 1] + (out[i + 1] - blurred[i + 1]) * amount);
@@ -953,215 +1400,295 @@
       }
     }
 
+    return out;
+  }
+
+  function boxBlurRGBA(data, width, height, radius = 1) {
+    const out = new Uint8ClampedArray(data.length);
+    const w = width;
+    const h = height;
+    const r = Math.max(1, radius);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        let rs = 0, gs = 0, bs = 0, as = 0, count = 0;
+        for (let yy = -r; yy <= r; yy++) {
+          const sy = y + yy;
+          if (sy < 0 || sy >= h) continue;
+          for (let xx = -r; xx <= r; xx++) {
+            const sx = x + xx;
+            if (sx < 0 || sx >= w) continue;
+            const i = (sy * w + sx) * 4;
+            rs += data[i];
+            gs += data[i + 1];
+            bs += data[i + 2];
+            as += data[i + 3];
+            count++;
+          }
+        }
+        const o = (y * w + x) * 4;
+        out[o] = rs / count;
+        out[o + 1] = gs / count;
+        out[o + 2] = bs / count;
+        out[o + 3] = as / count;
+      }
+    }
+    return out;
+  }
+
+  function applyGlobalFinish(data, width, height, cameraType) {
+    const out = applyToneMap(data, width, height, 1, cameraType);
     return new ImageData(out, width, height);
   }
 
-  function updateResultPreview(blob){
-    if (currentResultUrl && currentResultUrl.startsWith('blob:')) {
-      try { URL.revokeObjectURL(currentResultUrl); } catch (_) {}
+  async function renderFramesToResult(frameBitmaps) {
+    if (!frameBitmaps.length) return null;
+
+    const first = frameBitmaps[0];
+    const sourceW = first.width || first.naturalWidth;
+    const sourceH = first.height || first.naturalHeight;
+    const outSize = computeOutputSize(sourceW, sourceH);
+    const crop = fitCover(sourceW, sourceH, outSize.width, outSize.height);
+
+    const workCanvases = [];
+    for (let i = 0; i < frameBitmaps.length; i++) {
+      const c = document.createElement('canvas');
+      c.width = outSize.width;
+      c.height = outSize.height;
+      const ctx = c.getContext('2d', { willReadFrequently: true, alpha: false });
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(frameBitmaps[i], crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, outSize.width, outSize.height);
+      workCanvases.push(c);
     }
 
-    const previewUrl = URL.createObjectURL(blob);
-    currentResultUrl = previewUrl;
+    const baseCanvas = document.createElement('canvas');
+    baseCanvas.width = outSize.width;
+    baseCanvas.height = outSize.height;
+    const baseCtx = baseCanvas.getContext('2d', { willReadFrequently: true, alpha: false });
+    baseCtx.drawImage(workCanvases[0], 0, 0);
+    const baseData = baseCtx.getImageData(0, 0, outSize.width, outSize.height).data;
 
-    resultImage.src = previewUrl;
-    resultPreview.src = previewUrl;
-    downloadBtn.disabled = false;
+    const merged = averageFrames(workCanvases, outSize.width, outSize.height, state.facing);
+    const finished = applyGlobalFinish(merged, outSize.width, outSize.height, state.facing);
+
+    ui.exportCanvas.width = outSize.width;
+    ui.exportCanvas.height = outSize.height;
+    const ectx = ui.exportCanvas.getContext('2d', { willReadFrequently: true, alpha: false });
+    ectx.putImageData(finished, 0, 0);
+
+    const blob = await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode === 'fast' ? 0.94 : 0.96);
+    return blob;
   }
 
-  function loadGalleryItems(){
-    try {
-      const raw = localStorage.getItem(GALLERY_KEY);
-      const parsed = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (err) {
-      console.warn(err);
-      return [];
+  function revokeCurrentUrl() {
+    if (state.currentUrl && state.currentUrl.startsWith('blob:')) {
+      try { URL.revokeObjectURL(state.currentUrl); } catch (_) {}
     }
+    state.currentUrl = '';
   }
 
-  function persistGalleryItems(){
-    try {
-      localStorage.setItem(GALLERY_KEY, JSON.stringify(galleryItems));
-    } catch (err) {
-      console.warn(err);
-      setStatus('warn', 'Galería limitada', 'El almacenamiento del navegador está lleno. Borra fotos antiguas.');
-    }
+  function setPreviewFromBlob(blob) {
+    revokeCurrentUrl();
+    const url = URL.createObjectURL(blob);
+    state.currentUrl = url;
+    ui.lastPreview.src = url;
   }
 
-  function makeId(){
-    return (crypto?.randomUUID?.() || `g_${Date.now()}_${Math.random().toString(16).slice(2)}`);
+  function pickGalleryItem(id) {
+    state.selectedId = id;
+    renderGallery();
   }
 
-  function formatTime(ts){
-    const d = new Date(ts);
-    return d.toLocaleString('es-AR', { dateStyle:'short', timeStyle:'short' });
-  }
-
-  function blobToDataURL(blob){
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ''));
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
+  async function openDb() {
+    if (state.db) return state.db;
+    state.db = await new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(STORE)) {
+          const store = db.createObjectStore(STORE, { keyPath: 'id' });
+          store.createIndex('ts', 'ts', { unique: false });
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
     });
+    return state.db;
   }
 
-  function getSelectedGalleryItem(){
-    return galleryItems.find(item => item.id === selectedGalleryId) || galleryItems[0] || null;
-  }
-
-  function syncGalleryPreview(){
-    const item = getSelectedGalleryItem();
-    if (!item) {
-      resultPreview.removeAttribute('src');
-      return;
-    }
-    resultPreview.src = item.url;
-    resultImage.src = item.url;
-    downloadBtn.disabled = false;
-  }
-
-  function renderGallery(){
-    galleryCount.textContent = `${galleryItems.length} foto${galleryItems.length === 1 ? '' : 's'}`;
-    galleryEmpty.style.display = galleryItems.length ? 'none' : 'block';
-    galleryGrid.innerHTML = '';
-
-    galleryItems.forEach(item => {
-      const card = document.createElement('button');
-      card.type = 'button';
-      card.className = 'galleryItem' + (item.id === selectedGalleryId ? ' selected' : '');
-      card.setAttribute('aria-label', `Seleccionar foto del ${formatTime(item.ts)}`);
-      card.innerHTML = `
-        <div class="galleryThumb"><img src="${item.url}" alt="Foto guardada" /></div>
-        <div class="galleryMeta">
-          <strong>${item.label || 'Foto'}<\/strong>
-          <span>${formatTime(item.ts)}<\/span>
-        </div>
-      `;
-      card.addEventListener('click', () => {
-        selectedGalleryId = item.id;
-        renderGallery();
-        syncGalleryPreview();
-      });
-      galleryGrid.appendChild(card);
-    });
-
-    const hasSelection = !!getSelectedGalleryItem();
-    downloadSelectedBtn.disabled = !hasSelection;
-    deleteSelectedBtn.disabled = !hasSelection;
-    clearGalleryBtn.disabled = galleryItems.length === 0;
-  }
-
-  async function addToGallery(blob, meta = {}){
-    const url = await blobToDataURL(blob);
-    const item = {
-      id: makeId(),
-      url,
+  async function saveToGallery(blob, meta = {}) {
+    const db = await openDb();
+    const record = {
+      id: (crypto?.randomUUID?.() || `g_${Date.now()}_${Math.random().toString(16).slice(2)}`),
       ts: Date.now(),
-      label: meta.label || `${mode === 'quality' ? 'Calidad' : 'Rápida'} · ${presets[currentPreset].title}`,
-      preset: currentPreset,
-      mode,
-      mirror: mirrorEnabled,
-      size: `${exportCanvas.width}×${exportCanvas.height}`
+      label: meta.label || `${presets[state.preset].title} · ${state.mode}`,
+      blob,
+      preset: state.preset,
+      mode: state.mode,
+      facing: state.facing,
+      size: `${ui.exportCanvas.width}×${ui.exportCanvas.height}`
     };
 
-    galleryItems = [item, ...galleryItems].slice(0, MAX_GALLERY_ITEMS);
-    selectedGalleryId = item.id;
-    persistGalleryItems();
-    renderGallery();
-    syncGalleryPreview();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).put(record);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+
+    state.selectedId = record.id;
+    await loadGallery();
   }
 
-  async function downloadGalleryItem(item){
-    if (!item) return;
-    const blob = await (await fetch(item.url)).blob();
-    await saveBlob(blob);
+  async function loadGallery() {
+    try {
+      const db = await openDb();
+      const items = await new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readonly');
+        const store = tx.objectStore(STORE);
+        const index = store.index('ts');
+        const req = index.openCursor(null, 'prev');
+        const arr = [];
+        req.onsuccess = () => {
+          const cursor = req.result;
+          if (cursor) {
+            arr.push(cursor.value);
+            cursor.continue();
+          } else {
+            resolve(arr);
+          }
+        };
+        req.onerror = () => reject(req.error);
+      });
+      state.gallery = items.slice(0, 12);
+      if (!state.selectedId && state.gallery[0]) state.selectedId = state.gallery[0].id;
+      renderGallery();
+    } catch (err) {
+      console.warn(err);
+      state.gallery = [];
+      renderGallery();
+    }
   }
 
-  async function removeSelectedGalleryItem(){
-    const item = getSelectedGalleryItem();
+  function renderGallery() {
+    ui.galleryCount.textContent = `${state.gallery.length} foto${state.gallery.length === 1 ? '' : 's'}`;
+    ui.galleryEmpty.style.display = state.gallery.length ? 'none' : 'block';
+    ui.galleryGrid.innerHTML = '';
+
+    const hasSelection = !!state.gallery.find(item => item.id === state.selectedId);
+    ui.downloadSelectedBtn.disabled = !hasSelection;
+    ui.deleteSelectedBtn.disabled = !hasSelection;
+    ui.clearGalleryBtn.disabled = state.gallery.length === 0;
+
+    if (!hasSelection && state.gallery[0]) {
+      state.selectedId = state.gallery[0].id;
+    }
+
+    state.gallery.forEach(item => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'galleryItem' + (item.id === state.selectedId ? ' selected' : '');
+      card.innerHTML = `
+        <div class="galleryThumb"><img alt="Foto guardada" /></div>
+        <div class="galleryMeta">
+          <strong>${item.label || 'Foto'}</strong>
+          <span>${formatDate(item.ts)}</span>
+        </div>
+      `;
+      const img = card.querySelector('img');
+      const url = URL.createObjectURL(item.blob);
+      img.src = url;
+      img.onload = () => setTimeout(() => URL.revokeObjectURL(url), 1500);
+      card.addEventListener('click', () => {
+        state.selectedId = item.id;
+        renderGallery();
+        setPreviewFromBlob(item.blob);
+        ui.downloadBtn.disabled = false;
+      });
+      ui.galleryGrid.appendChild(card);
+    });
+
+    const selected = state.gallery.find(item => item.id === state.selectedId);
+    if (selected) {
+      setPreviewFromBlob(selected.blob);
+      ui.downloadBtn.disabled = false;
+    }
+  }
+
+  async function deleteSelected() {
+    const item = state.gallery.find(x => x.id === state.selectedId);
     if (!item) return;
-    galleryItems = galleryItems.filter(entry => entry.id !== item.id);
-    selectedGalleryId = galleryItems[0]?.id || '';
-    persistGalleryItems();
-    renderGallery();
-    syncGalleryPreview();
+    const db = await openDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).delete(item.id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    state.selectedId = '';
+    await loadGallery();
     setToast('Foto eliminada');
   }
 
-  async function clearGallery(){
-    if (!galleryItems.length) return;
+  async function clearGallery() {
+    if (!state.gallery.length) return;
     const ok = confirm('¿Vaciar la galería interna?');
     if (!ok) return;
-    galleryItems = [];
-    selectedGalleryId = '';
-    persistGalleryItems();
-    renderGallery();
-    syncGalleryPreview();
+    const db = await openDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).clear();
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    state.selectedId = '';
+    await loadGallery();
     setToast('Galería vaciada');
   }
 
-  async function canvasToBlob(canvas, type='image/jpeg', quality=0.94){
-    return await new Promise((resolve) => {
-      canvas.toBlob((blob) => resolve(blob), type, quality);
-    });
-  }
-
-  async function saveBlob(blob){
-    const filename = `gcam_${new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0,19)}.jpg`;
-    const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+  async function downloadBlob(blob, filename) {
+    if (!blob) return;
 
     if ('showSaveFilePicker' in window) {
       try {
-        const fileHandle = await window.showSaveFilePicker({
+        const handle = await window.showSaveFilePicker({
           suggestedName: filename,
-          types: [{
-            description: 'JPEG image',
-            accept: { 'image/jpeg': ['.jpg', '.jpeg'] }
-          }]
+          types: [{ description: 'JPEG image', accept: { 'image/jpeg': ['.jpg', '.jpeg'] } }]
         });
-        const writable = await fileHandle.createWritable();
+        const writable = await handle.createWritable();
         await writable.write(blob);
         await writable.close();
         setToast(`Guardada: ${filename}`);
-        setStatus('ok', 'Guardada', 'Foto escrita en el dispositivo.');
         return;
       } catch (err) {
         if (err?.name !== 'AbortError') console.warn(err);
       }
     }
 
-    if (saveDirHandle && 'showDirectoryPicker' in window) {
+    if (state.saveDirHandle && 'showDirectoryPicker' in window) {
       try {
-        const perm = await saveDirHandle.queryPermission({ mode:'readwrite' });
+        const perm = await state.saveDirHandle.queryPermission({ mode: 'readwrite' });
         if (perm !== 'granted') {
-          const req = await saveDirHandle.requestPermission({ mode:'readwrite' });
-          if (req !== 'granted') throw new Error('Permiso de carpeta no concedido');
+          const req = await state.saveDirHandle.requestPermission({ mode: 'readwrite' });
+          if (req !== 'granted') throw new Error('Permiso denegado');
         }
-
-        const fileHandle = await saveDirHandle.getFileHandle(filename, { create:true });
-        const writable = await fileHandle.createWritable();
+        const fh = await state.saveDirHandle.getFileHandle(filename, { create: true });
+        const writable = await fh.createWritable();
         await writable.write(blob);
         await writable.close();
         setToast(`Guardada en carpeta: ${filename}`);
-        setStatus('ok', 'Guardada', 'Foto escrita en la carpeta elegida.');
         return;
       } catch (err) {
         console.warn(err);
-        saveDirHandle = null;
+        state.saveDirHandle = null;
       }
     }
 
-    if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+    if (navigator.canShare?.({ files: [new File([blob], filename, { type: blob.type || 'image/jpeg' })] }) && navigator.share) {
       try {
-        await navigator.share({
-          files: [file],
-          title: 'Foto procesada',
-          text: 'Imagen procesada por la cámara'
-        });
+        const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+        await navigator.share({ files: [file], title: 'Foto procesada', text: 'Imagen procesada por GCam Lite Studio' });
         setToast('Compartir abierto');
-        setStatus('ok', 'Compartida', 'El panel del sistema se abrió con la foto.');
         return;
       } catch (err) {
         if (err?.name !== 'AbortError') console.warn(err);
@@ -1173,263 +1700,246 @@
     a.href = url;
     a.download = filename;
     a.rel = 'noopener';
-    a.style.display = 'none';
     document.body.appendChild(a);
-    requestAnimationFrame(() => a.click());
-    setTimeout(() => {
-      a.remove();
-      URL.revokeObjectURL(url);
-    }, 2500);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
     setToast('Descarga iniciada');
-    setStatus('warn', 'Descarga', 'El navegador inició la descarga automática.');
   }
 
-  async function exportFinalFromProcessedCanvas(){
-    exportCanvas.width = workCanvas.width;
-    exportCanvas.height = workCanvas.height;
-    const ectx = exportCanvas.getContext('2d', { willReadFrequently:true, alpha:false });
-    ectx.clearRect(0, 0, exportCanvas.width, exportCanvas.height);
-    ectx.drawImage(workCanvas, 0, 0);
-
-    const blob = await canvasToBlob(exportCanvas, 'image/jpeg', mode === 'quality' ? 0.96 : 0.92);
-    if (!blob) {
-      setStatus('bad', 'Error', 'No se pudo generar el JPEG.');
-      return null;
-    }
-    currentBlob = blob;
-    updateResultPreview(blob);
-    await addToGallery(blob, { label: `${mode === 'quality' ? 'Calidad' : 'Rápida'} · ${presets[currentPreset].title}` });
-    if (autoSave) {
-      await saveBlob(blob);
-    }
-    setStatus('ok', 'Procesado', `Imagen lista: ${exportCanvas.width}×${exportCanvas.height}`);
-    return blob;
+  function filenameFromNow() {
+    return `gcam_${new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, 19)}.jpg`;
   }
 
-  async function drawAndProcessImage(sourceImage, width, height){
-    const targetWidth = targetSize();
-    const aspect = width / height || 3 / 4;
-    const targetHeight = Math.max(1, Math.round(targetWidth / aspect));
-
-    photoCanvas.width = targetWidth;
-    photoCanvas.height = targetHeight;
-    const ctx = photoCanvas.getContext('2d', { willReadFrequently:true, alpha:false });
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = mode === 'quality' ? 'high' : 'medium';
-
-    if (mirrorEnabled) {
-      ctx.save();
-      ctx.translate(targetWidth, 0);
-      ctx.scale(-1, 1);
-      ctx.drawImage(sourceImage, 0, 0, targetWidth, targetHeight);
-      ctx.restore();
-    } else {
-      ctx.drawImage(sourceImage, 0, 0, targetWidth, targetHeight);
-    }
-
-    const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
-    const processed = postProcessPixels(imageData.data, targetWidth, targetHeight);
-
-    workCanvas.width = targetWidth;
-    workCanvas.height = targetHeight;
-    const wctx = workCanvas.getContext('2d', { willReadFrequently:true, alpha:false });
-    wctx.putImageData(processed, 0, 0);
-
-    const blob = await exportFinalFromProcessedCanvas();
-    if (!blob) return;
-
-    if (autoSave) {
-      saveBtnPulse(true);
-      try {
-        await saveBlob(blob);
-      } finally {
-        saveBtnPulse(false);
-      }
-    } else {
-      setToast('Foto lista');
-    }
-  }
-
-  function captureFrame(){
-    if (!video.videoWidth || !video.videoHeight) {
-      setStatus('warn', 'Sin video', 'Espera a que la cámara termine de cargar.');
-      return;
-    }
-    void drawAndProcessImage(video, video.videoWidth, video.videoHeight);
-  }
-
-  async function handleFile(file){
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      void drawAndProcessImage(img, img.naturalWidth, img.naturalHeight);
-      URL.revokeObjectURL(url);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      setStatus('bad', 'Error de archivo', 'No se pudo leer la imagen seleccionada.');
-    };
-    img.src = url;
-  }
-
-  async function startCamera(){
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setStatus('bad', 'Sin soporte', 'Tu navegador no soporta acceso directo a cámara.');
-      return;
-    }
-    if (!window.isSecureContext) {
-      setStatus('warn', 'Contexto inseguro', 'Usa HTTPS o localhost. Desde file:// la cámara suele bloquearse.');
-      return;
-    }
-
-    try {
-      stopStream();
-      const constraints = {
-        audio:false,
-        video:{
-          facingMode:{ ideal:facingMode },
-          width:{ ideal: mode === 'fast' ? 1280 : 1920 },
-          height:{ ideal: mode === 'fast' ? 720 : 1080 }
-        }
-      };
-
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
-      video.srcObject = stream;
-      await video.play();
-
-      const track = stream.getVideoTracks()[0];
-      const settings = track?.getSettings?.() || {};
-      activeFacingMode = settings.facingMode || facingMode || 'environment';
-      activeDeviceId = settings.deviceId || '';
-
-      if (!settings.facingMode && navigator.mediaDevices.enumerateDevices) {
-        try {
-          const devices = await navigator.mediaDevices.enumerateDevices();
-          const videoInput = devices.find(d =>
-            d.kind === 'videoinput' &&
-            /back|rear|environment|trasera/i.test(d.label)
-          ) || devices.find(d => d.kind === 'videoinput' && /front|user|frontal/i.test(d.label));
-          if (videoInput) {
-            activeDeviceId = videoInput.deviceId || activeDeviceId;
-            activeFacingMode = /front|user|frontal/i.test(videoInput.label) ? 'user' : 'environment';
-          }
-        } catch (_) {}
-      }
-
-      applyCameraProfile(activeFacingMode);
-
-      captureBtn.disabled = false;
-      switchBtn.disabled = false;
-      setStatus('ok', 'Cámara activa', `Cámara ${activeCameraLabel} lista.`);
-      setToast(`Cámara ${activeCameraLabel} iniciada`);
-    } catch (err) {
-      console.error(err);
-      setStatus('bad', 'No se pudo iniciar', `${err.name || 'Error'}: ${err.message || 'No se pudo abrir la cámara.'}`);
-    }
-  }
-
-  function switchCamera(){
-    facingMode = facingMode === 'environment' ? 'user' : 'environment';
-    startCamera();
-  }
-
-  async function pickFolder(){
+  async function pickFolder() {
     if (!('showDirectoryPicker' in window)) {
-      setStatus('warn', 'No disponible', 'Este navegador no soporta selección de carpetas. Se usará descarga automática.');
-      setToast('Se usará descarga automática');
+      setStatus('warn', 'No disponible', 'Este navegador no soporta selección de carpeta.');
+      setToast('Usando descarga automática');
       return;
     }
     try {
-      saveDirHandle = await window.showDirectoryPicker({ mode:'readwrite' });
-      setStatus('ok', 'Carpeta lista', 'Las próximas fotos se guardarán allí automáticamente.');
+      state.saveDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
       setToast('Carpeta seleccionada');
+      setStatus('ok', 'Carpeta lista', 'Las próximas fotos pueden guardarse allí.');
     } catch (err) {
       if (err?.name !== 'AbortError') {
         console.warn(err);
-        setStatus('warn', 'Sin carpeta', 'No se pudo seleccionar la carpeta.');
+        setStatus('warn', 'Sin carpeta', 'No se pudo elegir una carpeta.');
       }
     }
   }
 
-  function toggleAutoSave(){
-    autoSave = !autoSave;
-    syncLabels();
-    setToast(autoSave ? 'Auto-guardar activado' : 'Auto-guardar desactivado');
+  async function processAndSave(sourceBlob) {
+    const bitmap = await imageBlobToBitmap(sourceBlob);
+    const baseW = bitmap.width || bitmap.naturalWidth;
+    const baseH = bitmap.height || bitmap.naturalHeight;
+    const outSize = computeOutputSize(baseW, baseH);
+    const crop = fitCover(baseW, baseH, outSize.width, outSize.height);
+
+    ui.workCanvas.width = outSize.width;
+    ui.workCanvas.height = outSize.height;
+    const wctx = ui.workCanvas.getContext('2d', { willReadFrequently: true, alpha: false });
+    wctx.imageSmoothingEnabled = true;
+    wctx.imageSmoothingQuality = 'high';
+    wctx.drawImage(bitmap, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, outSize.width, outSize.height);
+    const src = wctx.getImageData(0, 0, outSize.width, outSize.height).data;
+    const finished = applyGlobalFinish(src, outSize.width, outSize.height, state.facing);
+
+    ui.exportCanvas.width = outSize.width;
+    ui.exportCanvas.height = outSize.height;
+    const ectx = ui.exportCanvas.getContext('2d', { willReadFrequently: true, alpha: false });
+    ectx.putImageData(finished, 0, 0);
+
+    const blob = await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode === 'fast' ? 0.94 : 0.96);
+    if (!blob) throw new Error('No se pudo exportar la imagen');
+
+    state.currentBlob = blob;
+    setPreviewFromBlob(blob);
+    ui.downloadBtn.disabled = false;
+    await saveToGallery(blob, { label: `${presets[state.preset].title} · ${state.mode}` });
+
+    if (state.autoSave) {
+      setBusy(true);
+      try {
+        await downloadBlob(blob, filenameFromNow());
+      } finally {
+        setBusy(false);
+      }
+    }
+    setStatus('ok', 'Procesado', `Salida ${outSize.width}×${outSize.height}`);
+    setToast('Foto lista');
   }
 
-  function toggleMirror(){
-    mirrorEnabled = !mirrorEnabled;
-    syncLabels();
-    setToast(mirrorEnabled ? 'Espejo activado' : 'Espejo desactivado');
-  }
-
-  startBtn.addEventListener('click', startCamera);
-  switchBtn.addEventListener('click', switchCamera);
-  captureBtn.addEventListener('click', captureFrame);
-  fileBtn.addEventListener('click', () => fileInput.click());
-  folderBtn.addEventListener('click', pickFolder);
-  pickFolderInsideBtn.addEventListener('click', pickFolder);
-
-  fileInput.addEventListener('change', async () => {
-    const file = fileInput.files && fileInput.files[0];
-    await handleFile(file);
-    fileInput.value = '';
-  });
-
-  downloadBtn.addEventListener('click', async () => {
-    const item = getSelectedGalleryItem();
-    if (item) {
-      await downloadGalleryItem(item);
+  async function capturePhoto() {
+    if (state.busy) return;
+    if (!state.stream) {
+      setStatus('warn', 'Sin cámara', 'Primero inicia la cámara.');
       return;
     }
-    if (!currentBlob) return;
-    await saveBlob(currentBlob);
-  });
+    setBusy(true);
+    try {
+      let blobs = [];
+      if (state.mode === 'fast') {
+        blobs = [await captureOneBlob()];
+      } else {
+        const frames = await captureBurst();
+        // Use the burst as provided.
+        if (frames.length) {
+          const processedBlobs = [];
+          for (const frame of frames) {
+            const bmp = frame;
+            const canvas = document.createElement('canvas');
+            canvas.width = bmp.width || bmp.naturalWidth;
+            canvas.height = bmp.height || bmp.naturalHeight;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
+            ctx.drawImage(bmp, 0, 0);
+            const blob = await canvasToBlob(canvas, 'image/jpeg', 0.98);
+            processedBlobs.push(blob);
+          }
+          blobs = processedBlobs;
+        }
+      }
 
-  downloadSelectedBtn.addEventListener('click', async () => {
-    await downloadGalleryItem(getSelectedGalleryItem());
-  });
-  deleteSelectedBtn.addEventListener('click', removeSelectedGalleryItem);
-  clearGalleryBtn.addEventListener('click', clearGallery);
+      if (!blobs.length) throw new Error('No se capturó ninguna imagen');
 
-  resetBtn.addEventListener('click', resetAll);
-  autoSaveBtn.addEventListener('click', toggleAutoSave);
-  mirrorBtn.addEventListener('click', toggleMirror);
+      if (blobs.length === 1) {
+        await processAndSave(blobs[0]);
+        return;
+      }
 
-  document.querySelectorAll('[data-preset]').forEach(btn => {
-    btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
-  });
+      // Multi-frame stacking: render each blob to a canvas, align and merge.
+      const bitmaps = [];
+      for (const blob of blobs) bitmaps.push(await imageBlobToBitmap(blob));
+      const firstW = bitmaps[0].width || bitmaps[0].naturalWidth;
+      const firstH = bitmaps[0].height || bitmaps[0].naturalHeight;
+      const outSize = computeOutputSize(firstW, firstH);
+      const crop = fitCover(firstW, firstH, outSize.width, outSize.height);
 
-  fastModeBtn.addEventListener('click', () => setMode('fast'));
-  qualityModeBtn.addEventListener('click', () => setMode('quality'));
-  sizePreset.addEventListener('change', syncLabels);
-  Object.values(controls).forEach(el => el.addEventListener('input', syncLabels));
+      const canvases = [];
+      for (const bmp of bitmaps) {
+        const c = document.createElement('canvas');
+        c.width = outSize.width;
+        c.height = outSize.height;
+        const ctx = c.getContext('2d', { willReadFrequently: true, alpha: false });
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(bmp, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, outSize.width, outSize.height);
+        canvases.push(c);
+      }
 
-  window.addEventListener('beforeunload', stopStream);
+      const merged = averageFrames(canvases, outSize.width, outSize.height, state.facing);
+      const finished = applyGlobalFinish(merged, outSize.width, outSize.height, state.facing);
 
-  function initialState(){
-    applyPreset(defaults.preset);
-    sizePreset.value = defaults.size;
-    applyCameraProfile('environment');
-    setMode(defaults.mode);
-    syncLabels();
-    renderGallery();
-    syncGalleryPreview();
+      ui.exportCanvas.width = outSize.width;
+      ui.exportCanvas.height = outSize.height;
+      const ectx = ui.exportCanvas.getContext('2d', { willReadFrequently: true, alpha: false });
+      ectx.putImageData(finished, 0, 0);
 
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setStatus('bad', 'Sin soporte', 'Tu navegador no soporta la cámara.');
-      startBtn.disabled = true;
-      captureBtn.disabled = true;
-      switchBtn.disabled = true;
-    } else if (!window.isSecureContext) {
-      setStatus('warn', 'Cámara bloqueada', 'Abre esto desde HTTPS o localhost. La cámara del sistema sigue disponible.');
-    } else {
-      setStatus('ok', 'Listo', 'Pulsa iniciar cámara o usa la cámara del sistema.');
+      const blob = await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode === 'fast' ? 0.94 : 0.96);
+      state.currentBlob = blob;
+      setPreviewFromBlob(blob);
+      ui.downloadBtn.disabled = false;
+      await saveToGallery(blob, { label: `${presets[state.preset].title} · ${state.mode} · burst` });
+
+      if (state.autoSave) {
+        await downloadBlob(blob, filenameFromNow());
+      }
+
+      setStatus('ok', 'Procesado', `Bursts fusionados · ${outSize.width}×${outSize.height}`);
+      setToast('Burst listo');
+    } catch (err) {
+      console.error(err);
+      setStatus('bad', 'Error', err?.message || 'No se pudo procesar la foto.');
+    } finally {
+      setBusy(false);
     }
   }
 
+  async function loadFile(file) {
+    if (!file) return;
+    try {
+      const blob = file;
+      await processAndSave(blob);
+    } catch (err) {
+      console.error(err);
+      setStatus('bad', 'Error de archivo', err?.message || 'No se pudo leer la imagen.');
+    }
+  }
+
+  function bindInputs() {
+    const inputs = [
+      ui.sizePreset, ui.burstCount, ui.detailBoost, ui.noiseReduction,
+      ui.exposure, ui.contrast, ui.saturation, ui.sharpness
+    ];
+    inputs.forEach(el => el.addEventListener('input', () => {
+      if (el === ui.burstCount) {
+        // keep label updated
+      }
+      syncLabels();
+      saveSettings();
+    }));
+  }
+
+  function initialState() {
+    loadSettings();
+    syncLabels();
+    renderGallery();
+    setStatus('ok', 'Listo', 'Pulsa iniciar cámara o abre una imagen.');
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setStatus('bad', 'Sin soporte', 'Tu navegador no permite cámara.');
+      ui.startBtn.disabled = true;
+      ui.captureBtn.disabled = true;
+      ui.switchBtn.disabled = true;
+    }
+  }
+
+  ui.settingsBtn.addEventListener('click', openSheet);
+  ui.closeSheetBtn.addEventListener('click', closeSheet);
+  ui.sheet.addEventListener('click', e => { if (e.target === ui.sheet) closeSheet(); });
+
+  ui.startBtn.addEventListener('click', () => void startCamera());
+  ui.switchBtn.addEventListener('click', () => void switchCamera());
+  ui.captureBtn.addEventListener('click', () => void capturePhoto());
+  ui.fileBtn.addEventListener('click', () => ui.fileInput.click());
+  ui.fileInput.addEventListener('change', () => {
+    const file = ui.fileInput.files && ui.fileInput.files[0];
+    if (file) void loadFile(file);
+    ui.fileInput.value = '';
+  });
+  ui.folderBtn.addEventListener('click', () => void pickFolder());
+  ui.pickFolderInsideBtn.addEventListener('click', () => void pickFolder());
+  ui.downloadBtn.addEventListener('click', async () => {
+    const selected = state.gallery.find(item => item.id === state.selectedId);
+    if (selected) {
+      await downloadBlob(selected.blob, filenameFromNow());
+    } else if (state.currentBlob) {
+      await downloadBlob(state.currentBlob, filenameFromNow());
+    }
+  });
+  ui.downloadSelectedBtn.addEventListener('click', async () => {
+    const selected = state.gallery.find(item => item.id === state.selectedId);
+    if (selected) await downloadBlob(selected.blob, filenameFromNow());
+  });
+  ui.deleteSelectedBtn.addEventListener('click', () => void deleteSelected());
+  ui.clearGalleryBtn.addEventListener('click', () => void clearGallery());
+  ui.resetBtn.addEventListener('click', resetAll);
+  ui.autoSaveBtn.addEventListener('click', () => { state.autoSave = !state.autoSave; syncLabels(); saveSettings(); setToast(state.autoSave ? 'Auto-guardar activado' : 'Auto-guardar desactivado'); });
+  ui.mirrorBtn.addEventListener('click', () => { state.mirror = !state.mirror; syncLabels(); saveSettings(); setToast(state.mirror ? 'Espejo activado' : 'Espejo desactivado'); });
+
+  ui.fastModeBtn.addEventListener('click', () => applyMode('fast'));
+  ui.qualityModeBtn.addEventListener('click', () => applyMode('quality'));
+  ui.nightModeBtn.addEventListener('click', () => applyMode('night'));
+  ui.portraitModeBtn.addEventListener('click', () => applyMode('portrait'));
+
+  ui.rearBtn.addEventListener('click', () => setFacing('environment'));
+  ui.frontBtn.addEventListener('click', () => setFacing('user'));
+
+  ui.presetButtons.forEach(btn => btn.addEventListener('click', () => applyPreset(btn.dataset.preset)));
+
+  bindInputs();
+  loadGallery();
   initialState();
+  window.addEventListener('beforeunload', stopStream);
 })();
 </script>
 </body>
