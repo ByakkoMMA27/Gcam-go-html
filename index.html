@@ -347,6 +347,74 @@
       font-size:12px;
       line-height:1.5;
     }
+    .galleryHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .galleryCount{
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .galleryGrid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:10px;
+    }
+    .galleryItem{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      border-radius:18px;
+      overflow:hidden;
+      padding:8px;
+      display:grid;
+      gap:8px;
+      text-align:left;
+    }
+    .galleryItem.selected{
+      border-color:rgba(121,168,255,.7);
+      box-shadow:0 0 0 1px rgba(121,168,255,.12) inset;
+    }
+    .galleryThumb{
+      aspect-ratio:3 / 4;
+      border-radius:14px;
+      overflow:hidden;
+      background:#06080d;
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .galleryThumb img{width:100%; height:100%; object-fit:cover; display:block}
+    .galleryMeta{
+      display:grid;
+      gap:2px;
+      min-width:0;
+    }
+    .galleryMeta strong{
+      font-size:12px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .galleryMeta span{
+      color:var(--muted);
+      font-size:11px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .galleryActions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .galleryActions .full{grid-column:1 / -1}
+    .emptyGallery{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+      padding:6px 2px 2px;
+    }
     .footerActions{
       display:grid;
       grid-template-columns:1fr 1fr;
@@ -513,11 +581,25 @@
 
         <div class="section">
           <div class="sectionTitle"><span>Guardado</span><span>automático</span></div>
-          <button class="good" id="autoSaveBtn" type="button">Auto-guardar: activado</button>
+          <button class="good" id="autoSaveBtn" type="button">Auto-guardar: desactivado</button>
           <button class="ghost" id="mirrorBtn" type="button">Espejo: desactivado</button>
           <button class="warn" id="pickFolderInsideBtn" type="button">Elegir carpeta de guardado</button>
           <div class="fineprint">
-            Si eliges una carpeta, cada foto se guarda allí automáticamente con nombre único. Si el navegador no soporta esa función, la foto se descarga sola.
+            Las fotos se guardan primero en la galería interna. Si activas el auto-guardado y el navegador lo permite, también se exportan fuera del navegador.
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="galleryHeader">
+            <div class="sectionTitle" style="margin:0; padding:0; border:0;"><span>Galería interna</span><span>fotos guardadas</span></div>
+            <div class="galleryCount" id="galleryCount">0 fotos</div>
+          </div>
+          <div class="galleryGrid" id="galleryGrid"></div>
+          <div class="emptyGallery" id="galleryEmpty">Todavía no hay fotos. Toca el disparador para empezar a guardar capturas aquí.</div>
+          <div class="galleryActions">
+            <button class="ghost full" id="downloadSelectedBtn" type="button" disabled>Descargar seleccionada</button>
+            <button class="ghost" id="deleteSelectedBtn" type="button" disabled>Eliminar seleccionada</button>
+            <button class="ghost" id="clearGalleryBtn" type="button" disabled>Vaciar galería</button>
           </div>
         </div>
 
@@ -525,13 +607,13 @@
           <div class="sectionTitle"><span>Ayuda</span><span>web</span></div>
           <div class="fineprint">
             La cámara solo funciona en HTTPS o localhost. El acceso directo en el celular funciona mejor como icono de pantalla de inicio.
-            En navegador no siempre es posible escribir directamente en la galería; con File System Access API puedes guardar en una carpeta elegida, y si no está disponible la app cae a descarga automática.
+            La galería interna guarda tus fotos dentro del navegador para que las revises y descargues manualmente cuando quieras.
           </div>
         </div>
 
         <div class="footerActions">
           <button class="ghost" id="resetBtn">Restablecer</button>
-          <button class="ghost" id="downloadBtn" disabled>Descargar última</button>
+          <button class="ghost" id="downloadBtn" disabled>Descargar seleccionada</button>
         </div>
       </div>
     </div>
@@ -546,6 +628,12 @@
   const exportCanvas = document.getElementById('exportCanvas');
   const resultImage = document.getElementById('resultImage');
   const resultPreview = document.getElementById('resultPreview');
+  const galleryCount = document.getElementById('galleryCount');
+  const galleryGrid = document.getElementById('galleryGrid');
+  const galleryEmpty = document.getElementById('galleryEmpty');
+  const downloadSelectedBtn = document.getElementById('downloadSelectedBtn');
+  const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+  const clearGalleryBtn = document.getElementById('clearGalleryBtn');
 
   const statusDot = document.getElementById('statusDot');
   const statusBadgeText = document.getElementById('statusBadgeText');
@@ -615,12 +703,16 @@
   let facingMode = 'environment';
   let currentPreset = defaults.preset;
   let mode = defaults.mode;
-  let autoSave = true;
+  let autoSave = false;
   let saveDirHandle = null;
   let currentResultUrl = '';
   let currentBlob = null;
   let mirrorEnabled = defaults.mirror;
   let currentPreviewDataUrl = '';
+  const GALLERY_KEY = 'gcam_lite_gallery_v3';
+  const MAX_GALLERY_ITEMS = 12;
+  let galleryItems = loadGalleryItems();
+  let selectedGalleryId = galleryItems[0]?.id || '';
 
   function clamp(v){ return Math.max(0, Math.min(255, Math.round(v))); }
 
@@ -822,15 +914,145 @@
     const previewQuality = mode === 'quality' ? 0.95 : 0.91;
     const previewUrl = exportCanvas.toDataURL('image/jpeg', previewQuality);
 
-    if (currentPreviewDataUrl && currentPreviewDataUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(currentPreviewDataUrl);
-    }
     currentPreviewDataUrl = previewUrl;
     currentResultUrl = previewUrl;
 
     resultImage.src = previewUrl;
     resultPreview.src = previewUrl;
     downloadBtn.disabled = false;
+  }
+
+  function loadGalleryItems(){
+    try {
+      const raw = localStorage.getItem(GALLERY_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      console.warn(err);
+      return [];
+    }
+  }
+
+  function persistGalleryItems(){
+    try {
+      localStorage.setItem(GALLERY_KEY, JSON.stringify(galleryItems));
+    } catch (err) {
+      console.warn(err);
+      setStatus('warn', 'Galería limitada', 'El almacenamiento del navegador está lleno. Borra fotos antiguas.');
+    }
+  }
+
+  function makeId(){
+    return (crypto?.randomUUID?.() || `g_${Date.now()}_${Math.random().toString(16).slice(2)}`);
+  }
+
+  function formatTime(ts){
+    const d = new Date(ts);
+    return d.toLocaleString('es-AR', { dateStyle:'short', timeStyle:'short' });
+  }
+
+  function blobToDataURL(blob){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  function getSelectedGalleryItem(){
+    return galleryItems.find(item => item.id === selectedGalleryId) || galleryItems[0] || null;
+  }
+
+  function syncGalleryPreview(){
+    const item = getSelectedGalleryItem();
+    if (!item) {
+      resultPreview.removeAttribute('src');
+      return;
+    }
+    resultPreview.src = item.url;
+    resultImage.src = item.url;
+    downloadBtn.disabled = false;
+  }
+
+  function renderGallery(){
+    galleryCount.textContent = `${galleryItems.length} foto${galleryItems.length === 1 ? '' : 's'}`;
+    galleryEmpty.style.display = galleryItems.length ? 'none' : 'block';
+    galleryGrid.innerHTML = '';
+
+    galleryItems.forEach(item => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'galleryItem' + (item.id === selectedGalleryId ? ' selected' : '');
+      card.setAttribute('aria-label', `Seleccionar foto del ${formatTime(item.ts)}`);
+      card.innerHTML = `
+        <div class="galleryThumb"><img src="${item.url}" alt="Foto guardada" /></div>
+        <div class="galleryMeta">
+          <strong>${item.label || 'Foto'}<\/strong>
+          <span>${formatTime(item.ts)}<\/span>
+        </div>
+      `;
+      card.addEventListener('click', () => {
+        selectedGalleryId = item.id;
+        renderGallery();
+        syncGalleryPreview();
+      });
+      galleryGrid.appendChild(card);
+    });
+
+    const hasSelection = !!getSelectedGalleryItem();
+    downloadSelectedBtn.disabled = !hasSelection;
+    deleteSelectedBtn.disabled = !hasSelection;
+    clearGalleryBtn.disabled = galleryItems.length === 0;
+  }
+
+  async function addToGallery(blob, meta = {}){
+    const url = await blobToDataURL(blob);
+    const item = {
+      id: makeId(),
+      url,
+      ts: Date.now(),
+      label: meta.label || `${mode === 'quality' ? 'Calidad' : 'Rápida'} · ${presets[currentPreset].title}`,
+      preset: currentPreset,
+      mode,
+      mirror: mirrorEnabled,
+      size: `${exportCanvas.width}×${exportCanvas.height}`
+    };
+
+    galleryItems = [item, ...galleryItems].slice(0, MAX_GALLERY_ITEMS);
+    selectedGalleryId = item.id;
+    persistGalleryItems();
+    renderGallery();
+    syncGalleryPreview();
+  }
+
+  async function downloadGalleryItem(item){
+    if (!item) return;
+    const blob = await (await fetch(item.url)).blob();
+    await saveBlob(blob);
+  }
+
+  async function removeSelectedGalleryItem(){
+    const item = getSelectedGalleryItem();
+    if (!item) return;
+    galleryItems = galleryItems.filter(entry => entry.id !== item.id);
+    selectedGalleryId = galleryItems[0]?.id || '';
+    persistGalleryItems();
+    renderGallery();
+    syncGalleryPreview();
+    setToast('Foto eliminada');
+  }
+
+  async function clearGallery(){
+    if (!galleryItems.length) return;
+    const ok = confirm('¿Vaciar la galería interna?');
+    if (!ok) return;
+    galleryItems = [];
+    selectedGalleryId = '';
+    persistGalleryItems();
+    renderGallery();
+    syncGalleryPreview();
+    setToast('Galería vaciada');
   }
 
   async function canvasToBlob(canvas, type='image/jpeg', quality=0.94){
@@ -938,6 +1160,10 @@
     }
     currentBlob = blob;
     updateResultPreview(blob);
+    await addToGallery(blob, { label: `${mode === 'quality' ? 'Calidad' : 'Rápida'} · ${presets[currentPreset].title}` });
+    if (autoSave) {
+      await saveBlob(blob);
+    }
     setStatus('ok', 'Procesado', `Imagen lista: ${exportCanvas.width}×${exportCanvas.height}`);
     return blob;
   }
@@ -991,7 +1217,7 @@
       setStatus('warn', 'Sin video', 'Espera a que la cámara termine de cargar.');
       return;
     }
-    drawAndProcessImage(video, video.videoWidth, video.videoHeight);
+    void drawAndProcessImage(video, video.videoWidth, video.videoHeight);
   }
 
   async function handleFile(file){
@@ -999,7 +1225,7 @@
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
-      drawAndProcessImage(img, img.naturalWidth, img.naturalHeight);
+      void drawAndProcessImage(img, img.naturalWidth, img.naturalHeight);
       URL.revokeObjectURL(url);
     };
     img.onerror = () => {
@@ -1093,9 +1319,20 @@
   });
 
   downloadBtn.addEventListener('click', async () => {
+    const item = getSelectedGalleryItem();
+    if (item) {
+      await downloadGalleryItem(item);
+      return;
+    }
     if (!currentBlob) return;
     await saveBlob(currentBlob);
   });
+
+  downloadSelectedBtn.addEventListener('click', async () => {
+    await downloadGalleryItem(getSelectedGalleryItem());
+  });
+  deleteSelectedBtn.addEventListener('click', removeSelectedGalleryItem);
+  clearGalleryBtn.addEventListener('click', clearGallery);
 
   resetBtn.addEventListener('click', resetAll);
   autoSaveBtn.addEventListener('click', toggleAutoSave);
@@ -1117,6 +1354,8 @@
     sizePreset.value = defaults.size;
     setMode(defaults.mode);
     syncLabels();
+    renderGallery();
+    syncGalleryPreview();
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setStatus('bad', 'Sin soporte', 'Tu navegador no soporta la cámara.');
