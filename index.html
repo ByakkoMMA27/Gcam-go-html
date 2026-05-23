@@ -7,7 +7,7 @@
   <title>GCam Lite Studio</title>
   <style>
     :root{
-      color-scheme: dark;
+      color-scheme:dark;
       --bg:#05070b;
       --panel:rgba(16,20,28,.78);
       --panel-strong:#10141c;
@@ -24,41 +24,41 @@
       --radius-sm:18px;
       --shadow:0 18px 50px rgba(0,0,0,.42);
     }
-
     *{box-sizing:border-box}
-    html,body{height:100%; margin:0}
+    html,body{height:100%;margin:0}
     body{
       background:
-        radial-gradient(circle at top, rgba(119,166,255,.16), transparent 32%),
-        radial-gradient(circle at 80% 8%, rgba(123,224,177,.10), transparent 26%),
-        linear-gradient(180deg, #090c12 0%, #040509 100%);
+        radial-gradient(circle at top,rgba(119,166,255,.16),transparent 32%),
+        radial-gradient(circle at 80% 8%,rgba(123,224,177,.10),transparent 26%),
+        linear-gradient(180deg,#090c12 0%,#040509 100%);
       color:var(--text);
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,sans-serif;
       overflow:hidden;
     }
-    button,select,input{font:inherit; color:inherit}
+    button,select,input{font:inherit;color:inherit}
     button{
       border:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
       border-radius:16px;
       padding:12px 14px;
       cursor:pointer;
-      transition:transform .12s ease, opacity .12s ease, border-color .12s ease, background .12s ease;
+      transition:transform .12s ease,opacity .12s ease,border-color .12s ease,background .12s ease;
       touch-action:manipulation;
       -webkit-tap-highlight-color:transparent;
     }
-    button:active{transform:scale(.98)}
-    button:disabled{opacity:.5; cursor:not-allowed}
-    button.primary{background:linear-gradient(180deg,#527ff0,#2f5cd8); border-color:#5f87ff}
-    button.good{background:linear-gradient(180deg,#3bb883,#228a5d); border-color:#2fa56d}
-    button.warn{background:linear-gradient(180deg,#d7a838,#a87612); border-color:#bd8d1c}
+    button:active{transform:scale(.96)}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    button.primary{background:linear-gradient(180deg,#527ff0,#2f5cd8);border-color:#5f87ff}
+    button.good{background:linear-gradient(180deg,#3bb883,#228a5d);border-color:#2fa56d}
+    button.warn{background:linear-gradient(180deg,#d7a838,#a87612);border-color:#bd8d1c}
     button.ghost{background:rgba(255,255,255,.03)}
     button.icon{
-      width:46px; height:46px; padding:0;
-      display:grid; place-items:center;
+      width:46px;height:46px;padding:0;
+      display:grid;place-items:center;
       border-radius:999px;
       background:rgba(0,0,0,.34);
       backdrop-filter:blur(10px);
+      font-size:18px;
     }
     button.chip{
       border-radius:999px;
@@ -67,36 +67,34 @@
       flex:0 0 auto;
     }
     button.chip.active{
-      background:linear-gradient(180deg, rgba(119,166,255,.24), rgba(119,166,255,.10));
+      background:linear-gradient(180deg,rgba(119,166,255,.24),rgba(119,166,255,.10));
       border-color:rgba(119,166,255,.60);
       box-shadow:0 0 0 1px rgba(119,166,255,.10) inset;
     }
 
+    /* ── LAYOUT ── */
     .app{
       position:relative;
-      width:100%;
-      height:100%;
+      width:100%;height:100%;
       display:grid;
       grid-template-rows:auto 1fr auto;
     }
-
     .topbar{
       display:flex;
       justify-content:space-between;
       align-items:center;
-      gap:10px;
+      gap:8px;
       padding:12px 12px 8px;
-      position:relative;
-      z-index:6;
+      position:relative;z-index:6;
       pointer-events:none;
     }
-    .topbar > *{pointer-events:auto}
+    .topbar>*{pointer-events:auto}
+    .topRightCluster{display:flex;align-items:center;gap:6px}
+
+    /* ── PILL / STATUS ── */
     .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      max-width:100%;
-      padding:10px 12px;
+      display:inline-flex;align-items:center;gap:8px;
+      max-width:100%;padding:10px 12px;
       border-radius:999px;
       background:rgba(0,0,0,.38);
       border:1px solid rgba(255,255,255,.08);
@@ -104,180 +102,274 @@
       box-shadow:0 8px 20px rgba(0,0,0,.15);
       min-width:0;
     }
-    .pill strong{
-      font-size:12px;
-      font-weight:750;
-      letter-spacing:.2px;
-    }
-    .pill span{
-      color:var(--muted);
-      font-size:12px;
-      min-width:0;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
+    .pill strong{font-size:12px;font-weight:750;letter-spacing:.2px}
+    .pill span{color:var(--muted);font-size:12px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .statusDot{
-      width:10px; height:10px; border-radius:999px;
+      width:10px;height:10px;border-radius:999px;
       background:var(--good);
       box-shadow:0 0 0 4px rgba(114,224,157,.12);
       flex:0 0 auto;
     }
-    .statusDot.warn{background:var(--warn); box-shadow:0 0 0 4px rgba(255,209,102,.12)}
-    .statusDot.bad{background:var(--bad); box-shadow:0 0 0 4px rgba(255,139,139,.12)}
+    .statusDot.warn{background:var(--warn);box-shadow:0 0 0 4px rgba(255,209,102,.12)}
+    .statusDot.bad{background:var(--bad);box-shadow:0 0 0 4px rgba(255,139,139,.12)}
 
+    /* ── STAGE ── */
     .stageWrap{
-      position:relative;
-      min-height:0;
+      position:relative;min-height:0;
       display:grid;
-      grid-template-rows:1fr auto;
+      grid-template-rows:1fr auto auto;
     }
     .stage{
-      position:relative;
-      overflow:hidden;
+      position:relative;overflow:hidden;
       background:#000;
       border-top:1px solid rgba(255,255,255,.05);
-      border-bottom:1px solid rgba(255,255,255,.05);
     }
-    video, canvas, img{
-      display:block;
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      background:#000;
-    }
-    #previewVideo.mirrored{transform:scaleX(-1);}
+    video,canvas,img{display:block;width:100%;height:100%;object-fit:cover;background:#000}
+    #previewVideo.mirrored{transform:scaleX(-1)}
     #photoCanvas,#workCanvas,#exportCanvas,#fileImage{display:none}
 
-    .overlayHints{
-      position:absolute;
-      inset:auto 0 0 0;
-      padding:16px 14px 14px;
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-end;
-      gap:12px;
-      pointer-events:none;
-      background:linear-gradient(180deg, transparent, rgba(0,0,0,.18) 20%, rgba(0,0,0,.62));
-      z-index:3;
+    /* ── GRID OVERLAY ── */
+    .gridOverlay{
+      position:absolute;inset:0;
+      pointer-events:none;z-index:2;
+      opacity:0;transition:opacity .22s ease;
     }
-    .hintBox{
-      display:grid;
-      gap:4px;
-      max-width:62%;
-    }
-    .hintBox strong{
-      font-size:13px;
-      font-weight:700;
-    }
-    .hintBox small{
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.35;
-    }
-    .thumb{
-      width:76px;
-      height:76px;
-      border-radius:18px;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,.13);
-      background:#0a0c11;
-      box-shadow:var(--shadow);
-      flex:0 0 auto;
-    }
-    .thumb img{
-      width:100%; height:100%; object-fit:cover;
-    }
-    .toast{
-      position:absolute;
-      left:50%;
-      bottom:110px;
-      transform:translateX(-50%) translateY(12px);
-      opacity:0;
-      z-index:12;
-      max-width:min(92vw, 420px);
-      padding:10px 14px;
+    .gridOverlay.on{opacity:1}
+    .gl{position:absolute;background:rgba(255,255,255,.28)}
+    .gl.h{left:0;right:0;height:1px}
+    .gl.h1{top:33.333%}.gl.h2{top:66.666%}
+    .gl.v{top:0;bottom:0;width:1px}
+    .gl.v1{left:33.333%}.gl.v2{left:66.666%}
+    /* Corner dots at intersections */
+    .gc{
+      position:absolute;width:8px;height:8px;
       border-radius:999px;
-      background:rgba(0,0,0,.72);
-      border:1px solid rgba(255,255,255,.12);
-      color:#f3f6ff;
-      font-size:13px;
-      box-shadow:var(--shadow);
-      pointer-events:none;
-      transition:opacity .22s ease, transform .22s ease;
-      text-align:center;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .toast.show{
-      opacity:1;
-      transform:translateX(-50%) translateY(0);
+      background:rgba(255,255,255,.45);
+      transform:translate(-50%,-50%);
     }
 
+    /* ── FOCUS RING ── */
+    .focusRing{
+      position:absolute;
+      width:72px;height:72px;
+      border:2px solid rgba(119,166,255,.90);
+      border-radius:12px;
+      pointer-events:none;z-index:3;
+      transform:translate(-50%,-50%) scale(1.5);
+      opacity:0;
+      transition:transform .18s ease,opacity .18s ease;
+    }
+    .focusRing.show{transform:translate(-50%,-50%) scale(1);opacity:1}
+    .focusRing::before,.focusRing::after{
+      content:"";position:absolute;
+      width:10px;height:10px;
+      border-color:rgba(119,166,255,.90);
+      border-style:solid;
+    }
+    .focusRing::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+    .focusRing::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+
+    /* ── ZOOM PILL ── */
+    .zoomPill{
+      position:absolute;top:50%;left:50%;
+      transform:translate(-50%,-50%);
+      background:rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.22);
+      border-radius:999px;
+      padding:7px 18px;
+      font-size:16px;font-weight:800;color:#fff;
+      pointer-events:none;z-index:4;
+      opacity:0;
+      transition:opacity .28s ease;
+      backdrop-filter:blur(8px);
+      letter-spacing:-.3px;
+    }
+    .zoomPill.show{opacity:1}
+
+    /* ── TIMER OVERLAY ── */
+    .timerOverlay{
+      position:absolute;inset:0;
+      display:grid;place-items:center;
+      z-index:8;
+      background:rgba(0,0,0,.35);
+      pointer-events:none;
+      opacity:0;transition:opacity .2s ease;
+    }
+    .timerOverlay.active{opacity:1;pointer-events:auto}
+    .timerNumber{
+      font-size:108px;font-weight:900;color:#fff;
+      text-shadow:0 0 60px rgba(119,166,255,.9),0 4px 30px rgba(0,0,0,.7);
+      letter-spacing:-6px;
+      line-height:1;
+      animation:tpulse 1s ease-in-out infinite;
+    }
+    @keyframes tpulse{
+      0%,100%{transform:scale(1);opacity:1}
+      50%{transform:scale(.91);opacity:.82}
+    }
+
+    /* ── FLASH OVERLAY ── */
+    .flashOverlay{
+      position:absolute;inset:0;
+      background:#fff;
+      z-index:9;opacity:0;
+      pointer-events:none;
+    }
+    @keyframes flashAnim{
+      0%{opacity:.92}
+      100%{opacity:0}
+    }
+    .flashOverlay.flash{animation:flashAnim .38s ease-out forwards}
+
+    /* ── OVERLAY HINTS ── */
+    .overlayHints{
+      position:absolute;inset:auto 0 0 0;
+      padding:16px 14px 14px;
+      display:flex;justify-content:space-between;align-items:flex-end;gap:12px;
+      pointer-events:none;
+      background:linear-gradient(180deg,transparent,rgba(0,0,0,.18) 20%,rgba(0,0,0,.62));
+      z-index:3;
+    }
+    .hintBox{display:grid;gap:4px;max-width:62%}
+    .hintBox strong{font-size:13px;font-weight:700}
+    .hintBox small{color:var(--muted);font-size:12px;line-height:1.35}
+    .thumb{
+      width:76px;height:76px;border-radius:18px;overflow:hidden;
+      border:1px solid rgba(255,255,255,.13);background:#0a0c11;
+      box-shadow:var(--shadow);flex:0 0 auto;pointer-events:auto;cursor:pointer;
+    }
+    .thumb img{width:100%;height:100%;object-fit:cover}
+    .toast{
+      position:absolute;left:50%;bottom:110px;
+      transform:translateX(-50%) translateY(12px);
+      opacity:0;z-index:12;
+      max-width:min(92vw,420px);
+      padding:10px 14px;border-radius:999px;
+      background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.12);
+      color:#f3f6ff;font-size:13px;
+      box-shadow:var(--shadow);
+      pointer-events:none;
+      transition:opacity .22s ease,transform .22s ease;
+      text-align:center;white-space:nowrap;
+      overflow:hidden;text-overflow:ellipsis;
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    /* ── MODE STRIP ── */
+    .modeStrip{
+      position:relative;z-index:4;
+      display:flex;gap:6px;
+      overflow-x:auto;
+      padding:7px 12px 5px;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;
+      background:rgba(5,7,11,.65);
+      border-bottom:1px solid rgba(255,255,255,.05);
+    }
+    .modeStrip::-webkit-scrollbar{display:none}
+    .modeChip{
+      flex:0 0 auto;
+      padding:6px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05);
+      color:rgba(255,255,255,.55);
+      font-size:13px;font-weight:600;
+      cursor:pointer;
+      transition:all .15s ease;
+      white-space:nowrap;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .modeChip:active{transform:scale(.95)}
+    .modeChip.active{
+      color:#fff;
+      background:rgba(119,166,255,.18);
+      border-color:rgba(119,166,255,.55);
+    }
+    .modeChip.disabled{opacity:.35;cursor:not-allowed}
+
+    /* ── ZOOM ROW ── */
+    .zoomRow{
+      position:relative;z-index:4;
+      display:flex;align-items:center;justify-content:center;
+      gap:6px;padding:5px 12px 6px;
+      background:rgba(5,7,11,.55);
+      border-bottom:1px solid rgba(255,255,255,.04);
+    }
+    .zoomLvl{
+      min-width:42px;height:34px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.42);
+      backdrop-filter:blur(10px);
+      font-size:13px;font-weight:700;color:rgba(255,255,255,.65);
+      cursor:pointer;
+      display:grid;place-items:center;
+      transition:all .14s ease;
+      -webkit-tap-highlight-color:transparent;
+      padding:0 10px;
+    }
+    .zoomLvl:active{transform:scale(.93)}
+    .zoomLvl.active{
+      background:rgba(119,166,255,.22);
+      border-color:rgba(119,166,255,.55);
+      color:#fff;
+    }
+
+    /* ── BOTTOM BAR ── */
     .bottomBar{
-      position:relative;
-      z-index:5;
+      position:relative;z-index:5;
       padding:12px 12px calc(12px + env(safe-area-inset-bottom));
       background:
-        linear-gradient(180deg, rgba(5,7,11,0), rgba(5,7,11,.72) 20%, rgba(5,7,11,.96));
+        linear-gradient(180deg,rgba(5,7,11,0),rgba(5,7,11,.72) 20%,rgba(5,7,11,.96));
       border-top:1px solid rgba(255,255,255,.05);
     }
     .bottomRow{
       display:grid;
       grid-template-columns:1fr auto 1fr;
-      align-items:center;
-      gap:12px;
+      align-items:center;gap:12px;
     }
-    .leftCluster, .rightCluster{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      min-width:0;
-    }
+    .leftCluster,.rightCluster{display:flex;align-items:center;gap:10px;min-width:0}
     .rightCluster{justify-content:flex-end}
-    .captureWrap{
-      display:grid;
-      place-items:center;
-      min-width:0;
-    }
+    .captureWrap{display:grid;place-items:center;min-width:0}
+
+    /* ── SHUTTER ── */
     .shutter{
-      width:74px; height:74px;
-      border-radius:999px;
+      width:76px;height:76px;border-radius:999px;
       border:4px solid rgba(255,255,255,.85);
-      background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.06));
+      background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.06));
       box-shadow:0 12px 34px rgba(0,0,0,.45);
       position:relative;
     }
     .shutter::after{
-      content:"";
-      position:absolute;
-      inset:11px;
+      content:"";position:absolute;inset:11px;
       border-radius:999px;
       background:linear-gradient(180deg,#fefefe,#d9dde7);
       box-shadow:0 0 0 1px rgba(255,255,255,.25) inset;
+      transition:background .18s ease;
     }
-    .shutter.saving::after{
-      background:linear-gradient(180deg,#8cf0bc,#41bb81);
+    .shutter.saving::after{background:linear-gradient(180deg,#8cf0bc,#41bb81)}
+    @keyframes shutterRing{
+      0%{box-shadow:0 0 0 0 rgba(119,166,255,.6)}
+      100%{box-shadow:0 0 0 22px rgba(119,166,255,0)}
     }
+    .shutter.capture-ring{animation:shutterRing .5s ease-out}
     .cameraButton{
-      width:48px; height:48px; border-radius:999px;
-      display:grid; place-items:center;
+      width:48px;height:48px;border-radius:999px;
+      display:grid;place-items:center;
       background:rgba(255,255,255,.04);
+      font-size:20px;
     }
 
+    /* ── SETTINGS SHEET ── */
     .sheet{
-      position:absolute;
-      left:0; right:0; bottom:0;
+      position:absolute;left:0;right:0;bottom:0;
       z-index:10;
       transform:translateY(100%);
       transition:transform .22s ease;
       pointer-events:none;
     }
-    .sheet.open{
-      transform:translateY(0);
-      pointer-events:auto;
-    }
+    .sheet.open{transform:translateY(0);pointer-events:auto}
     .sheetCard{
       margin:0 8px 8px;
       background:rgba(17,20,28,.95);
@@ -286,244 +378,180 @@
       border-radius:28px;
       box-shadow:0 -20px 40px rgba(0,0,0,.38);
       overflow:hidden;
-      max-height:min(76vh, 780px);
+      max-height:min(76vh,780px);
       display:grid;
       grid-template-rows:auto 1fr;
     }
-    .sheetHandle{
-      width:54px; height:5px; border-radius:999px;
-      background:rgba(255,255,255,.20);
-      margin:10px auto 8px;
-    }
+    .sheetHandle{width:54px;height:5px;border-radius:999px;background:rgba(255,255,255,.20);margin:10px auto 8px}
     .sheetHeader{
       padding:0 16px 14px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
+      display:flex;justify-content:space-between;align-items:center;gap:10px;
       border-bottom:1px solid rgba(255,255,255,.06);
     }
     .sheetHeader strong{font-size:15px}
-    .sheetHeader span{color:var(--muted); font-size:12px}
-    .sheetBody{
-      padding:14px 14px 16px;
-      overflow:auto;
-      display:grid;
-      gap:14px;
-    }
-    .section{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.03);
-      border-radius:20px;
-      padding:12px;
-      display:grid;
-      gap:10px;
-    }
+    .sheetHeader span{color:var(--muted);font-size:12px}
+    .sheetBody{padding:14px 14px 16px;overflow:auto;display:grid;gap:14px}
+    .section{border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:20px;padding:12px;display:grid;gap:10px}
     .sectionTitle{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      font-size:13px;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.3px;
+      display:flex;justify-content:space-between;align-items:center;gap:10px;
+      font-size:13px;color:var(--muted);
+      text-transform:uppercase;letter-spacing:.3px;
     }
-    .presetRow{
-      display:flex;
-      gap:8px;
-      overflow:auto;
-      padding-bottom:2px;
-      -webkit-overflow-scrolling:touch;
-    }
+    .presetRow{display:flex;gap:8px;overflow:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
     .presetRow::-webkit-scrollbar{height:8px}
-    .presetRow::-webkit-scrollbar-thumb{background:rgba(255,255,255,.10); border-radius:999px}
-    .sliderCard{
-      display:grid;
-      gap:8px;
-      padding:10px 0 2px;
-    }
-    .sliderCard label{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:center;
-      font-size:14px;
-    }
+    .presetRow::-webkit-scrollbar-thumb{background:rgba(255,255,255,.10);border-radius:999px}
+    .sliderCard{display:grid;gap:8px;padding:10px 0 2px}
+    .sliderCard label{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:14px}
     .sliderCard small{color:var(--muted)}
-    input[type="range"]{
-      width:100%;
-      accent-color:var(--accent);
-    }
-    select{
-      width:100%;
-      border:1px solid var(--line);
-      background:var(--panel-soft);
-      border-radius:14px;
-      padding:12px 14px;
-    }
-    .fineprint{
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.5;
-    }
-
-    .galleryHeader{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-    }
-    .galleryCount{
-      color:var(--muted);
-      font-size:12px;
-      white-space:nowrap;
-    }
-    .galleryGrid{
-      display:grid;
-      grid-template-columns:repeat(3, minmax(0, 1fr));
-      gap:10px;
-    }
+    input[type="range"]{width:100%;accent-color:var(--accent)}
+    select{width:100%;border:1px solid var(--line);background:var(--panel-soft);border-radius:14px;padding:12px 14px}
+    .fineprint{color:var(--muted);font-size:12px;line-height:1.5}
+    .galleryHeader{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .galleryCount{color:var(--muted);font-size:12px;white-space:nowrap}
+    .galleryGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
     .galleryItem{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.03);
-      border-radius:18px;
-      overflow:hidden;
-      padding:8px;
-      display:grid;
-      gap:8px;
-      text-align:left;
+      border:1px solid var(--line);background:rgba(255,255,255,.03);
+      border-radius:18px;overflow:hidden;
+      padding:8px;display:grid;gap:8px;text-align:left;
     }
-    .galleryItem.selected{
-      border-color:rgba(119,166,255,.72);
-      box-shadow:0 0 0 1px rgba(119,166,255,.12) inset;
-    }
-    .galleryThumb{
-      aspect-ratio:3 / 4;
-      border-radius:14px;
-      overflow:hidden;
-      background:#06080d;
-      border:1px solid rgba(255,255,255,.06);
-    }
-    .galleryThumb img{width:100%; height:100%; object-fit:cover; display:block}
-    .galleryMeta{
-      display:grid;
-      gap:2px;
-      min-width:0;
-    }
-    .galleryMeta strong{
-      font-size:12px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .galleryMeta span{
-      color:var(--muted);
-      font-size:11px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .galleryActions{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-    }
-    .galleryActions .full{grid-column:1 / -1}
-    .emptyGallery{
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.5;
-      padding:6px 2px 2px;
-    }
-    .footerActions{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-    }
-    .hidden{display:none !important}
+    .galleryItem.selected{border-color:rgba(119,166,255,.72);box-shadow:0 0 0 1px rgba(119,166,255,.12) inset}
+    .galleryThumb{aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:#06080d;border:1px solid rgba(255,255,255,.06)}
+    .galleryThumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .galleryMeta{display:grid;gap:2px;min-width:0}
+    .galleryMeta strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .galleryMeta span{color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .galleryActions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .galleryActions .full{grid-column:1/-1}
+    .emptyGallery{color:var(--muted);font-size:12px;line-height:1.5;padding:6px 2px 2px}
+    .footerActions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .hidden{display:none!important}
 
-    @media (min-width: 900px){
+    /* ── RESPONSIVE ── */
+    @media(min-width:900px){
       .topbar{padding:16px 16px 8px}
       .bottomBar{padding:14px 16px calc(14px + env(safe-area-inset-bottom))}
-      .bottomRow{max-width:760px; margin:0 auto}
-      .sheetCard{max-width:760px; margin:0 auto 12px}
+      .bottomRow{max-width:760px;margin:0 auto}
+      .sheetCard{max-width:760px;margin:0 auto 12px}
     }
-    @media (max-width: 520px){
-      .thumb{width:64px; height:64px; border-radius:16px}
-      .shutter{width:68px; height:68px}
-      .cameraButton{width:44px; height:44px}
+    @media(max-width:520px){
+      .thumb{width:64px;height:64px;border-radius:16px}
+      .shutter{width:68px;height:68px}
+      .cameraButton{width:44px;height:44px}
       .hintBox{max-width:54%}
-      .galleryGrid{grid-template-columns:repeat(2, minmax(0, 1fr))}
+      .galleryGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
   </style>
 </head>
 <body>
 <main class="app">
+  <!-- TOP BAR -->
   <div class="topbar">
     <div class="pill" style="min-width:0">
       <span class="statusDot" id="statusDot"></span>
       <strong id="statusTitle">Listo</strong>
       <span id="statusText">Pulsa iniciar cámara</span>
     </div>
-    <button class="icon" id="settingsBtn" aria-label="Abrir ajustes">⚙</button>
+    <div class="topRightCluster">
+      <button class="icon" id="torchBtn" aria-label="Linterna" title="Linterna" style="display:none">🔦</button>
+      <button class="icon" id="timerBtn" aria-label="Temporizador" title="Temporizador">⏱</button>
+      <button class="icon" id="gridBtn" aria-label="Cuadrícula" title="Cuadrícula">⊞</button>
+      <button class="icon" id="settingsBtn" aria-label="Ajustes">⚙</button>
+    </div>
   </div>
 
+  <!-- STAGE WRAP -->
   <div class="stageWrap">
-    <section class="stage">
+    <section class="stage" id="stage">
       <video id="previewVideo" autoplay playsinline muted></video>
       <canvas id="photoCanvas"></canvas>
       <canvas id="workCanvas"></canvas>
       <canvas id="exportCanvas"></canvas>
       <img id="fileImage" alt="Imagen cargada" />
+
+      <!-- OVERLAYS -->
+      <div class="gridOverlay" id="gridOverlay">
+        <div class="gl h h1"></div>
+        <div class="gl h h2"></div>
+        <div class="gl v v1"></div>
+        <div class="gl v v2"></div>
+        <div class="gc" style="top:33.333%;left:33.333%"></div>
+        <div class="gc" style="top:33.333%;left:66.666%"></div>
+        <div class="gc" style="top:66.666%;left:33.333%"></div>
+        <div class="gc" style="top:66.666%;left:66.666%"></div>
+      </div>
+      <div class="focusRing" id="focusRing"></div>
+      <div class="zoomPill" id="zoomPill">1×</div>
+      <div class="timerOverlay" id="timerOverlay">
+        <div class="timerNumber" id="timerNumber">3</div>
+      </div>
+      <div class="flashOverlay" id="flashOverlay"></div>
+
+      <!-- HINTS + THUMBNAIL -->
       <div class="overlayHints">
         <div class="hintBox">
           <strong id="profileBadge">Perfil: Equilibrado</strong>
           <small id="modeBadge">Modo rápido · Salida 1600 px</small>
         </div>
-        <div class="thumb">
+        <div class="thumb" id="thumbWrap" title="Ver última foto">
           <img id="lastPreview" alt="Última foto" />
         </div>
       </div>
       <div class="toast" id="toast">Listo</div>
     </section>
+
+    <!-- MODE STRIP -->
+    <div class="modeStrip" id="modeStrip">
+      <button class="modeChip active" data-mode="fast">📷 Foto</button>
+      <button class="modeChip" data-mode="quality">✨ Calidad</button>
+      <button class="modeChip" data-mode="night">🌙 Noche</button>
+      <button class="modeChip" data-mode="portrait">🪞 Retrato</button>
+      <button class="modeChip disabled" data-mode="video" disabled>🎬 Vídeo</button>
+    </div>
+
+    <!-- ZOOM ROW -->
+    <div class="zoomRow" id="zoomRow">
+      <button class="zoomLvl" data-zoom="0.6" id="zoom06">0.6×</button>
+      <button class="zoomLvl active" data-zoom="1" id="zoom1">1×</button>
+      <button class="zoomLvl" data-zoom="2" id="zoom2">2×</button>
+      <button class="zoomLvl" data-zoom="5" id="zoom5">5×</button>
+    </div>
   </div>
 
+  <!-- BOTTOM BAR -->
   <div class="bottomBar">
     <div class="bottomRow">
       <div class="leftCluster">
         <button class="cameraButton" id="startBtn" title="Iniciar cámara" aria-label="Iniciar cámara">▶</button>
         <button class="cameraButton" id="switchBtn" title="Cambiar cámara" aria-label="Cambiar cámara" disabled>↺</button>
       </div>
-
       <div class="captureWrap">
         <button class="shutter" id="captureBtn" aria-label="Tomar foto" disabled></button>
       </div>
-
       <div class="rightCluster">
-        <button class="cameraButton" id="folderBtn" title="Elegir carpeta" aria-label="Elegir carpeta de guardado">📁</button>
-        <button class="cameraButton" id="fileBtn" title="Abrir imagen" aria-label="Abrir imagen de la galería">⌁</button>
+        <button class="cameraButton" id="folderBtn" title="Elegir carpeta" aria-label="Elegir carpeta">📁</button>
+        <button class="cameraButton" id="fileBtn" title="Abrir imagen" aria-label="Abrir imagen">⌁</button>
       </div>
     </div>
     <input id="fileInput" class="hidden" type="file" accept="image/*" />
   </div>
 
+  <!-- SETTINGS SHEET -->
   <section class="sheet" id="sheet">
     <div class="sheetCard">
       <div class="sheetHandle"></div>
       <div class="sheetHeader">
         <div>
-          <strong>GCam Lite Studio</strong><br />
+          <strong>GCam Lite Studio v2</strong><br/>
           <span>Cámara, procesado y galería</span>
         </div>
         <button class="ghost" id="closeSheetBtn">Cerrar</button>
       </div>
-
       <div class="sheetBody">
+
         <div class="section">
-          <div class="sectionTitle"><span>Modo</span><span>rápido / calidad / noche</span></div>
+          <div class="sectionTitle"><span>Modo de captura</span></div>
           <div class="footerActions">
-            <button class="chip active" id="fastModeBtn" type="button">Rápido</button>
+            <button class="chip active" id="fastModeBtn" type="button">Foto rápida</button>
             <button class="chip" id="qualityModeBtn" type="button">Calidad</button>
           </div>
           <div class="footerActions">
@@ -533,7 +561,7 @@
         </div>
 
         <div class="section">
-          <div class="sectionTitle"><span>Perfil</span><span>ajustes rápidos</span></div>
+          <div class="sectionTitle"><span>Perfil de color</span><span>ajuste rápido</span></div>
           <div class="presetRow" id="presetRow">
             <button class="chip active" data-preset="balanced">Equilibrado</button>
             <button class="chip" data-preset="vivid">Vivo</button>
@@ -562,62 +590,73 @@
           </div>
           <div class="sliderCard">
             <label><strong>Burst</strong><small id="burstLabel">3 fotos</small></label>
-            <input type="range" id="burstCount" min="1" max="7" step="1" value="3" />
+            <input type="range" id="burstCount" min="1" max="7" step="1" value="3"/>
           </div>
           <div class="sliderCard">
             <label><strong>Enfoque de detalle</strong><small id="detailLabel">0.65</small></label>
-            <input type="range" id="detailBoost" min="0" max="1" step="0.01" value="0.65" />
+            <input type="range" id="detailBoost" min="0" max="1" step="0.01" value="0.65"/>
           </div>
           <div class="sliderCard">
             <label><strong>Reducción de ruido</strong><small id="noiseLabel">0.30</small></label>
-            <input type="range" id="noiseReduction" min="0" max="1" step="0.01" value="0.30" />
+            <input type="range" id="noiseReduction" min="0" max="1" step="0.01" value="0.30"/>
           </div>
         </div>
 
         <div class="section">
-          <div class="sectionTitle"><span>Procesado</span><span>fino</span></div>
+          <div class="sectionTitle"><span>Procesado fino</span></div>
           <div class="sliderCard">
             <label><strong>Exposición</strong><small id="exposureLabel">1.05</small></label>
-            <input type="range" id="exposure" min="0.70" max="1.45" step="0.01" value="1.05" />
+            <input type="range" id="exposure" min="0.70" max="1.45" step="0.01" value="1.05"/>
           </div>
           <div class="sliderCard">
             <label><strong>Contraste</strong><small id="contrastLabel">1.10</small></label>
-            <input type="range" id="contrast" min="0.85" max="1.40" step="0.01" value="1.10" />
+            <input type="range" id="contrast" min="0.85" max="1.40" step="0.01" value="1.10"/>
           </div>
           <div class="sliderCard">
             <label><strong>Saturación</strong><small id="saturationLabel">1.06</small></label>
-            <input type="range" id="saturation" min="0.70" max="1.40" step="0.01" value="1.06" />
+            <input type="range" id="saturation" min="0.70" max="1.40" step="0.01" value="1.06"/>
           </div>
           <div class="sliderCard">
             <label><strong>Nitidez</strong><small id="sharpnessLabel">0.25</small></label>
-            <input type="range" id="sharpness" min="0" max="1" step="0.01" value="0.25" />
+            <input type="range" id="sharpness" min="0" max="1" step="0.01" value="0.25"/>
           </div>
         </div>
+
         <div class="section">
-          <div class="sectionTitle"><span>IA Lite</span><span>mejora opcional</span></div>
+          <div class="sectionTitle"><span>IA Lite</span><span>mejora heurística</span></div>
           <button class="chip" id="aiLiteBtn" type="button">IA Lite: desactivada</button>
           <div class="fineprint">
-            Esta capa no usa un modelo pesado. Aplica una mejora heurística final para proteger luces, levantar sombras suaves y sostener detalle sin volver la foto “plástica”.
+            Aplica un pase final que protege luces, levanta sombras suaves y mantiene el detalle sin efecto plástico.
           </div>
         </div>
 
+        <div class="section">
+          <div class="sectionTitle"><span>Temporizador</span></div>
+          <div class="footerActions">
+            <button class="chip active" id="timer0Btn" type="button">Sin timer</button>
+            <button class="chip" id="timer3Btn" type="button">3 segundos</button>
+          </div>
+          <div class="footerActions">
+            <button class="chip" id="timer10Btn" type="button">10 segundos</button>
+            <span></span>
+          </div>
+        </div>
 
         <div class="section">
-          <div class="sectionTitle"><span>Salida</span><span>guardado</span></div>
+          <div class="sectionTitle"><span>Salida y guardado</span></div>
           <div class="footerActions">
             <button class="good" id="autoSaveBtn" type="button">Auto-guardar: off</button>
             <button class="ghost" id="mirrorBtn" type="button">Espejo: off</button>
           </div>
           <button class="warn" id="pickFolderInsideBtn" type="button">Elegir carpeta de guardado</button>
           <div class="fineprint">
-            La foto final intenta salir en la mayor resolución posible que permita el navegador y el hardware. Si el navegador soporta
-            captura fotográfica nativa, la app la usa; si no, cae a captura por canvas.
+            La foto final sale en la resolución máxima que permita el navegador. Si soporta ImageCapture nativo, lo usa; si no, captura por canvas.
           </div>
         </div>
 
         <div class="section">
           <div class="galleryHeader">
-            <div class="sectionTitle" style="margin:0; padding:0; border:0;"><span>Galería</span><span>local</span></div>
+            <div class="sectionTitle" style="margin:0;padding:0;border:0"><span>Galería local</span></div>
             <div class="galleryCount" id="galleryCount">0 fotos</div>
           </div>
           <div class="galleryGrid" id="galleryGrid"></div>
@@ -630,17 +669,19 @@
         </div>
 
         <div class="section">
-          <div class="sectionTitle"><span>Ayuda</span><span>rápida</span></div>
+          <div class="sectionTitle"><span>Ayuda rápida</span></div>
           <div class="fineprint">
             Usa HTTPS o localhost para abrir la cámara. En móvil, la resolución real depende del navegador y del sensor.
-            Esta versión intenta sostener mejor las altas luces, suavizar el ruido y conservar un acabado más natural.
+            <br><br>
+            <strong>Pellizca</strong> el visor para hacer zoom. <strong>Toca</strong> el visor para enfocar. <strong>⏱</strong> para timer. <strong>⊞</strong> para cuadrícula. <strong>🔦</strong> para linterna (solo cámara trasera).
           </div>
         </div>
 
         <div class="footerActions">
           <button class="ghost" id="resetBtn">Restablecer</button>
-          <button class="ghost" id="downloadBtn" disabled>Descargar seleccionada</button>
+          <button class="ghost" id="downloadBtn" disabled>Descargar</button>
         </div>
+
       </div>
     </div>
   </section>
@@ -650,298 +691,273 @@
 (() => {
   'use strict';
 
+  /* ═══════════════════════════════════ UI REFS ═══ */
   const ui = {
-    previewVideo: document.getElementById('previewVideo'),
-    photoCanvas: document.getElementById('photoCanvas'),
-    workCanvas: document.getElementById('workCanvas'),
-    exportCanvas: document.getElementById('exportCanvas'),
-    fileImage: document.getElementById('fileImage'),
-    lastPreview: document.getElementById('lastPreview'),
-    galleryCount: document.getElementById('galleryCount'),
-    galleryGrid: document.getElementById('galleryGrid'),
-    galleryEmpty: document.getElementById('galleryEmpty'),
-    downloadSelectedBtn: document.getElementById('downloadSelectedBtn'),
-    deleteSelectedBtn: document.getElementById('deleteSelectedBtn'),
-    clearGalleryBtn: document.getElementById('clearGalleryBtn'),
-    statusDot: document.getElementById('statusDot'),
-    statusTitle: document.getElementById('statusTitle'),
-    statusText: document.getElementById('statusText'),
-    profileBadge: document.getElementById('profileBadge'),
-    modeBadge: document.getElementById('modeBadge'),
-    presetDesc: document.getElementById('presetDesc'),
-    toast: document.getElementById('toast'),
-    sheet: document.getElementById('sheet'),
-    settingsBtn: document.getElementById('settingsBtn'),
-    closeSheetBtn: document.getElementById('closeSheetBtn'),
-    startBtn: document.getElementById('startBtn'),
-    switchBtn: document.getElementById('switchBtn'),
-    captureBtn: document.getElementById('captureBtn'),
-    fileBtn: document.getElementById('fileBtn'),
-    folderBtn: document.getElementById('folderBtn'),
-    fileInput: document.getElementById('fileInput'),
-    downloadBtn: document.getElementById('downloadBtn'),
-    resetBtn: document.getElementById('resetBtn'),
-    autoSaveBtn: document.getElementById('autoSaveBtn'),
-    mirrorBtn: document.getElementById('mirrorBtn'),
-    aiLiteBtn: document.getElementById('aiLiteBtn'),
-    pickFolderInsideBtn: document.getElementById('pickFolderInsideBtn'),
-    fastModeBtn: document.getElementById('fastModeBtn'),
-    qualityModeBtn: document.getElementById('qualityModeBtn'),
-    nightModeBtn: document.getElementById('nightModeBtn'),
-    portraitModeBtn: document.getElementById('portraitModeBtn'),
-    rearBtn: document.getElementById('rearBtn'),
-    frontBtn: document.getElementById('frontBtn'),
-    sizePreset: document.getElementById('sizePreset'),
-    sizeLabel: document.getElementById('sizeLabel'),
-    burstCount: document.getElementById('burstCount'),
-    burstLabel: document.getElementById('burstLabel'),
-    detailBoost: document.getElementById('detailBoost'),
-    detailLabel: document.getElementById('detailLabel'),
-    noiseReduction: document.getElementById('noiseReduction'),
-    noiseLabel: document.getElementById('noiseLabel'),
-    exposure: document.getElementById('exposure'),
-    exposureLabel: document.getElementById('exposureLabel'),
-    contrast: document.getElementById('contrast'),
-    contrastLabel: document.getElementById('contrastLabel'),
-    saturation: document.getElementById('saturation'),
-    saturationLabel: document.getElementById('saturationLabel'),
-    sharpness: document.getElementById('sharpness'),
-    sharpnessLabel: document.getElementById('sharpnessLabel'),
-    presetButtons: Array.from(document.querySelectorAll('[data-preset]'))
+    previewVideo:       document.getElementById('previewVideo'),
+    photoCanvas:        document.getElementById('photoCanvas'),
+    workCanvas:         document.getElementById('workCanvas'),
+    exportCanvas:       document.getElementById('exportCanvas'),
+    fileImage:          document.getElementById('fileImage'),
+    lastPreview:        document.getElementById('lastPreview'),
+    galleryCount:       document.getElementById('galleryCount'),
+    galleryGrid:        document.getElementById('galleryGrid'),
+    galleryEmpty:       document.getElementById('galleryEmpty'),
+    downloadSelectedBtn:document.getElementById('downloadSelectedBtn'),
+    deleteSelectedBtn:  document.getElementById('deleteSelectedBtn'),
+    clearGalleryBtn:    document.getElementById('clearGalleryBtn'),
+    statusDot:          document.getElementById('statusDot'),
+    statusTitle:        document.getElementById('statusTitle'),
+    statusText:         document.getElementById('statusText'),
+    profileBadge:       document.getElementById('profileBadge'),
+    modeBadge:          document.getElementById('modeBadge'),
+    presetDesc:         document.getElementById('presetDesc'),
+    toast:              document.getElementById('toast'),
+    sheet:              document.getElementById('sheet'),
+    settingsBtn:        document.getElementById('settingsBtn'),
+    closeSheetBtn:      document.getElementById('closeSheetBtn'),
+    startBtn:           document.getElementById('startBtn'),
+    switchBtn:          document.getElementById('switchBtn'),
+    captureBtn:         document.getElementById('captureBtn'),
+    fileBtn:            document.getElementById('fileBtn'),
+    folderBtn:          document.getElementById('folderBtn'),
+    fileInput:          document.getElementById('fileInput'),
+    downloadBtn:        document.getElementById('downloadBtn'),
+    resetBtn:           document.getElementById('resetBtn'),
+    autoSaveBtn:        document.getElementById('autoSaveBtn'),
+    mirrorBtn:          document.getElementById('mirrorBtn'),
+    aiLiteBtn:          document.getElementById('aiLiteBtn'),
+    pickFolderInsideBtn:document.getElementById('pickFolderInsideBtn'),
+    fastModeBtn:        document.getElementById('fastModeBtn'),
+    qualityModeBtn:     document.getElementById('qualityModeBtn'),
+    nightModeBtn:       document.getElementById('nightModeBtn'),
+    portraitModeBtn:    document.getElementById('portraitModeBtn'),
+    rearBtn:            document.getElementById('rearBtn'),
+    frontBtn:           document.getElementById('frontBtn'),
+    sizePreset:         document.getElementById('sizePreset'),
+    sizeLabel:          document.getElementById('sizeLabel'),
+    burstCount:         document.getElementById('burstCount'),
+    burstLabel:         document.getElementById('burstLabel'),
+    detailBoost:        document.getElementById('detailBoost'),
+    detailLabel:        document.getElementById('detailLabel'),
+    noiseReduction:     document.getElementById('noiseReduction'),
+    noiseLabel:         document.getElementById('noiseLabel'),
+    exposure:           document.getElementById('exposure'),
+    exposureLabel:      document.getElementById('exposureLabel'),
+    contrast:           document.getElementById('contrast'),
+    contrastLabel:      document.getElementById('contrastLabel'),
+    saturation:         document.getElementById('saturation'),
+    saturationLabel:    document.getElementById('saturationLabel'),
+    sharpness:          document.getElementById('sharpness'),
+    sharpnessLabel:     document.getElementById('sharpnessLabel'),
+    presetButtons:      Array.from(document.querySelectorAll('[data-preset]')),
+    // New v2 elements
+    gridOverlay:   document.getElementById('gridOverlay'),
+    focusRing:     document.getElementById('focusRing'),
+    zoomPill:      document.getElementById('zoomPill'),
+    timerOverlay:  document.getElementById('timerOverlay'),
+    timerNumber:   document.getElementById('timerNumber'),
+    flashOverlay:  document.getElementById('flashOverlay'),
+    torchBtn:      document.getElementById('torchBtn'),
+    timerBtn:      document.getElementById('timerBtn'),
+    gridBtn:       document.getElementById('gridBtn'),
+    modeChips:     Array.from(document.querySelectorAll('[data-mode]')),
+    zoomBtns:      Array.from(document.querySelectorAll('[data-zoom]')),
+    stage:         document.getElementById('stage'),
+    thumbWrap:     document.getElementById('thumbWrap'),
+    timer0Btn:     document.getElementById('timer0Btn'),
+    timer3Btn:     document.getElementById('timer3Btn'),
+    timer10Btn:    document.getElementById('timer10Btn'),
   };
 
+  /* ═══════════════════════════════════ STORAGE KEYS ═══ */
   const STORAGE = {
-    settings: 'gcam_lite_studio_settings_v2',
-    gallery: 'gcam_lite_studio_gallery_v2',
-    lastDevice: 'gcam_lite_studio_device_v2'
+    settings: 'gcam_lite_studio_settings_v3',
+    gallery:  'gcam_lite_studio_gallery_v3',
+    lastDevice:'gcam_lite_studio_device_v3'
   };
-
-  const DB_NAME = 'gcam_lite_studio_db_v2';
+  const DB_NAME  = 'gcam_lite_studio_db_v3';
   const DB_VERSION = 1;
-  const STORE = 'photos';
+  const STORE    = 'photos';
 
+  /* ═══════════════════════════════════ PRESETS ═══ */
   const presets = {
-    balanced: {
-      title: 'Equilibrado',
-      desc: 'Balance suave para fotos diarias y escenas brillantes.',
-      exposure: 0.97, contrast: 1.03, saturation: 0.97, sharpness: 0.12, noise: 0.20, detail: 0.58
-    },
-    vivid: {
-      title: 'Vivo',
-      desc: 'Un poco más de color y presencia, sin pasarse.',
-      exposure: 0.98, contrast: 1.08, saturation: 1.08, sharpness: 0.16, noise: 0.16, detail: 0.66
-    },
-    portrait: {
-      title: 'Retrato',
-      desc: 'Más suave en piel y menos agresivo con las luces.',
-      exposure: 0.99, contrast: 1.01, saturation: 0.94, sharpness: 0.10, noise: 0.26, detail: 0.42
-    },
-    night: {
-      title: 'Nocturno',
-      desc: 'Recupera sombra con más cuidado y menos lavado.',
-      exposure: 1.08, contrast: 1.00, saturation: 0.92, sharpness: 0.08, noise: 0.38, detail: 0.34
-    },
-    soft: {
-      title: 'Suave',
-      desc: 'Evita artefactos y mantiene un acabado natural.',
-      exposure: 0.98, contrast: 1.01, saturation: 0.95, sharpness: 0.08, noise: 0.24, detail: 0.30
-    }
+    balanced: { title:'Equilibrado', desc:'Balance suave para fotos diarias y escenas brillantes.',        exposure:0.97, contrast:1.03, saturation:0.97, sharpness:0.12, noise:0.20, detail:0.58 },
+    vivid:    { title:'Vivo',        desc:'Un poco más de color y presencia, sin pasarse.',                exposure:0.98, contrast:1.08, saturation:1.08, sharpness:0.16, noise:0.16, detail:0.66 },
+    portrait: { title:'Retrato',     desc:'Más suave en piel y menos agresivo con las luces.',             exposure:0.99, contrast:1.01, saturation:0.94, sharpness:0.10, noise:0.26, detail:0.42 },
+    night:    { title:'Nocturno',    desc:'Recupera sombra con más cuidado y menos lavado.',               exposure:1.08, contrast:1.00, saturation:0.92, sharpness:0.08, noise:0.38, detail:0.34 },
+    soft:     { title:'Suave',       desc:'Evita artefactos y mantiene un acabado natural.',               exposure:0.98, contrast:1.01, saturation:0.95, sharpness:0.08, noise:0.24, detail:0.30 }
   };
-
   const modePresets = {
-    fast:    { burst: 1, output: '1600', sharpnessBoost: 0.00, noiseBoost: 0.00, detailBoost: 0.50 },
-    quality: { burst: 2, output: '2400', sharpnessBoost: 0.03, noiseBoost: 0.10, detailBoost: 0.66 },
-    night:   { burst: 4, output: '2400', sharpnessBoost: -0.03, noiseBoost: 0.24, detailBoost: 0.38 },
-    portrait:{ burst: 3, output: '1920', sharpnessBoost: -0.02, noiseBoost: 0.16, detailBoost: 0.44 }
+    fast:    { burst:1, output:'1600', sharpnessBoost:0.00, noiseBoost:0.00,  detailBoost:0.50 },
+    quality: { burst:2, output:'2400', sharpnessBoost:0.03, noiseBoost:0.10,  detailBoost:0.66 },
+    night:   { burst:4, output:'2400', sharpnessBoost:-0.03,noiseBoost:0.24,  detailBoost:0.38 },
+    portrait:{ burst:3, output:'1920', sharpnessBoost:-0.02,noiseBoost:0.16,  detailBoost:0.44 }
   };
-
   const defaults = {
-    preset: 'balanced',
-    mode: 'fast',
-    facing: 'environment',
-    output: '1600',
-    burst: 1,
-    detail: 0.56,
-    noise: 0.22,
-    exposure: 0.98,
-    contrast: 1.04,
-    saturation: 0.98,
-    sharpness: 0.14,
-    autoSave: false,
-    mirror: false,
-    aiLite: true
+    preset:'balanced', mode:'fast', facing:'environment', output:'1600',
+    burst:1, detail:0.56, noise:0.22, exposure:0.98, contrast:1.04,
+    saturation:0.98, sharpness:0.14, autoSave:false, mirror:false, aiLite:true,
+    timerSec:0, showGrid:false
   };
 
+  /* ═══════════════════════════════════ STATE ═══ */
   const state = {
-    stream: null,
-    track: null,
-    imageCapture: null,
-    cameraId: '',
-    facing: defaults.facing,
-    mode: defaults.mode,
-    preset: defaults.preset,
-    autoSave: defaults.autoSave,
-    mirror: defaults.mirror,
-    aiLite: defaults.aiLite,
-    saveDirHandle: null,
-    currentBlob: null,
-    currentUrl: '',
-    gallery: [],
-    selectedId: '',
-    db: null,
-    busy: false
+    stream:null, track:null, imageCapture:null, cameraId:'',
+    facing:defaults.facing, mode:defaults.mode, preset:defaults.preset,
+    autoSave:defaults.autoSave, mirror:defaults.mirror, aiLite:defaults.aiLite,
+    saveDirHandle:null, currentBlob:null, currentUrl:'',
+    gallery:[], selectedId:'', db:null, busy:false,
+    // New v2 state
+    zoom:1, zoomSupported:false, zoomMin:1, zoomMax:10,
+    torchOn:false, torchSupported:false,
+    showGrid:defaults.showGrid,
+    timerSec:defaults.timerSec,
+    timerRunning:false, timerHandle:null,
+    // Pinch gesture
+    pinchStartDist:0, pinchStartZoom:1,
   };
 
-  function clamp(v, min = 0, max = 255) {
-    return Math.min(max, Math.max(min, v));
-  }
+  /* ══════════════════════════════════════════════
+     UTILITY FUNCTIONS
+  ══════════════════════════════════════════════ */
+  function clamp(v, min=0, max=255){ return Math.min(max, Math.max(min, v)) }
+  function lerp(a, b, t){ return a + (b - a) * t }
+  function q01(v){ return Math.min(1, Math.max(0, v)) }
 
-  function lerp(a, b, t) {
-    return a + (b - a) * t;
-  }
-
-  function q01(v) {
-    return Math.min(1, Math.max(0, v));
-  }
-
-  function analyzeScene(data, stepHint = 0) {
+  function analyzeScene(data, stepHint=0) {
     const pixelCount = Math.max(1, data.length / 4);
     const step = stepHint || Math.max(10, Math.floor(pixelCount / 24000));
-    let sum = 0;
-    let samples = 0;
-    let shadows = 0;
-    let highlights = 0;
-    let chromaSum = 0;
-
-    for (let i = 0; i < data.length; i += 4 * step) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const l = rgbToGray(r, g, b) / 255;
-      const chroma = Math.max(r, g, b) - Math.min(r, g, b);
-      sum += l;
-      chromaSum += chroma;
-      samples++;
+    let sum=0, samples=0, shadows=0, highlights=0, chromaSum=0;
+    for (let i=0; i<data.length; i+=4*step) {
+      const r=data[i], g=data[i+1], b=data[i+2];
+      const l = rgbToGray(r,g,b) / 255;
+      const chroma = Math.max(r,g,b) - Math.min(r,g,b);
+      sum += l; chromaSum += chroma; samples++;
       if (l < 0.18) shadows++;
       if (l > 0.86) highlights++;
     }
-
     const inv = 1 / Math.max(1, samples);
-    const avgLum = sum * inv;
-    const shadowRatio = shadows * inv;
-    const highlightRatio = highlights * inv;
-    const avgChroma = chromaSum * inv;
-
     return {
-      avgLum,
-      shadowRatio,
-      highlightRatio,
-      avgChroma,
-      step
+      avgLum: sum * inv, shadowRatio: shadows * inv,
+      highlightRatio: highlights * inv, avgChroma: chromaSum * inv, step
     };
   }
 
   function formatDate(ts) {
-    return new Date(ts).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+    return new Date(ts).toLocaleString('es-AR', { dateStyle:'short', timeStyle:'short' });
   }
 
+  /* ══════════════════════════════════════════════
+     TOAST / STATUS
+  ══════════════════════════════════════════════ */
   function setToast(text) {
     ui.toast.textContent = text;
     ui.toast.classList.add('show');
     clearTimeout(setToast._t);
     setToast._t = setTimeout(() => ui.toast.classList.remove('show'), 1800);
   }
-
   function setStatus(kind, title, text) {
     ui.statusTitle.textContent = title;
-    ui.statusText.textContent = text;
-    ui.statusDot.className = 'statusDot' + (kind === 'warn' ? ' warn' : kind === 'bad' ? ' bad' : '');
+    ui.statusText.textContent  = text;
+    ui.statusDot.className = 'statusDot' + (kind==='warn' ? ' warn' : kind==='bad' ? ' bad' : '');
   }
 
-  function openSheet() {
-    ui.sheet.classList.add('open');
-  }
-  function closeSheet() {
-    ui.sheet.classList.remove('open');
-  }
+  /* ══════════════════════════════════════════════
+     SHEET
+  ══════════════════════════════════════════════ */
+  function openSheet(){ ui.sheet.classList.add('open') }
+  function closeSheet(){ ui.sheet.classList.remove('open') }
 
+  /* ══════════════════════════════════════════════
+     SETTINGS PERSISTENCE
+  ══════════════════════════════════════════════ */
   function saveSettings() {
     const data = {
-      preset: state.preset,
-      mode: state.mode,
-      facing: state.facing,
-      output: ui.sizePreset.value,
-      burst: Number(ui.burstCount.value),
-      detail: Number(ui.detailBoost.value),
-      noise: Number(ui.noiseReduction.value),
-      exposure: Number(ui.exposure.value),
-      contrast: Number(ui.contrast.value),
-      saturation: Number(ui.saturation.value),
-      sharpness: Number(ui.sharpness.value),
-      autoSave: state.autoSave,
-      mirror: state.mirror,
-      aiLite: state.aiLite
+      preset:state.preset, mode:state.mode, facing:state.facing,
+      output:ui.sizePreset.value, burst:Number(ui.burstCount.value),
+      detail:Number(ui.detailBoost.value), noise:Number(ui.noiseReduction.value),
+      exposure:Number(ui.exposure.value), contrast:Number(ui.contrast.value),
+      saturation:Number(ui.saturation.value), sharpness:Number(ui.sharpness.value),
+      autoSave:state.autoSave, mirror:state.mirror, aiLite:state.aiLite,
+      timerSec:state.timerSec, showGrid:state.showGrid
     };
-    try { localStorage.setItem(STORAGE.settings, JSON.stringify(data)); } catch (_) {}
+    try { localStorage.setItem(STORAGE.settings, JSON.stringify(data)); } catch(_){}
   }
 
   function loadSettings() {
     try {
       const raw = localStorage.getItem(STORAGE.settings);
       if (!raw) return;
-      const data = JSON.parse(raw);
-      if (data && typeof data === 'object') {
-        state.preset = data.preset || defaults.preset;
-        state.mode = data.mode || defaults.mode;
-        state.facing = data.facing || defaults.facing;
-        ui.sizePreset.value = data.output || defaults.output;
-        ui.burstCount.value = String(data.burst ?? defaults.burst);
-        ui.detailBoost.value = String(data.detail ?? defaults.detail);
-        ui.noiseReduction.value = String(data.noise ?? defaults.noise);
-        ui.exposure.value = String(data.exposure ?? defaults.exposure);
-        ui.contrast.value = String(data.contrast ?? defaults.contrast);
-        ui.saturation.value = String(data.saturation ?? defaults.saturation);
-        ui.sharpness.value = String(data.sharpness ?? defaults.sharpness);
-        state.autoSave = !!data.autoSave;
-        state.mirror = !!data.mirror;
-        state.aiLite = data.aiLite !== undefined ? !!data.aiLite : defaults.aiLite;
-      }
-    } catch (_) {}
+      const d = JSON.parse(raw);
+      if (!d || typeof d !== 'object') return;
+      state.preset     = d.preset     || defaults.preset;
+      state.mode       = d.mode       || defaults.mode;
+      state.facing     = d.facing     || defaults.facing;
+      ui.sizePreset.value   = d.output     || defaults.output;
+      ui.burstCount.value   = String(d.burst    ?? defaults.burst);
+      ui.detailBoost.value  = String(d.detail   ?? defaults.detail);
+      ui.noiseReduction.value = String(d.noise  ?? defaults.noise);
+      ui.exposure.value     = String(d.exposure  ?? defaults.exposure);
+      ui.contrast.value     = String(d.contrast  ?? defaults.contrast);
+      ui.saturation.value   = String(d.saturation?? defaults.saturation);
+      ui.sharpness.value    = String(d.sharpness ?? defaults.sharpness);
+      state.autoSave   = !!d.autoSave;
+      state.mirror     = !!d.mirror;
+      state.aiLite     = d.aiLite !== undefined ? !!d.aiLite : defaults.aiLite;
+      state.timerSec   = d.timerSec ?? defaults.timerSec;
+      state.showGrid   = !!d.showGrid;
+    } catch(_){}
   }
 
+  /* ══════════════════════════════════════════════
+     SYNC LABELS
+  ══════════════════════════════════════════════ */
   function syncLabels() {
     ui.profileBadge.textContent = `Perfil: ${presets[state.preset].title}`;
-    ui.modeBadge.textContent = `Modo ${state.mode} · Salida ${ui.sizePreset.value === 'native' ? 'nativa' : `${ui.sizePreset.value} px`} · Burst ${ui.burstCount.value}`;
-    ui.presetDesc.textContent = presets[state.preset].desc;
-
-    ui.sizeLabel.textContent = ui.sizePreset.value === 'native' ? 'Nativa si existe' : `${ui.sizePreset.value} px`;
-    ui.burstLabel.textContent = `${ui.burstCount.value} foto${Number(ui.burstCount.value) === 1 ? '' : 's'}`;
-    ui.detailLabel.textContent = Number(ui.detailBoost.value).toFixed(2);
-    ui.noiseLabel.textContent = Number(ui.noiseReduction.value).toFixed(2);
-    ui.exposureLabel.textContent = Number(ui.exposure.value).toFixed(2);
-    ui.contrastLabel.textContent = Number(ui.contrast.value).toFixed(2);
+    ui.modeBadge.textContent    = `Modo ${state.mode} · Salida ${ui.sizePreset.value === 'native' ? 'nativa' : `${ui.sizePreset.value} px`} · Burst ${ui.burstCount.value}`;
+    ui.presetDesc.textContent   = presets[state.preset].desc;
+    ui.sizeLabel.textContent    = ui.sizePreset.value === 'native' ? 'Nativa si existe' : `${ui.sizePreset.value} px`;
+    ui.burstLabel.textContent   = `${ui.burstCount.value} foto${Number(ui.burstCount.value)===1?'':'s'}`;
+    ui.detailLabel.textContent  = Number(ui.detailBoost.value).toFixed(2);
+    ui.noiseLabel.textContent   = Number(ui.noiseReduction.value).toFixed(2);
+    ui.exposureLabel.textContent= Number(ui.exposure.value).toFixed(2);
+    ui.contrastLabel.textContent= Number(ui.contrast.value).toFixed(2);
     ui.saturationLabel.textContent = Number(ui.saturation.value).toFixed(2);
-    ui.sharpnessLabel.textContent = Number(ui.sharpness.value).toFixed(2);
-
-    ui.autoSaveBtn.textContent = `Auto-guardar: ${state.autoSave ? 'on' : 'off'}`;
-    ui.mirrorBtn.textContent = `Espejo: ${state.mirror ? 'on' : 'off'}`;
+    ui.sharpnessLabel.textContent  = Number(ui.sharpness.value).toFixed(2);
+    ui.autoSaveBtn.textContent  = `Auto-guardar: ${state.autoSave?'on':'off'}`;
+    ui.mirrorBtn.textContent    = `Espejo: ${state.mirror?'on':'off'}`;
     if (ui.aiLiteBtn) {
-      ui.aiLiteBtn.textContent = `IA Lite: ${state.aiLite ? 'activada' : 'desactivada'}`;
+      ui.aiLiteBtn.textContent = `IA Lite: ${state.aiLite?'activada':'desactivada'}`;
       ui.aiLiteBtn.classList.toggle('active', state.aiLite);
     }
     ui.previewVideo.classList.toggle('mirrored', state.mirror);
-
-    ui.fastModeBtn.classList.toggle('active', state.mode === 'fast');
-    ui.qualityModeBtn.classList.toggle('active', state.mode === 'quality');
-    ui.nightModeBtn.classList.toggle('active', state.mode === 'night');
-    ui.portraitModeBtn.classList.toggle('active', state.mode === 'portrait');
-
-    ui.rearBtn.classList.toggle('active', state.facing === 'environment');
-    ui.frontBtn.classList.toggle('active', state.facing === 'user');
-
-    ui.presetButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.preset === state.preset));
+    ui.fastModeBtn.classList.toggle('active',    state.mode==='fast');
+    ui.qualityModeBtn.classList.toggle('active', state.mode==='quality');
+    ui.nightModeBtn.classList.toggle('active',   state.mode==='night');
+    ui.portraitModeBtn.classList.toggle('active',state.mode==='portrait');
+    ui.rearBtn.classList.toggle('active',  state.facing==='environment');
+    ui.frontBtn.classList.toggle('active', state.facing==='user');
+    ui.presetButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.preset===state.preset));
+    // Mode strip sync
+    ui.modeChips.forEach(c => c.classList.toggle('active', c.dataset.mode===state.mode));
+    // Grid
+    ui.gridOverlay.classList.toggle('on', state.showGrid);
+    ui.gridBtn.style.color = state.showGrid ? '#77a6ff' : '';
+    // Timer
+    ui.timerBtn.style.color = state.timerSec > 0 ? '#ffd166' : '';
+    ui.timerBtn.textContent = state.timerSec > 0 ? `⏱${state.timerSec}` : '⏱';
+    ui.timer0Btn.classList.toggle('active',  state.timerSec===0);
+    ui.timer3Btn.classList.toggle('active',  state.timerSec===3);
+    ui.timer10Btn.classList.toggle('active', state.timerSec===10);
+    // Torch
+    if (ui.torchBtn) {
+      ui.torchBtn.style.color = state.torchOn ? '#ffd166' : '';
+    }
   }
 
+  /* ══════════════════════════════════════════════
+     MODES AND PRESETS
+  ══════════════════════════════════════════════ */
   function applyMode(mode) {
     state.mode = mode;
     const m = modePresets[mode];
@@ -950,76 +966,60 @@
     if (Number(ui.sharpness.value) < 0.15 && m.sharpnessBoost > 0) {
       ui.sharpness.value = String(0.15 + m.sharpnessBoost);
     }
-    if (mode === 'night') {
+    if (mode==='night') {
       ui.noiseReduction.value = String(Math.max(Number(ui.noiseReduction.value), 0.50));
     }
-    syncLabels();
-    saveSettings();
-    setStatus('ok', 'Modo cargado', mode === 'fast' ? 'Procesado ligero.' : mode === 'quality' ? 'Más detalle y más mezcla.' : mode === 'night' ? 'Reducción de ruido reforzada.' : 'Tono más suave.');
+    syncLabels(); saveSettings();
+    const desc = { fast:'Captura rápida.', quality:'Más detalle, más mezcla.', night:'Reducción de ruido reforzada.', portrait:'Tono suave para piel.' };
+    setStatus('ok', 'Modo cargado', desc[mode] || '');
   }
 
   function applyPreset(name) {
     const p = presets[name];
     state.preset = name;
-    ui.exposure.value = String(p.exposure);
-    ui.contrast.value = String(p.contrast);
+    ui.exposure.value   = String(p.exposure);
+    ui.contrast.value   = String(p.contrast);
     ui.saturation.value = String(p.saturation);
-    ui.sharpness.value = String(p.sharpness);
+    ui.sharpness.value  = String(p.sharpness);
     ui.noiseReduction.value = String(p.noise);
-    ui.detailBoost.value = String(p.detail);
-    syncLabels();
-    saveSettings();
+    ui.detailBoost.value    = String(p.detail);
+    syncLabels(); saveSettings();
     setStatus('ok', 'Perfil cargado', p.desc);
   }
 
   function resetAll() {
     Object.assign(state, {
-      preset: defaults.preset,
-      mode: defaults.mode,
-      facing: defaults.facing,
-      autoSave: defaults.autoSave,
-      mirror: defaults.mirror,
-      aiLite: defaults.aiLite
+      preset:defaults.preset, mode:defaults.mode, facing:defaults.facing,
+      autoSave:defaults.autoSave, mirror:defaults.mirror, aiLite:defaults.aiLite,
+      timerSec:defaults.timerSec, showGrid:defaults.showGrid
     });
-    ui.sizePreset.value = defaults.output;
-    ui.burstCount.value = String(defaults.burst);
-    ui.detailBoost.value = String(defaults.detail);
+    ui.sizePreset.value   = defaults.output;
+    ui.burstCount.value   = String(defaults.burst);
+    ui.detailBoost.value  = String(defaults.detail);
     ui.noiseReduction.value = String(defaults.noise);
-    ui.exposure.value = String(defaults.exposure);
-    ui.contrast.value = String(defaults.contrast);
-    ui.saturation.value = String(defaults.saturation);
-    ui.sharpness.value = String(defaults.sharpness);
-    syncLabels();
-    saveSettings();
-    setToast('Valores restaurados');
+    ui.exposure.value     = String(defaults.exposure);
+    ui.contrast.value     = String(defaults.contrast);
+    ui.saturation.value   = String(defaults.saturation);
+    ui.sharpness.value    = String(defaults.sharpness);
+    syncLabels(); saveSettings(); setToast('Valores restaurados');
   }
 
+  /* ══════════════════════════════════════════════
+     CAMERA MANAGEMENT
+  ══════════════════════════════════════════════ */
   function stopStream() {
     if (state.stream) {
       state.stream.getTracks().forEach(t => t.stop());
-      state.stream = null;
-      state.track = null;
-      state.imageCapture = null;
+      state.stream = null; state.track = null; state.imageCapture = null;
     }
   }
 
   function buildConstraints() {
-    const preferredWidth = state.mode === 'fast' ? 1280 : 1920;
-    const preferredHeight = state.mode === 'fast' ? 720 : 1080;
-    const camera = {
-      audio: false,
-      video: {
-        width: { ideal: preferredWidth },
-        height: { ideal: preferredHeight },
-        facingMode: { exact: state.facing }
-      }
-    };
+    const preferredWidth  = state.mode==='fast' ? 1280 : 1920;
+    const preferredHeight = state.mode==='fast' ? 720  : 1080;
+    const camera = { audio:false, video:{ width:{ideal:preferredWidth}, height:{ideal:preferredHeight}, facingMode:{exact:state.facing} } };
     if (state.cameraId) {
-      camera.video = {
-        width: { ideal: preferredWidth },
-        height: { ideal: preferredHeight },
-        deviceId: { exact: state.cameraId }
-      };
+      camera.video = { width:{ideal:preferredWidth}, height:{ideal:preferredHeight}, deviceId:{exact:state.cameraId} };
     }
     return camera;
   }
@@ -1027,10 +1027,10 @@
   async function listDevices() {
     if (!navigator.mediaDevices?.enumerateDevices) return [];
     const devices = await navigator.mediaDevices.enumerateDevices();
-    return devices.filter(d => d.kind === 'videoinput');
+    return devices.filter(d => d.kind==='videoinput');
   }
 
-  function guessFacingFromLabel(label = '') {
+  function guessFacingFromLabel(label='') {
     const text = label.toLowerCase();
     if (/(back|rear|environment|trasera|posterior)/.test(text)) return 'environment';
     if (/(front|user|frontal|selfie)/.test(text)) return 'user';
@@ -1040,1114 +1040,959 @@
   async function chooseDeviceIdForFacing(facing) {
     try {
       const devices = await listDevices();
-      const guessed = devices.find(d => guessFacingFromLabel(d.label) === facing);
+      const guessed = devices.find(d => guessFacingFromLabel(d.label)===facing);
       return guessed ? guessed.deviceId : '';
-    } catch (_) {
-      return '';
-    }
-  }
-
-  function trackFacing(track) {
-    const s = track?.getSettings?.() || {};
-    const deviceLabel = '';
-    if (s.facingMode) return s.facingMode;
-    return deviceLabel;
+    } catch(_){ return '' }
   }
 
   async function startCamera() {
     if (!navigator.mediaDevices?.getUserMedia) {
-      setStatus('bad', 'Sin soporte', 'Este navegador no soporta cámara.');
-      return;
+      setStatus('bad', 'Sin soporte', 'Este navegador no soporta cámara.'); return;
     }
     if (!window.isSecureContext) {
-      setStatus('warn', 'Contexto inseguro', 'Usa HTTPS o localhost para abrir la cámara.');
-      return;
+      setStatus('warn', 'Contexto inseguro', 'Usa HTTPS o localhost.'); return;
     }
-
     try {
       stopStream();
-      if (!state.cameraId) {
-        state.cameraId = await chooseDeviceIdForFacing(state.facing);
-      }
+      if (!state.cameraId) state.cameraId = await chooseDeviceIdForFacing(state.facing);
       let stream;
       try {
         stream = await navigator.mediaDevices.getUserMedia(buildConstraints());
-      } catch (err) {
+      } catch(err) {
         if (state.cameraId) {
           state.cameraId = '';
           stream = await navigator.mediaDevices.getUserMedia(buildConstraints());
-        } else if (err && (err.name === 'OverconstrainedError' || err.name === 'NotReadableError')) {
-          const fallback = {
-            audio: false,
-            video: {
-              width: { ideal: state.mode === 'fast' ? 1280 : 1920 },
-              height: { ideal: state.mode === 'fast' ? 720 : 1080 },
-              facingMode: state.facing
-            }
-          };
+        } else if (err && (err.name==='OverconstrainedError' || err.name==='NotReadableError')) {
+          const fallback = { audio:false, video:{ width:{ideal:state.mode==='fast'?1280:1920}, height:{ideal:state.mode==='fast'?720:1080}, facingMode:state.facing } };
           stream = await navigator.mediaDevices.getUserMedia(fallback);
-        } else {
-          throw err;
-        }
+        } else { throw err; }
       }
-
       state.stream = stream;
-      state.track = stream.getVideoTracks()[0] || null;
+      state.track  = stream.getVideoTracks()[0] || null;
       state.imageCapture = state.track && 'ImageCapture' in window ? new ImageCapture(state.track) : null;
-      state.previewFacing = trackFacing(state.track);
-
       ui.previewVideo.srcObject = stream;
       await ui.previewVideo.play();
-
       ui.captureBtn.disabled = false;
-      ui.switchBtn.disabled = false;
-
-      const label = state.facing === 'environment' ? 'trasera' : 'frontal';
+      ui.switchBtn.disabled  = false;
+      const label = state.facing==='environment' ? 'trasera' : 'frontal';
       setStatus('ok', 'Cámara activa', `Cámara ${label} lista.`);
       setToast('Cámara iniciada');
       saveSettings();
-    } catch (err) {
+      // After stream starts, probe capabilities
+      await probeCapabilities();
+    } catch(err) {
       console.error(err);
-      setStatus('bad', 'No se pudo iniciar', `${err.name || 'Error'}: ${err.message || 'falló la cámara'}`);
+      setStatus('bad', 'No se pudo iniciar', `${err.name||'Error'}: ${err.message||'falló la cámara'}`);
+    }
+  }
+
+  async function probeCapabilities() {
+    if (!state.track) return;
+    try {
+      const caps = state.track.getCapabilities?.() || {};
+      // Zoom support
+      if (caps.zoom) {
+        state.zoomSupported = true;
+        state.zoomMin = caps.zoom.min || 1;
+        state.zoomMax = caps.zoom.max || 10;
+      } else {
+        state.zoomSupported = false;
+      }
+      // Torch support (only rear camera)
+      state.torchSupported = !!(caps.torch);
+      ui.torchBtn.style.display = (state.torchSupported && state.facing==='environment') ? '' : 'none';
+      // Reset zoom to 1
+      state.zoom = 1;
+      updateZoomButtons();
+    } catch(err) {
+      console.warn('probeCapabilities error:', err);
     }
   }
 
   async function switchCamera() {
-    state.facing = state.facing === 'environment' ? 'user' : 'environment';
+    state.facing   = state.facing==='environment' ? 'user' : 'environment';
     state.cameraId = await chooseDeviceIdForFacing(state.facing);
-    syncLabels();
-    saveSettings();
+    // Turn off torch if switching to front
+    if (state.torchOn && state.facing==='user') await toggleTorch(false);
+    syncLabels(); saveSettings();
     await startCamera();
   }
 
   function setFacing(facing) {
-    state.facing = facing;
-    state.cameraId = '';
-    syncLabels();
-    saveSettings();
-    setStatus('ok', facing === 'environment' ? 'Trasera seleccionada' : 'Frontal seleccionada', 'Reiniciando cámara.');
+    state.facing = facing; state.cameraId = '';
+    syncLabels(); saveSettings();
+    setStatus('ok', facing==='environment' ? 'Trasera seleccionada' : 'Frontal seleccionada', 'Reiniciando cámara.');
     void startCamera();
   }
 
-  function toggleAutoSave() {
-    state.autoSave = !state.autoSave;
-    syncLabels();
-    saveSettings();
-    setToast(state.autoSave ? 'Auto-guardar activado' : 'Auto-guardar desactivado');
+  /* ══════════════════════════════════════════════
+     ZOOM
+  ══════════════════════════════════════════════ */
+  async function setZoom(level) {
+    state.zoom = level;
+    if (state.zoomSupported && state.track) {
+      const clamped = Math.max(state.zoomMin, Math.min(state.zoomMax, level));
+      try {
+        await state.track.applyConstraints({ advanced: [{ zoom: clamped }] });
+      } catch(e) { console.warn('zoom constraint failed', e); applyZoomCss(level); }
+    } else {
+      applyZoomCss(level);
+    }
+    showZoomPill(level);
+    updateZoomButtons();
   }
 
-  function toggleMirror() {
-    state.mirror = !state.mirror;
-    syncLabels();
-    saveSettings();
-    setToast(state.mirror ? 'Espejo activado' : 'Espejo desactivado');
+  function applyZoomCss(level) {
+    // CSS fallback: scale the video, this only affects preview
+    ui.previewVideo.style.transform = `scaleX(${state.mirror ? -1 : 1}) scale(${level})`;
   }
 
-  function toggleAiLite() {
-    state.aiLite = !state.aiLite;
-    syncLabels();
-    saveSettings();
-    setToast(state.aiLite ? 'IA Lite activada' : 'IA Lite desactivada');
+  function showZoomPill(level) {
+    ui.zoomPill.textContent = `${level}×`;
+    ui.zoomPill.classList.add('show');
+    clearTimeout(showZoomPill._t);
+    showZoomPill._t = setTimeout(() => ui.zoomPill.classList.remove('show'), 1400);
   }
 
+  function updateZoomButtons() {
+    ui.zoomBtns.forEach(btn => {
+      const z = parseFloat(btn.dataset.zoom);
+      btn.classList.toggle('active', Math.abs(z - state.zoom) < 0.05);
+    });
+  }
+
+  /* Pinch-to-zoom */
+  function pinchDist(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx*dx + dy*dy);
+  }
+
+  ui.stage.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      state.pinchStartDist = pinchDist(e.touches);
+      state.pinchStartZoom = state.zoom;
+    }
+  }, { passive:true });
+
+  ui.stage.addEventListener('touchmove', e => {
+    if (e.touches.length === 2) {
+      const dist  = pinchDist(e.touches);
+      const ratio = dist / Math.max(1, state.pinchStartDist);
+      const newZoom = Math.max(0.6, Math.min(10, state.pinchStartZoom * ratio));
+      const rounded = Math.round(newZoom * 10) / 10;
+      if (Math.abs(rounded - state.zoom) >= 0.05) void setZoom(rounded);
+    }
+  }, { passive:true });
+
+  /* Tap to focus */
+  ui.stage.addEventListener('click', e => {
+    if (!state.track) return;
+    const rect = ui.stage.getBoundingClientRect();
+    const relX = (e.clientX - rect.left) / rect.width;
+    const relY = (e.clientY - rect.top)  / rect.height;
+    // Show focus ring
+    ui.focusRing.style.left = `${relX * 100}%`;
+    ui.focusRing.style.top  = `${relY * 100}%`;
+    ui.focusRing.classList.add('show');
+    clearTimeout(ui.focusRing._t);
+    ui.focusRing._t = setTimeout(() => ui.focusRing.classList.remove('show'), 1500);
+    // Apply focus constraint if supported
+    try {
+      const caps = state.track.getCapabilities?.() || {};
+      if (caps.focusMode?.includes?.('single-shot')) {
+        state.track.applyConstraints({ advanced: [{ pointOfInterest: { x: relX, y: relY }, focusMode: 'single-shot' }] }).catch(()=>{});
+      }
+    } catch(_){}
+  });
+
+  /* ══════════════════════════════════════════════
+     TORCH
+  ══════════════════════════════════════════════ */
+  async function toggleTorch(forcedState) {
+    if (!state.track) return;
+    const desired = forcedState !== undefined ? forcedState : !state.torchOn;
+    try {
+      await state.track.applyConstraints({ advanced: [{ torch: desired }] });
+      state.torchOn = desired;
+      ui.torchBtn.textContent = desired ? '🔦' : '🔦';
+      syncLabels();
+      setToast(desired ? 'Linterna encendida' : 'Linterna apagada');
+    } catch(e) {
+      console.warn('torch error', e);
+      setToast('Linterna no disponible');
+    }
+  }
+
+  /* ══════════════════════════════════════════════
+     TIMER
+  ══════════════════════════════════════════════ */
+  function setTimerDuration(sec) {
+    state.timerSec = sec;
+    syncLabels(); saveSettings();
+    setToast(sec===0 ? 'Sin temporizador' : `Temporizador: ${sec}s`);
+  }
+
+  function cycleTimer() {
+    const next = state.timerSec===0 ? 3 : state.timerSec===3 ? 10 : 0;
+    setTimerDuration(next);
+  }
+
+  function runTimer(onDone) {
+    if (state.timerSec <= 0) { onDone(); return; }
+    if (state.timerRunning) return;
+    state.timerRunning = true;
+    let remaining = state.timerSec;
+    ui.timerNumber.textContent = remaining;
+    ui.timerOverlay.classList.add('active');
+    state.timerHandle = setInterval(() => {
+      remaining--;
+      ui.timerNumber.textContent = remaining;
+      if (remaining <= 0) {
+        clearInterval(state.timerHandle);
+        state.timerRunning = false;
+        ui.timerOverlay.classList.remove('active');
+        onDone();
+      }
+    }, 1000);
+  }
+
+  function cancelTimer() {
+    if (state.timerHandle) clearInterval(state.timerHandle);
+    state.timerRunning = false;
+    ui.timerOverlay.classList.remove('active');
+  }
+
+  /* ══════════════════════════════════════════════
+     GRID
+  ══════════════════════════════════════════════ */
+  function toggleGrid() {
+    state.showGrid = !state.showGrid;
+    syncLabels(); saveSettings();
+    setToast(state.showGrid ? 'Cuadrícula activada' : 'Cuadrícula desactivada');
+  }
+
+  /* ══════════════════════════════════════════════
+     FLASH ANIMATION
+  ══════════════════════════════════════════════ */
+  function triggerFlash() {
+    ui.flashOverlay.classList.remove('flash');
+    void ui.flashOverlay.offsetWidth; // reflow
+    ui.flashOverlay.classList.add('flash');
+    ui.captureBtn.classList.add('capture-ring');
+    setTimeout(() => ui.captureBtn.classList.remove('capture-ring'), 500);
+  }
+
+  /* ══════════════════════════════════════════════
+     BUSY STATE
+  ══════════════════════════════════════════════ */
   function setBusy(flag) {
     state.busy = flag;
     ui.captureBtn.disabled = flag || !state.stream;
-    ui.startBtn.disabled = flag;
-    ui.switchBtn.disabled = flag || !state.stream;
+    ui.startBtn.disabled   = flag;
+    ui.switchBtn.disabled  = flag || !state.stream;
     ui.captureBtn.classList.toggle('saving', flag);
   }
 
-  function canvasToBlob(canvas, type = 'image/jpeg', quality = 0.94) {
+  /* ══════════════════════════════════════════════
+     IMAGE PROCESSING UTILITIES
+  ══════════════════════════════════════════════ */
+  function canvasToBlob(canvas, type='image/jpeg', quality=0.94) {
     return new Promise(resolve => canvas.toBlob(resolve, type, quality));
   }
 
   function imageBlobToBitmap(blob) {
-    if ('createImageBitmap' in window) {
-      return createImageBitmap(blob);
-    }
+    if ('createImageBitmap' in window) return createImageBitmap(blob);
     return new Promise((resolve, reject) => {
       const url = URL.createObjectURL(blob);
       const img = new Image();
       img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
-      img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+      img.onerror = e => { URL.revokeObjectURL(url); reject(e); };
       img.src = url;
     });
   }
 
-  function bitmapToCanvas(bitmap, canvas, width, height) {
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.clearRect(0, 0, width, height);
-    ctx.drawImage(bitmap, 0, 0, width, height);
-  }
+  function rgbToGray(r, g, b){ return 0.299*r + 0.587*g + 0.114*b }
 
-  async function captureOneBlob() {
-    if (state.imageCapture?.takePhoto) {
-      try {
-        return await state.imageCapture.takePhoto();
-      } catch (err) {
-        console.warn('takePhoto falló, uso canvas', err);
-      }
-    }
-    if (!ui.previewVideo.videoWidth || !ui.previewVideo.videoHeight) {
-      throw new Error('La cámara todavía no está lista');
-    }
-    const c = ui.photoCanvas;
-    c.width = ui.previewVideo.videoWidth;
-    c.height = ui.previewVideo.videoHeight;
-    const ctx = c.getContext('2d', { willReadFrequently: true, alpha: false });
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(ui.previewVideo, 0, 0, c.width, c.height);
-    return await canvasToBlob(c, 'image/jpeg', 0.98);
-  }
-
-  async function captureBurst() {
-    const count = Math.max(1, Number(ui.burstCount.value || 1));
-    const delayMs = state.mode === 'fast' ? 50 : 70;
-    const frames = [];
-    for (let i = 0; i < count; i++) {
-      const blob = await captureOneBlob();
-      const bitmap = await imageBlobToBitmap(blob);
-      frames.push(bitmap);
-      if (i < count - 1) await new Promise(r => setTimeout(r, delayMs));
-    }
-    return frames;
-  }
-
-  function targetLongSide() {
-    if (ui.sizePreset.value === 'native') return 0;
-    return Number(ui.sizePreset.value);
-  }
-
-  function computeOutputSize(sourceW, sourceH) {
-    const longSide = targetLongSide();
-    if (!longSide) return { width: sourceW, height: sourceH };
-    const scale = longSide / Math.max(sourceW, sourceH);
-    return {
-      width: Math.max(1, Math.round(sourceW * scale)),
-      height: Math.max(1, Math.round(sourceH * scale))
-    };
-  }
-
-  function fitCover(srcW, srcH, dstW, dstH) {
-    const srcRatio = srcW / srcH;
-    const dstRatio = dstW / dstH;
-    if (srcRatio > dstRatio) {
-      const cropW = Math.round(srcH * dstRatio);
-      const sx = Math.floor((srcW - cropW) / 2);
-      return { sx, sy: 0, sw: cropW, sh: srcH };
-    }
-    const cropH = Math.round(srcW / dstRatio);
-    const sy = Math.floor((srcH - cropH) / 2);
-    return { sx: 0, sy, sw: srcW, sh: cropH };
-  }
-
-  function drawBitmapToCanvas(bitmap, canvas, width, height, cameraType) {
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.clearRect(0, 0, width, height);
-    if (cameraType === 'user' && state.mirror) {
-      ctx.save();
-      ctx.translate(width, 0);
-      ctx.scale(-1, 1);
-      ctx.drawImage(bitmap, 0, 0, width, height);
-      ctx.restore();
-    } else {
-      ctx.drawImage(bitmap, 0, 0, width, height);
-    }
-  }
-
-  function rgbToGray(r, g, b) {
-    return 0.299 * r + 0.587 * g + 0.114 * b;
-  }
-
-  function estimateShift(ref, img, width, height, range = 6, sampleStep = 4) {
-    const cx = Math.floor(width * 0.5);
-    const cy = Math.floor(height * 0.5);
-    const roiW = Math.floor(width * 0.5);
-    const roiH = Math.floor(height * 0.5);
-    const x0 = Math.max(0, cx - Math.floor(roiW / 2));
-    const y0 = Math.max(0, cy - Math.floor(roiH / 2));
-    let best = { dx: 0, dy: 0, score: Infinity };
-
-    for (let dy = -range; dy <= range; dy++) {
-      for (let dx = -range; dx <= range; dx++) {
-        let score = 0;
-        let count = 0;
-        for (let y = 0; y < roiH; y += sampleStep) {
-          const yy = y0 + y;
-          const yy2 = yy + dy;
-          if (yy2 < 0 || yy2 >= height) continue;
-          for (let x = 0; x < roiW; x += sampleStep) {
-            const xx = x0 + x;
-            const xx2 = xx + dx;
-            if (xx2 < 0 || xx2 >= width) continue;
-            const i1 = (yy * width + xx) * 4;
-            const i2 = (yy2 * width + xx2) * 4;
-            const g1 = rgbToGray(ref[i1], ref[i1 + 1], ref[i1 + 2]);
-            const g2 = rgbToGray(img[i2], img[i2 + 1], img[i2 + 2]);
-            score += Math.abs(g1 - g2);
+  function estimateShift(ref, img, width, height, range=6, sampleStep=4) {
+    const cx=Math.floor(width*.5), cy=Math.floor(height*.5);
+    const roiW=Math.floor(width*.5), roiH=Math.floor(height*.5);
+    const x0=Math.max(0,cx-Math.floor(roiW/2)), y0=Math.max(0,cy-Math.floor(roiH/2));
+    let best = { dx:0, dy:0, score:Infinity };
+    for (let dy=-range; dy<=range; dy++) {
+      for (let dx=-range; dx<=range; dx++) {
+        let score=0, count=0;
+        for (let y=0; y<roiH; y+=sampleStep) {
+          const yy=y0+y, yy2=yy+dy;
+          if (yy2<0||yy2>=height) continue;
+          for (let x=0; x<roiW; x+=sampleStep) {
+            const xx=x0+x, xx2=xx+dx;
+            if (xx2<0||xx2>=width) continue;
+            const i1=(yy*width+xx)*4, i2=(yy2*width+xx2)*4;
+            score += Math.abs(rgbToGray(ref[i1],ref[i1+1],ref[i1+2]) - rgbToGray(img[i2],img[i2+1],img[i2+2]));
             count++;
           }
         }
         score = score / Math.max(1, count);
-        if (score < best.score) best = { dx, dy, score };
+        if (score < best.score) best = {dx,dy,score};
       }
     }
     return best;
   }
 
   function applyShiftedFrame(acc, img, width, height, dx, dy, weight) {
-    const out = acc.data;
-    const src = img;
-    for (let y = 0; y < height; y++) {
-      const sy = y + dy;
-      if (sy < 0 || sy >= height) continue;
-      for (let x = 0; x < width; x++) {
-        const sx = x + dx;
-        if (sx < 0 || sx >= width) continue;
-        const di = (y * width + x) * 4;
-        const si = (sy * width + sx) * 4;
-        out[di] += src[si] * weight;
-        out[di + 1] += src[si + 1] * weight;
-        out[di + 2] += src[si + 2] * weight;
-        out[di + 3] += src[si + 3] * weight;
+    const out = acc.data, src = img;
+    for (let y=0; y<height; y++) {
+      const sy = y+dy;
+      if (sy<0||sy>=height) continue;
+      for (let x=0; x<width; x++) {
+        const sx = x+dx;
+        if (sx<0||sx>=width) continue;
+        const di=(y*width+x)*4, si=(sy*width+sx)*4;
+        out[di]   += src[si]   * weight;
+        out[di+1] += src[si+1] * weight;
+        out[di+2] += src[si+2] * weight;
+        out[di+3] += src[si+3] * weight;
       }
     }
     acc.weight += weight;
   }
 
-  
-function focusScore(data, width, height) {
-  let sum = 0;
-  let count = 0;
-  for (let y = 1; y < height; y += 2) {
-    for (let x = 1; x < width; x += 2) {
-      const i = (y * width + x) * 4;
-      const l = rgbToGray(data[i], data[i + 1], data[i + 2]);
-      const l1 = rgbToGray(data[i - 4], data[i - 3], data[i - 2]);
-      const l2 = rgbToGray(data[i - width * 4], data[i - width * 4 + 1], data[i - width * 4 + 2]);
-      sum += Math.abs(l - l1) + Math.abs(l - l2);
-      count += 2;
-    }
-  }
-  return count ? sum / count : 0;
-}
-
-function downscaleCanvasData(canvas, width, height) {
-  const temp = document.createElement('canvas');
-  temp.width = width;
-  temp.height = height;
-  const ctx = temp.getContext('2d', { willReadFrequently: true, alpha: false });
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(canvas, 0, 0, width, height);
-  return ctx.getImageData(0, 0, width, height).data;
-}
-
-function averageFrames(frameCanvases, width, height, cameraType) {
-  if (!frameCanvases.length) return new Uint8ClampedArray(width * height * 4);
-  if (frameCanvases.length === 1) {
-    return frameCanvases[0].getContext('2d', { willReadFrequently: true, alpha: false }).getImageData(0, 0, width, height).data;
-  }
-
-  const downW = Math.max(160, Math.round(width / 12));
-  const downH = Math.max(160, Math.round(height / 12));
-  const smallFrames = frameCanvases.map(c => downscaleCanvasData(c, downW, downH));
-  const scores = smallFrames.map(d => focusScore(d, downW, downH));
-  const refIndex = scores.indexOf(Math.max(...scores));
-  const refSmall = smallFrames[refIndex];
-  const refScore = scores[refIndex] || 1;
-
-  const shifts = [];
-  let motionSum = 0;
-  for (let i = 0; i < smallFrames.length; i++) {
-    if (i === refIndex) continue;
-    const shift = estimateShift(refSmall, smallFrames[i], downW, downH, cameraType === 'environment' ? 5 : 3, 4);
-    const dx = Math.round(shift.dx * (width / downW));
-    const dy = Math.round(shift.dy * (height / downH));
-    const mag = Math.abs(dx) + Math.abs(dy);
-    motionSum += mag;
-    shifts.push({ i, dx, dy, mag });
-  }
-
-  const avgMotion = shifts.length ? motionSum / shifts.length : 0;
-  const motionLimit = cameraType === 'environment' ? 2.3 : 1.7;
-
-  // Si hay movimiento, priorizamos la foto más nítida en vez de mezclar borroso.
-  if (avgMotion > motionLimit) {
-    return frameCanvases[refIndex].getContext('2d', { willReadFrequently: true, alpha: false }).getImageData(0, 0, width, height).data;
-  }
-
-  const accumulator = {
-    data: new Float32Array(width * height * 4),
-    weight: 0
-  };
-
-  const refData = frameCanvases[refIndex].getContext('2d', { willReadFrequently: true, alpha: false }).getImageData(0, 0, width, height).data;
-  applyShiftedFrame(accumulator, refData, width, height, 0, 0, 1.08);
-
-  for (const s of shifts) {
-    const canvas = frameCanvases[s.i];
-    const data = canvas.getContext('2d', { willReadFrequently: true, alpha: false }).getImageData(0, 0, width, height).data;
-    const scoreWeight = q01(scores[s.i] / refScore);
-    const weight = 0.68 + scoreWeight * 0.42;
-    applyShiftedFrame(accumulator, data, width, height, s.dx, s.dy, weight);
-  }
-
-  const avg = new Uint8ClampedArray(width * height * 4);
-  const denom = Math.max(1, accumulator.weight);
-  for (let i = 0; i < avg.length; i++) {
-    avg[i] = clamp(accumulator.data[i] / denom);
-  }
-  return avg;
-}
-
-function estimateWhiteBalance(data, cameraType, scene = null) {
-  let rSum = 0;
-  let gSum = 0;
-  let bSum = 0;
-  let n = 0;
-
-  const stats = scene || analyzeScene(data);
-  const brightScene = stats.avgLum > 0.68;
-  const step = Math.max(12, Math.floor((data.length / 4) / 18000));
-
-  for (let i = 0; i < data.length; i += 4 * step) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    const l = rgbToGray(r, g, b);
-    const chroma = Math.max(r, g, b) - Math.min(r, g, b);
-
-    // Ignora negros, blancos quemados y píxeles muy saturados.
-    if (l < 18 || l > (brightScene ? 238 : 244) || chroma > 110 + (brightScene ? -12 : 0)) continue;
-
-    rSum += r;
-    gSum += g;
-    bSum += b;
-    n++;
-  }
-
-  if (n < 24) {
-    for (let i = 0; i < data.length; i += 4 * step) {
-      rSum += data[i];
-      gSum += data[i + 1];
-      bSum += data[i + 2];
-      n++;
-    }
-  }
-
-  const rAvg = rSum / Math.max(1, n);
-  const gAvg = gSum / Math.max(1, n);
-  const bAvg = bSum / Math.max(1, n);
-  const gray = (rAvg + gAvg + bAvg) / 3 || 1;
-
-  let rGain = gray / Math.max(1, rAvg);
-  let gGain = gray / Math.max(1, gAvg);
-  let bGain = gray / Math.max(1, bAvg);
-
-  const rear = cameraType === 'environment';
-  const warmBias = rear ? 1.00 : 0.985;
-  const coolBias = rear ? 1.00 : 1.015;
-
-  // Limita dominantes raras en escenas duras.
-  if (brightScene) {
-    rGain *= 0.98;
-    bGain *= 1.00;
-  } else if (stats.shadowRatio > 0.32) {
-    rGain *= 1.01;
-    bGain *= 1.01;
-  }
-
-  rGain *= warmBias;
-  bGain *= coolBias;
-
-  return {
-    r: Math.min(1.34, Math.max(0.78, rGain)),
-    g: Math.min(1.22, Math.max(0.82, gGain)),
-    b: Math.min(1.34, Math.max(0.78, bGain))
-  };
-}
-
-function acesTonemap(x) {
-  const v = Math.max(0, x);
-  return Math.min(1, (v * (2.51 * v + 0.03)) / (v * (2.43 * v + 0.59) + 0.14));
-}
-
-function applyToneMap(data, width, height, strength, cameraType) {
-  const out = new Uint8ClampedArray(data.length);
-  const scene = analyzeScene(data);
-  const wb = estimateWhiteBalance(data, cameraType, scene);
-
-  const exposureUI = Number(ui.exposure.value);
-  const contrastUI = Number(ui.contrast.value);
-  const saturationUI = Number(ui.saturation.value);
-  const sharpnessUI = Number(ui.sharpness.value);
-  const detailBoost = Number(ui.detailBoost.value);
-  const noiseBoost = Number(ui.noiseReduction.value);
-  const rear = cameraType === 'environment';
-  const ai = !!state.aiLite;
-
-  const brightScene = scene.avgLum > 0.66;
-  const veryBright = scene.avgLum > 0.78 || scene.highlightRatio > 0.24;
-  const lowLight = scene.avgLum < 0.34;
-
-  const exposureBias = rear
-    ? (veryBright ? 0.82 : brightScene ? 0.90 : lowLight ? 1.08 : 1.00)
-    : (veryBright ? 0.86 : brightScene ? 0.94 : lowLight ? 1.05 : 0.99);
-
-  const contrastBias = rear ? (veryBright ? 0.96 : 1.00) : (veryBright ? 0.94 : 0.98);
-  const saturationBias = rear ? (veryBright ? 0.88 : 0.96) : (veryBright ? 0.84 : 0.93);
-  const shadowLift = rear ? (veryBright ? 0.03 : lowLight ? 0.10 : 0.06) : (veryBright ? 0.04 : lowLight ? 0.12 : 0.08);
-  const highlightProtect = rear ? (veryBright ? 0.44 : 0.34) : (veryBright ? 0.48 : 0.36);
-  const sharpenBoost = rear ? 0.82 : 0.68;
-  const localPop = 1 + (detailBoost - 0.5) * 0.10 + (ai ? 0.015 : 0);
-  const sceneDampen = 1 - Math.min(0.18, scene.highlightRatio * 0.22);
-
-  const exposure = exposureUI * exposureBias;
-  const contrast = contrastUI * contrastBias;
-  const saturation = saturationUI * saturationBias;
-  const gammaLift = veryBright ? 0.98 : 1.00;
-
-  for (let i = 0; i < data.length; i += 4) {
-    let r = (data[i] / 255) * wb.r * exposure;
-    let g = (data[i + 1] / 255) * wb.g * exposure;
-    let b = (data[i + 2] / 255) * wb.b * exposure;
-
-    // Compresión suave de altas luces y levantado moderado de sombras.
-    let lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    const shadow = shadowLift * (1 - Math.min(1, Math.max(0, lum)));
-    const highlight = highlightProtect * Math.max(0, lum - (veryBright ? 0.48 : 0.60));
-    lum = acesTonemap((lum * (1.05 + (ai ? 0.02 : 0))) * gammaLift) + shadow - highlight;
-    lum = q01(lum);
-
-    const sourceLum = Math.max(0.0001, 0.2126 * r + 0.7152 * g + 0.0722 * b);
-    const scale = lum / sourceLum;
-    r *= scale;
-    g *= scale;
-    b *= scale;
-
-    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-    const sat = saturation * (ai ? 1.01 : 1.0) * sceneDampen;
-    r = gray + (r - gray) * sat;
-    g = gray + (g - gray) * sat;
-    b = gray + (b - gray) * sat;
-
-    r = 0.5 + (r - 0.5) * contrast;
-    g = 0.5 + (g - 0.5) * contrast;
-    b = 0.5 + (b - 0.5) * contrast;
-
-    r *= localPop;
-    g *= localPop;
-    b *= localPop;
-
-    out[i] = clamp(r * 255);
-    out[i + 1] = clamp(g * 255);
-    out[i + 2] = clamp(b * 255);
-    out[i + 3] = data[i + 3];
-  }
-
-  // Reducción de ruido más suave para no “lavar” la escena.
-  const blurMix = q01(
-    noiseBoost * (rear ? 0.34 : 0.40) +
-    (lowLight ? 0.08 : 0) +
-    (ai ? 0.02 : 0)
-  );
-
-  if (blurMix > 0.001) {
-    const blurred = boxBlurRGBA(out, width, height, rear ? 1 : 1);
-    const preserve = rear ? 0.42 : 0.50;
-    for (let i = 0; i < out.length; i += 4) {
-      const oldL = rgbToGray(out[i], out[i + 1], out[i + 2]);
-      const blurL = rgbToGray(blurred[i], blurred[i + 1], blurred[i + 2]);
-      const lDetail = (oldL - blurL) * preserve;
-
-      out[i] = clamp(lerp(out[i], blurred[i], blurMix) + lDetail);
-      out[i + 1] = clamp(lerp(out[i + 1], blurred[i + 1], blurMix) + lDetail);
-      out[i + 2] = clamp(lerp(out[i + 2], blurred[i + 2], blurMix) + lDetail);
-    }
-  }
-
-  // Enfoque final muy moderado para evitar piel plástica y halos.
-  const amount = q01(sharpnessUI * sharpenBoost + (ai ? 0.01 : 0)) * (veryBright ? 0.72 : 0.92);
-  if (amount > 0.001) {
-    const blurred = boxBlurRGBA(out, width, height, 1);
-    for (let i = 0; i < out.length; i += 4) {
-      const detail = rgbToGray(out[i], out[i + 1], out[i + 2]) - rgbToGray(blurred[i], blurred[i + 1], blurred[i + 2]);
-      const boost = detail * amount;
-      out[i] = clamp(out[i] + boost);
-      out[i + 1] = clamp(out[i + 1] + boost);
-      out[i + 2] = clamp(out[i + 2] + boost);
-    }
-  }
-
-  return out;
-}
-
-function boxBlurRGBA(data, width, height, radius = 1) {
-  const r = Math.max(1, radius | 0);
-  if (r <= 0) return data.slice();
-
-  const temp = new Float32Array(data.length);
-  const out = new Uint8ClampedArray(data.length);
-  const w4 = width * 4;
-
-  // Horizontal pass.
-  for (let y = 0; y < height; y++) {
-    const row = y * w4;
-    for (let x = 0; x < width; x++) {
-      let rs = 0, gs = 0, bs = 0, as = 0, count = 0;
-      for (let dx = -r; dx <= r; dx++) {
-        const sx = x + dx;
-        if (sx < 0 || sx >= width) continue;
-        const i = row + sx * 4;
-        rs += data[i];
-        gs += data[i + 1];
-        bs += data[i + 2];
-        as += data[i + 3];
-        count++;
+  function focusScore(data, width, height) {
+    let sum=0, count=0;
+    for (let y=1; y<height; y+=2) {
+      for (let x=1; x<width; x+=2) {
+        const i=(y*width+x)*4;
+        const l  = rgbToGray(data[i],   data[i+1],   data[i+2]);
+        const l1 = rgbToGray(data[i-4], data[i-3],   data[i-2]);
+        const l2 = rgbToGray(data[i-width*4], data[i-width*4+1], data[i-width*4+2]);
+        sum += Math.abs(l-l1) + Math.abs(l-l2);
+        count += 2;
       }
-      const o = row + x * 4;
-      temp[o] = rs / count;
-      temp[o + 1] = gs / count;
-      temp[o + 2] = bs / count;
-      temp[o + 3] = as / count;
     }
+    return count ? sum/count : 0;
   }
 
-  // Vertical pass.
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      let rs = 0, gs = 0, bs = 0, as = 0, count = 0;
-      for (let dy = -r; dy <= r; dy++) {
-        const sy = y + dy;
-        if (sy < 0 || sy >= height) continue;
-        const i = (sy * width + x) * 4;
-        rs += temp[i];
-        gs += temp[i + 1];
-        bs += temp[i + 2];
-        as += temp[i + 3];
-        count++;
+  function downscaleCanvasData(canvas, width, height) {
+    const temp = document.createElement('canvas');
+    temp.width=width; temp.height=height;
+    const ctx = temp.getContext('2d', { willReadFrequently:true, alpha:false });
+    ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+    ctx.drawImage(canvas, 0, 0, width, height);
+    return ctx.getImageData(0, 0, width, height).data;
+  }
+
+  function averageFrames(frameCanvases, width, height, cameraType) {
+    if (!frameCanvases.length) return new Uint8ClampedArray(width*height*4);
+    if (frameCanvases.length===1) {
+      return frameCanvases[0].getContext('2d',{willReadFrequently:true,alpha:false}).getImageData(0,0,width,height).data;
+    }
+    const downW = Math.max(160, Math.round(width/12));
+    const downH = Math.max(160, Math.round(height/12));
+    const smallFrames = frameCanvases.map(c => downscaleCanvasData(c, downW, downH));
+    const scores      = smallFrames.map(d => focusScore(d, downW, downH));
+    const refIndex    = scores.indexOf(Math.max(...scores));
+    const refSmall    = smallFrames[refIndex];
+    const refScore    = scores[refIndex] || 1;
+    const shifts=[]; let motionSum=0;
+    for (let i=0; i<smallFrames.length; i++) {
+      if (i===refIndex) continue;
+      const shift = estimateShift(refSmall, smallFrames[i], downW, downH, cameraType==='environment'?5:3, 4);
+      const dx = Math.round(shift.dx*(width/downW));
+      const dy = Math.round(shift.dy*(height/downH));
+      const mag = Math.abs(dx)+Math.abs(dy);
+      motionSum += mag;
+      shifts.push({i,dx,dy,mag});
+    }
+    const avgMotion  = shifts.length ? motionSum/shifts.length : 0;
+    const motionLimit = cameraType==='environment' ? 2.3 : 1.7;
+    if (avgMotion > motionLimit) {
+      return frameCanvases[refIndex].getContext('2d',{willReadFrequently:true,alpha:false}).getImageData(0,0,width,height).data;
+    }
+    const accumulator = { data: new Float32Array(width*height*4), weight:0 };
+    const refData = frameCanvases[refIndex].getContext('2d',{willReadFrequently:true,alpha:false}).getImageData(0,0,width,height).data;
+    applyShiftedFrame(accumulator, refData, width, height, 0, 0, 1.08);
+    for (const s of shifts) {
+      const data = frameCanvases[s.i].getContext('2d',{willReadFrequently:true,alpha:false}).getImageData(0,0,width,height).data;
+      const scoreWeight = q01(scores[s.i] / refScore);
+      const weight = 0.68 + scoreWeight * 0.42;
+      applyShiftedFrame(accumulator, data, width, height, s.dx, s.dy, weight);
+    }
+    const avg = new Uint8ClampedArray(width*height*4);
+    const denom = Math.max(1, accumulator.weight);
+    for (let i=0; i<avg.length; i++) avg[i] = clamp(accumulator.data[i]/denom);
+    return avg;
+  }
+
+  function estimateWhiteBalance(data, cameraType, scene=null) {
+    let rSum=0, gSum=0, bSum=0, n=0;
+    const stats = scene || analyzeScene(data);
+    const brightScene = stats.avgLum > 0.68;
+    const step = Math.max(12, Math.floor((data.length/4)/18000));
+    for (let i=0; i<data.length; i+=4*step) {
+      const r=data[i], g=data[i+1], b=data[i+2];
+      const l = rgbToGray(r,g,b);
+      const chroma = Math.max(r,g,b)-Math.min(r,g,b);
+      if (l<18 || l>(brightScene?238:244) || chroma>(110+(brightScene?-12:0))) continue;
+      rSum+=r; gSum+=g; bSum+=b; n++;
+    }
+    if (n<24) {
+      for (let i=0; i<data.length; i+=4*step) { rSum+=data[i]; gSum+=data[i+1]; bSum+=data[i+2]; n++; }
+    }
+    const rAvg=rSum/Math.max(1,n), gAvg=gSum/Math.max(1,n), bAvg=bSum/Math.max(1,n);
+    const gray = (rAvg+gAvg+bAvg)/3 || 1;
+    let rGain=gray/Math.max(1,rAvg), gGain=gray/Math.max(1,gAvg), bGain=gray/Math.max(1,bAvg);
+    const rear=cameraType==='environment';
+    const warmBias=rear?1.00:0.985, coolBias=rear?1.00:1.015;
+    if (brightScene){ rGain*=0.98; }
+    else if (stats.shadowRatio>0.32){ rGain*=1.01; bGain*=1.01; }
+    rGain*=warmBias; bGain*=coolBias;
+    return {
+      r:Math.min(1.34,Math.max(0.78,rGain)),
+      g:Math.min(1.22,Math.max(0.82,gGain)),
+      b:Math.min(1.34,Math.max(0.78,bGain))
+    };
+  }
+
+  function acesTonemap(x) {
+    const v=Math.max(0,x);
+    return Math.min(1,(v*(2.51*v+0.03))/(v*(2.43*v+0.59)+0.14));
+  }
+
+  function boxBlurRGBA(data, width, height, radius=1) {
+    const r=Math.max(1,radius|0);
+    const temp=new Float32Array(data.length);
+    const out=new Uint8ClampedArray(data.length);
+    const w4=width*4;
+    for (let y=0; y<height; y++) {
+      const row=y*w4;
+      for (let x=0; x<width; x++) {
+        let rs=0,gs=0,bs=0,as=0,count=0;
+        for (let dx=-r; dx<=r; dx++) {
+          const sx=x+dx;
+          if (sx<0||sx>=width) continue;
+          const i=row+sx*4;
+          rs+=data[i]; gs+=data[i+1]; bs+=data[i+2]; as+=data[i+3]; count++;
+        }
+        const o=row+x*4;
+        temp[o]=rs/count; temp[o+1]=gs/count; temp[o+2]=bs/count; temp[o+3]=as/count;
       }
-      const o = (y * width + x) * 4;
-      out[o] = rs / count;
-      out[o + 1] = gs / count;
-      out[o + 2] = bs / count;
-      out[o + 3] = as / count;
     }
+    for (let y=0; y<height; y++) {
+      for (let x=0; x<width; x++) {
+        let rs=0,gs=0,bs=0,as=0,count=0;
+        for (let dy=-r; dy<=r; dy++) {
+          const sy=y+dy;
+          if (sy<0||sy>=height) continue;
+          const i=(sy*width+x)*4;
+          rs+=temp[i]; gs+=temp[i+1]; bs+=temp[i+2]; as+=temp[i+3]; count++;
+        }
+        const o=(y*width+x)*4;
+        out[o]=rs/count; out[o+1]=gs/count; out[o+2]=bs/count; out[o+3]=as/count;
+      }
+    }
+    return out;
   }
-  return out;
-}
 
-function applyGlobalFinish(data, width, height, cameraType) {
-  const out = applyToneMap(data, width, height, 1, cameraType);
-  return new ImageData(out, width, height);
-}
+  function applyToneMap(data, width, height, strength, cameraType) {
+    const out=new Uint8ClampedArray(data.length);
+    const scene=analyzeScene(data);
+    const wb=estimateWhiteBalance(data, cameraType, scene);
+    const exposureUI=Number(ui.exposure.value);
+    const contrastUI=Number(ui.contrast.value);
+    const saturationUI=Number(ui.saturation.value);
+    const sharpnessUI=Number(ui.sharpness.value);
+    const detailBoost=Number(ui.detailBoost.value);
+    const noiseBoost=Number(ui.noiseReduction.value);
+    const rear=cameraType==='environment';
+    const ai=!!state.aiLite;
+    const brightScene=scene.avgLum>0.66;
+    const veryBright=scene.avgLum>0.78||scene.highlightRatio>0.24;
+    const lowLight=scene.avgLum<0.34;
+    const exposureBias = rear
+      ? (veryBright?0.82:brightScene?0.90:lowLight?1.08:1.00)
+      : (veryBright?0.86:brightScene?0.94:lowLight?1.05:0.99);
+    const contrastBias  = rear?(veryBright?0.96:1.00):(veryBright?0.94:0.98);
+    const saturationBias= rear?(veryBright?0.88:0.96):(veryBright?0.84:0.93);
+    const shadowLift    = rear?(veryBright?0.03:lowLight?0.10:0.06):(veryBright?0.04:lowLight?0.12:0.08);
+    const highlightProtect=rear?(veryBright?0.44:0.34):(veryBright?0.48:0.36);
+    const sharpenBoost  = rear?0.82:0.68;
+    const localPop      = 1+(detailBoost-0.5)*0.10+(ai?0.015:0);
+    const sceneDampen   = 1-Math.min(0.18,scene.highlightRatio*0.22);
+    const exposure      = exposureUI*exposureBias;
+    const contrast      = contrastUI*contrastBias;
+    const saturation    = saturationUI*saturationBias;
+    const gammaLift     = veryBright?0.98:1.00;
 
-  async function renderFramesToResult(frameBitmaps) {
-    if (!frameBitmaps.length) return null;
-
-    const first = frameBitmaps[0];
-    const sourceW = first.width || first.naturalWidth;
-    const sourceH = first.height || first.naturalHeight;
-    const outSize = computeOutputSize(sourceW, sourceH);
-    const crop = fitCover(sourceW, sourceH, outSize.width, outSize.height);
-
-    const workCanvases = [];
-    for (let i = 0; i < frameBitmaps.length; i++) {
-      const c = document.createElement('canvas');
-      c.width = outSize.width;
-      c.height = outSize.height;
-      const ctx = c.getContext('2d', { willReadFrequently: true, alpha: false });
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(frameBitmaps[i], crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, outSize.width, outSize.height);
-      workCanvases.push(c);
+    for (let i=0; i<data.length; i+=4) {
+      let r=(data[i]/255)*wb.r*exposure;
+      let g=(data[i+1]/255)*wb.g*exposure;
+      let b=(data[i+2]/255)*wb.b*exposure;
+      let lum=0.2126*r+0.7152*g+0.0722*b;
+      const shadow=shadowLift*(1-Math.min(1,Math.max(0,lum)));
+      const highlight=highlightProtect*Math.max(0,lum-(veryBright?0.48:0.60));
+      lum=acesTonemap((lum*(1.05+(ai?0.02:0)))*gammaLift)+shadow-highlight;
+      lum=q01(lum);
+      const sourceLum=Math.max(0.0001,0.2126*r+0.7152*g+0.0722*b);
+      const scale=lum/sourceLum;
+      r*=scale; g*=scale; b*=scale;
+      const gray=0.299*r+0.587*g+0.114*b;
+      const sat=saturation*(ai?1.01:1.0)*sceneDampen;
+      r=gray+(r-gray)*sat; g=gray+(g-gray)*sat; b=gray+(b-gray)*sat;
+      r=0.5+(r-0.5)*contrast; g=0.5+(g-0.5)*contrast; b=0.5+(b-0.5)*contrast;
+      r*=localPop; g*=localPop; b*=localPop;
+      out[i]=clamp(r*255); out[i+1]=clamp(g*255); out[i+2]=clamp(b*255); out[i+3]=data[i+3];
     }
+    const blurMix=q01(noiseBoost*(rear?0.34:0.40)+(lowLight?0.08:0)+(ai?0.02:0));
+    if (blurMix>0.001) {
+      const blurred=boxBlurRGBA(out, width, height, 1);
+      const preserve=rear?0.42:0.50;
+      for (let i=0; i<out.length; i+=4) {
+        const oldL=rgbToGray(out[i],out[i+1],out[i+2]);
+        const blurL=rgbToGray(blurred[i],blurred[i+1],blurred[i+2]);
+        const lDetail=(oldL-blurL)*preserve;
+        out[i]=clamp(lerp(out[i],blurred[i],blurMix)+lDetail);
+        out[i+1]=clamp(lerp(out[i+1],blurred[i+1],blurMix)+lDetail);
+        out[i+2]=clamp(lerp(out[i+2],blurred[i+2],blurMix)+lDetail);
+      }
+    }
+    const amount=q01(sharpnessUI*sharpenBoost+(ai?0.01:0))*(veryBright?0.72:0.92);
+    if (amount>0.001) {
+      const blurred=boxBlurRGBA(out, width, height, 1);
+      for (let i=0; i<out.length; i+=4) {
+        const detail=rgbToGray(out[i],out[i+1],out[i+2])-rgbToGray(blurred[i],blurred[i+1],blurred[i+2]);
+        const boost=detail*amount;
+        out[i]=clamp(out[i]+boost); out[i+1]=clamp(out[i+1]+boost); out[i+2]=clamp(out[i+2]+boost);
+      }
+    }
+    return out;
+  }
 
-    const baseCanvas = document.createElement('canvas');
-    baseCanvas.width = outSize.width;
-    baseCanvas.height = outSize.height;
-    const baseCtx = baseCanvas.getContext('2d', { willReadFrequently: true, alpha: false });
-    baseCtx.drawImage(workCanvases[0], 0, 0);
-    const baseData = baseCtx.getImageData(0, 0, outSize.width, outSize.height).data;
+  function applyGlobalFinish(data, width, height, cameraType) {
+    const out = applyToneMap(data, width, height, 1, cameraType);
+    return new ImageData(out, width, height);
+  }
 
-    const merged = averageFrames(workCanvases, outSize.width, outSize.height, state.facing);
-    const finished = applyGlobalFinish(merged, outSize.width, outSize.height, state.facing);
+  function targetLongSide() {
+    if (ui.sizePreset.value==='native') return 0;
+    return Number(ui.sizePreset.value);
+  }
+  function computeOutputSize(sourceW, sourceH) {
+    const longSide=targetLongSide();
+    if (!longSide) return { width:sourceW, height:sourceH };
+    const scale=longSide/Math.max(sourceW,sourceH);
+    return { width:Math.max(1,Math.round(sourceW*scale)), height:Math.max(1,Math.round(sourceH*scale)) };
+  }
+  function fitCover(srcW, srcH, dstW, dstH) {
+    const srcRatio=srcW/srcH, dstRatio=dstW/dstH;
+    if (srcRatio>dstRatio) {
+      const cropW=Math.round(srcH*dstRatio);
+      return { sx:Math.floor((srcW-cropW)/2), sy:0, sw:cropW, sh:srcH };
+    }
+    const cropH=Math.round(srcW/dstRatio);
+    return { sx:0, sy:Math.floor((srcH-cropH)/2), sw:srcW, sh:cropH };
+  }
 
-    ui.exportCanvas.width = outSize.width;
-    ui.exportCanvas.height = outSize.height;
-    const ectx = ui.exportCanvas.getContext('2d', { willReadFrequently: true, alpha: false });
+  /* ══════════════════════════════════════════════
+     CAPTURE
+  ══════════════════════════════════════════════ */
+  async function captureOneBlob() {
+    if (state.imageCapture?.takePhoto) {
+      try { return await state.imageCapture.takePhoto(); }
+      catch(err){ console.warn('takePhoto falló, uso canvas', err); }
+    }
+    if (!ui.previewVideo.videoWidth || !ui.previewVideo.videoHeight) throw new Error('La cámara todavía no está lista');
+    const c=ui.photoCanvas;
+    c.width=ui.previewVideo.videoWidth; c.height=ui.previewVideo.videoHeight;
+    const ctx=c.getContext('2d',{willReadFrequently:true,alpha:false});
+    ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+    // If using CSS zoom fallback, crop the canvas to simulate zoom
+    if (!state.zoomSupported && state.zoom!==1) {
+      const z=state.zoom;
+      const sw=c.width/z, sh=c.height/z;
+      const sx=(c.width-sw)/2, sy=(c.height-sh)/2;
+      ctx.drawImage(ui.previewVideo, sx, sy, sw, sh, 0, 0, c.width, c.height);
+    } else {
+      ctx.drawImage(ui.previewVideo, 0, 0, c.width, c.height);
+    }
+    return await canvasToBlob(c, 'image/jpeg', 0.98);
+  }
+
+  async function captureBurst() {
+    const count=Math.max(1, Number(ui.burstCount.value||1));
+    const delayMs=state.mode==='fast'?50:70;
+    const frames=[];
+    for (let i=0; i<count; i++) {
+      const blob=await captureOneBlob();
+      const bitmap=await imageBlobToBitmap(blob);
+      frames.push(bitmap);
+      if (i<count-1) await new Promise(r=>setTimeout(r,delayMs));
+    }
+    return frames;
+  }
+
+  async function processAndSave(sourceBlob) {
+    const bitmap=await imageBlobToBitmap(sourceBlob);
+    const baseW=bitmap.width||bitmap.naturalWidth;
+    const baseH=bitmap.height||bitmap.naturalHeight;
+    const outSize=computeOutputSize(baseW, baseH);
+    const crop=fitCover(baseW, baseH, outSize.width, outSize.height);
+    ui.workCanvas.width=outSize.width; ui.workCanvas.height=outSize.height;
+    const wctx=ui.workCanvas.getContext('2d',{willReadFrequently:true,alpha:false});
+    wctx.imageSmoothingEnabled=true; wctx.imageSmoothingQuality='high';
+    wctx.drawImage(bitmap, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, outSize.width, outSize.height);
+    const src=wctx.getImageData(0,0,outSize.width,outSize.height).data;
+    const finished=applyGlobalFinish(src, outSize.width, outSize.height, state.facing);
+    ui.exportCanvas.width=outSize.width; ui.exportCanvas.height=outSize.height;
+    const ectx=ui.exportCanvas.getContext('2d',{willReadFrequently:true,alpha:false});
     ectx.putImageData(finished, 0, 0);
-
-    const blob = await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode === 'fast' ? 0.95 : 0.97);
-    return blob;
+    const blob=await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode==='fast'?0.95:0.97);
+    if (!blob) throw new Error('No se pudo exportar la imagen');
+    state.currentBlob=blob;
+    setPreviewFromBlob(blob);
+    ui.downloadBtn.disabled=false;
+    await saveToGallery(blob, { label:`${presets[state.preset].title} · ${state.mode}` });
+    if (state.autoSave) {
+      setBusy(true);
+      try { await downloadBlob(blob, filenameFromNow()); } finally { setBusy(false); }
+    }
+    setStatus('ok', 'Procesado', `Salida ${outSize.width}×${outSize.height}`);
+    setToast('✓ Foto lista');
   }
 
+  async function capturePhoto() {
+    if (state.busy || state.timerRunning) return;
+    if (!state.stream) { setStatus('warn', 'Sin cámara', 'Primero inicia la cámara.'); return; }
+    runTimer(async () => {
+      setBusy(true);
+      triggerFlash();
+      try {
+        let blobs=[];
+        if (state.mode==='fast') {
+          blobs=[await captureOneBlob()];
+        } else {
+          const frames=await captureBurst();
+          if (frames.length) {
+            const processedBlobs=[];
+            for (const frame of frames) {
+              const canvas=document.createElement('canvas');
+              canvas.width=frame.width||frame.naturalWidth;
+              canvas.height=frame.height||frame.naturalHeight;
+              const ctx=canvas.getContext('2d',{willReadFrequently:true,alpha:false});
+              ctx.drawImage(frame, 0, 0);
+              const blob=await canvasToBlob(canvas,'image/jpeg',0.98);
+              processedBlobs.push(blob);
+            }
+            blobs=processedBlobs;
+          }
+        }
+        if (!blobs.length) throw new Error('No se capturó ninguna imagen');
+        if (blobs.length===1) { await processAndSave(blobs[0]); return; }
+        // Multi-frame stacking
+        const bitmaps=[];
+        for (const blob of blobs) bitmaps.push(await imageBlobToBitmap(blob));
+        const firstW=bitmaps[0].width||bitmaps[0].naturalWidth;
+        const firstH=bitmaps[0].height||bitmaps[0].naturalHeight;
+        const outSize=computeOutputSize(firstW, firstH);
+        const crop=fitCover(firstW, firstH, outSize.width, outSize.height);
+        const canvases=[];
+        for (const bmp of bitmaps) {
+          const c=document.createElement('canvas');
+          c.width=outSize.width; c.height=outSize.height;
+          const ctx=c.getContext('2d',{willReadFrequently:true,alpha:false});
+          ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+          ctx.drawImage(bmp, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, outSize.width, outSize.height);
+          canvases.push(c);
+        }
+        const merged=averageFrames(canvases, outSize.width, outSize.height, state.facing);
+        const finished=applyGlobalFinish(merged, outSize.width, outSize.height, state.facing);
+        ui.exportCanvas.width=outSize.width; ui.exportCanvas.height=outSize.height;
+        const ectx=ui.exportCanvas.getContext('2d',{willReadFrequently:true,alpha:false});
+        ectx.putImageData(finished, 0, 0);
+        const blob=await canvasToBlob(ui.exportCanvas,'image/jpeg',state.mode==='fast'?0.95:0.97);
+        state.currentBlob=blob;
+        setPreviewFromBlob(blob);
+        ui.downloadBtn.disabled=false;
+        await saveToGallery(blob, { label:`${presets[state.preset].title} · ${state.mode} · burst` });
+        if (state.autoSave) await downloadBlob(blob, filenameFromNow());
+        setStatus('ok', 'Procesado', `Bursts fusionados · ${outSize.width}×${outSize.height}`);
+        setToast('✓ Burst listo');
+      } catch(err) {
+        console.error(err);
+        setStatus('bad', 'Error', err?.message||'No se pudo procesar la foto.');
+      } finally { setBusy(false); }
+    });
+  }
+
+  async function loadFile(file) {
+    if (!file) return;
+    try { await processAndSave(file); }
+    catch(err) { console.error(err); setStatus('bad', 'Error de archivo', err?.message||'No se pudo leer la imagen.'); }
+  }
+
+  /* ══════════════════════════════════════════════
+     GALLERY + DB
+  ══════════════════════════════════════════════ */
   function revokeCurrentUrl() {
     if (state.currentUrl && state.currentUrl.startsWith('blob:')) {
-      try { URL.revokeObjectURL(state.currentUrl); } catch (_) {}
+      try { URL.revokeObjectURL(state.currentUrl); } catch(_){}
     }
-    state.currentUrl = '';
+    state.currentUrl='';
   }
-
   function setPreviewFromBlob(blob) {
     revokeCurrentUrl();
-    const url = URL.createObjectURL(blob);
-    state.currentUrl = url;
-    ui.lastPreview.src = url;
-  }
-
-  function pickGalleryItem(id) {
-    state.selectedId = id;
-    renderGallery();
+    const url=URL.createObjectURL(blob);
+    state.currentUrl=url;
+    ui.lastPreview.src=url;
   }
 
   async function openDb() {
     if (state.db) return state.db;
-    state.db = await new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, DB_VERSION);
-      req.onupgradeneeded = () => {
-        const db = req.result;
+    state.db=await new Promise((resolve,reject) => {
+      const req=indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded=()=>{
+        const db=req.result;
         if (!db.objectStoreNames.contains(STORE)) {
-          const store = db.createObjectStore(STORE, { keyPath: 'id' });
-          store.createIndex('ts', 'ts', { unique: false });
+          const store=db.createObjectStore(STORE, { keyPath:'id' });
+          store.createIndex('ts','ts',{unique:false});
         }
       };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
+      req.onsuccess=()=>resolve(req.result);
+      req.onerror=()=>reject(req.error);
     });
     return state.db;
   }
 
-  async function saveToGallery(blob, meta = {}) {
-    const db = await openDb();
-    const record = {
-      id: (crypto?.randomUUID?.() || `g_${Date.now()}_${Math.random().toString(16).slice(2)}`),
-      ts: Date.now(),
-      label: meta.label || `${presets[state.preset].title} · ${state.mode}`,
-      blob,
-      preset: state.preset,
-      mode: state.mode,
-      facing: state.facing,
-      size: `${ui.exportCanvas.width}×${ui.exportCanvas.height}`
+  async function saveToGallery(blob, meta={}) {
+    const db=await openDb();
+    const record={
+      id:(crypto?.randomUUID?.() || `g_${Date.now()}_${Math.random().toString(16).slice(2)}`),
+      ts:Date.now(),
+      label:meta.label||`${presets[state.preset].title} · ${state.mode}`,
+      blob, preset:state.preset, mode:state.mode, facing:state.facing,
+      size:`${ui.exportCanvas.width}×${ui.exportCanvas.height}`
     };
-
-    await new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE, 'readwrite');
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction(STORE,'readwrite');
       tx.objectStore(STORE).put(record);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
+      tx.oncomplete=()=>resolve();
+      tx.onerror=()=>reject(tx.error);
     });
-
-    state.selectedId = record.id;
+    state.selectedId=record.id;
     await loadGallery();
   }
 
   async function loadGallery() {
     try {
-      const db = await openDb();
-      const items = await new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE, 'readonly');
-        const store = tx.objectStore(STORE);
-        const index = store.index('ts');
-        const req = index.openCursor(null, 'prev');
-        const arr = [];
-        req.onsuccess = () => {
-          const cursor = req.result;
-          if (cursor) {
-            arr.push(cursor.value);
-            cursor.continue();
-          } else {
-            resolve(arr);
-          }
-        };
-        req.onerror = () => reject(req.error);
+      const db=await openDb();
+      const items=await new Promise((resolve,reject)=>{
+        const tx=db.transaction(STORE,'readonly');
+        const store=tx.objectStore(STORE);
+        const index=store.index('ts');
+        const req=index.openCursor(null,'prev');
+        const arr=[];
+        req.onsuccess=()=>{ const c=req.result; if(c){ arr.push(c.value); c.continue(); } else resolve(arr); };
+        req.onerror=()=>reject(req.error);
       });
-      state.gallery = items.slice(0, 12);
-      if (!state.selectedId && state.gallery[0]) state.selectedId = state.gallery[0].id;
+      state.gallery=items.slice(0,12);
+      if (!state.selectedId && state.gallery[0]) state.selectedId=state.gallery[0].id;
       renderGallery();
-    } catch (err) {
-      console.warn(err);
-      state.gallery = [];
-      renderGallery();
-    }
+    } catch(err) { console.warn(err); state.gallery=[]; renderGallery(); }
   }
 
   function renderGallery() {
-    ui.galleryCount.textContent = `${state.gallery.length} foto${state.gallery.length === 1 ? '' : 's'}`;
-    ui.galleryEmpty.style.display = state.gallery.length ? 'none' : 'block';
-    ui.galleryGrid.innerHTML = '';
-
-    const hasSelection = !!state.gallery.find(item => item.id === state.selectedId);
-    ui.downloadSelectedBtn.disabled = !hasSelection;
-    ui.deleteSelectedBtn.disabled = !hasSelection;
-    ui.clearGalleryBtn.disabled = state.gallery.length === 0;
-
-    if (!hasSelection && state.gallery[0]) {
-      state.selectedId = state.gallery[0].id;
-    }
-
+    ui.galleryCount.textContent=`${state.gallery.length} foto${state.gallery.length===1?'':'s'}`;
+    ui.galleryEmpty.style.display=state.gallery.length?'none':'block';
+    ui.galleryGrid.innerHTML='';
+    const hasSelection=!!state.gallery.find(item=>item.id===state.selectedId);
+    ui.downloadSelectedBtn.disabled=!hasSelection;
+    ui.deleteSelectedBtn.disabled=!hasSelection;
+    ui.clearGalleryBtn.disabled=state.gallery.length===0;
+    if (!hasSelection && state.gallery[0]) state.selectedId=state.gallery[0].id;
     state.gallery.forEach(item => {
-      const card = document.createElement('button');
-      card.type = 'button';
-      card.className = 'galleryItem' + (item.id === state.selectedId ? ' selected' : '');
-      card.innerHTML = `
-        <div class="galleryThumb"><img alt="Foto guardada" /></div>
-        <div class="galleryMeta">
-          <strong>${item.label || 'Foto'}</strong>
-          <span>${formatDate(item.ts)}</span>
-        </div>
-      `;
-      const img = card.querySelector('img');
-      const url = URL.createObjectURL(item.blob);
-      img.src = url;
-      img.onload = () => setTimeout(() => URL.revokeObjectURL(url), 1500);
-      card.addEventListener('click', () => {
-        state.selectedId = item.id;
-        renderGallery();
-        setPreviewFromBlob(item.blob);
-        ui.downloadBtn.disabled = false;
-      });
+      const card=document.createElement('button');
+      card.type='button';
+      card.className='galleryItem'+(item.id===state.selectedId?' selected':'');
+      card.innerHTML=`<div class="galleryThumb"><img alt="Foto guardada"/></div><div class="galleryMeta"><strong>${item.label||'Foto'}</strong><span>${formatDate(item.ts)}</span></div>`;
+      const img=card.querySelector('img');
+      const url=URL.createObjectURL(item.blob);
+      img.src=url;
+      img.onload=()=>setTimeout(()=>URL.revokeObjectURL(url),1500);
+      card.addEventListener('click',()=>{ state.selectedId=item.id; renderGallery(); setPreviewFromBlob(item.blob); ui.downloadBtn.disabled=false; });
       ui.galleryGrid.appendChild(card);
     });
-
-    const selected = state.gallery.find(item => item.id === state.selectedId);
-    if (selected) {
-      setPreviewFromBlob(selected.blob);
-      ui.downloadBtn.disabled = false;
-    }
+    const selected=state.gallery.find(item=>item.id===state.selectedId);
+    if (selected){ setPreviewFromBlob(selected.blob); ui.downloadBtn.disabled=false; }
   }
 
   async function deleteSelected() {
-    const item = state.gallery.find(x => x.id === state.selectedId);
+    const item=state.gallery.find(x=>x.id===state.selectedId);
     if (!item) return;
-    const db = await openDb();
-    await new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE, 'readwrite');
-      tx.objectStore(STORE).delete(item.id);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-    state.selectedId = '';
-    await loadGallery();
-    setToast('Foto eliminada');
+    const db=await openDb();
+    await new Promise((resolve,reject)=>{ const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).delete(item.id); tx.oncomplete=()=>resolve(); tx.onerror=()=>reject(tx.error); });
+    state.selectedId=''; await loadGallery(); setToast('Foto eliminada');
   }
 
   async function clearGallery() {
     if (!state.gallery.length) return;
-    const ok = confirm('¿Vaciar la galería interna?');
-    if (!ok) return;
-    const db = await openDb();
-    await new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE, 'readwrite');
-      tx.objectStore(STORE).clear();
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-    state.selectedId = '';
-    await loadGallery();
-    setToast('Galería vaciada');
+    if (!confirm('¿Vaciar la galería interna?')) return;
+    const db=await openDb();
+    await new Promise((resolve,reject)=>{ const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).clear(); tx.oncomplete=()=>resolve(); tx.onerror=()=>reject(tx.error); });
+    state.selectedId=''; await loadGallery(); setToast('Galería vaciada');
   }
 
+  /* ══════════════════════════════════════════════
+     SAVE / DOWNLOAD
+  ══════════════════════════════════════════════ */
   async function downloadBlob(blob, filename) {
     if (!blob) return;
-
     if ('showSaveFilePicker' in window) {
       try {
-        const handle = await window.showSaveFilePicker({
-          suggestedName: filename,
-          types: [{ description: 'JPEG image', accept: { 'image/jpeg': ['.jpg', '.jpeg'] } }]
-        });
-        const writable = await handle.createWritable();
-        await writable.write(blob);
-        await writable.close();
-        setToast(`Guardada: ${filename}`);
-        return;
-      } catch (err) {
-        if (err?.name !== 'AbortError') console.warn(err);
-      }
+        const handle=await window.showSaveFilePicker({ suggestedName:filename, types:[{description:'JPEG image',accept:{'image/jpeg':['.jpg','.jpeg']}}] });
+        const writable=await handle.createWritable();
+        await writable.write(blob); await writable.close();
+        setToast(`Guardada: ${filename}`); return;
+      } catch(err){ if (err?.name!=='AbortError') console.warn(err); }
     }
-
     if (state.saveDirHandle && 'showDirectoryPicker' in window) {
       try {
-        const perm = await state.saveDirHandle.queryPermission({ mode: 'readwrite' });
-        if (perm !== 'granted') {
-          const req = await state.saveDirHandle.requestPermission({ mode: 'readwrite' });
-          if (req !== 'granted') throw new Error('Permiso denegado');
-        }
-        const fh = await state.saveDirHandle.getFileHandle(filename, { create: true });
-        const writable = await fh.createWritable();
-        await writable.write(blob);
-        await writable.close();
-        setToast(`Guardada en carpeta: ${filename}`);
-        return;
-      } catch (err) {
-        console.warn(err);
-        state.saveDirHandle = null;
-      }
+        const perm=await state.saveDirHandle.queryPermission({mode:'readwrite'});
+        if (perm!=='granted') { const req=await state.saveDirHandle.requestPermission({mode:'readwrite'}); if (req!=='granted') throw new Error('Permiso denegado'); }
+        const fh=await state.saveDirHandle.getFileHandle(filename,{create:true});
+        const writable=await fh.createWritable();
+        await writable.write(blob); await writable.close();
+        setToast(`Guardada en carpeta: ${filename}`); return;
+      } catch(err){ console.warn(err); state.saveDirHandle=null; }
     }
-
-    if (navigator.canShare?.({ files: [new File([blob], filename, { type: blob.type || 'image/jpeg' })] }) && navigator.share) {
+    if (navigator.canShare?.({files:[new File([blob],filename,{type:blob.type||'image/jpeg'})]})) {
       try {
-        const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
-        await navigator.share({ files: [file], title: 'Foto procesada', text: 'Imagen procesada por GCam Lite Studio' });
-        setToast('Compartir abierto');
-        return;
-      } catch (err) {
-        if (err?.name !== 'AbortError') console.warn(err);
-      }
+        const file=new File([blob],filename,{type:blob.type||'image/jpeg'});
+        await navigator.share({files:[file],title:'Foto procesada',text:'Imagen procesada por GCam Lite Studio'});
+        setToast('Compartir abierto'); return;
+      } catch(err){ if (err?.name!=='AbortError') console.warn(err); }
     }
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=filename; a.rel='noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
     setToast('Descarga iniciada');
   }
 
   function filenameFromNow() {
-    return `gcam_${new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, 19)}.jpg`;
+    return `gcam_${new Date().toISOString().replace(/[:.]/g,'-').replace('T','_').slice(0,19)}.jpg`;
   }
 
   async function pickFolder() {
     if (!('showDirectoryPicker' in window)) {
       setStatus('warn', 'No disponible', 'Este navegador no soporta selección de carpeta.');
-      setToast('Usando descarga automática');
-      return;
+      setToast('Usando descarga automática'); return;
     }
     try {
-      state.saveDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      state.saveDirHandle=await window.showDirectoryPicker({mode:'readwrite'});
       setToast('Carpeta seleccionada');
       setStatus('ok', 'Carpeta lista', 'Las próximas fotos pueden guardarse allí.');
-    } catch (err) {
-      if (err?.name !== 'AbortError') {
-        console.warn(err);
-        setStatus('warn', 'Sin carpeta', 'No se pudo elegir una carpeta.');
-      }
-    }
+    } catch(err){ if (err?.name!=='AbortError'){ console.warn(err); setStatus('warn','Sin carpeta','No se pudo elegir una carpeta.'); } }
   }
 
-  async function processAndSave(sourceBlob) {
-    const bitmap = await imageBlobToBitmap(sourceBlob);
-    const baseW = bitmap.width || bitmap.naturalWidth;
-    const baseH = bitmap.height || bitmap.naturalHeight;
-    const outSize = computeOutputSize(baseW, baseH);
-    const crop = fitCover(baseW, baseH, outSize.width, outSize.height);
-
-    ui.workCanvas.width = outSize.width;
-    ui.workCanvas.height = outSize.height;
-    const wctx = ui.workCanvas.getContext('2d', { willReadFrequently: true, alpha: false });
-    wctx.imageSmoothingEnabled = true;
-    wctx.imageSmoothingQuality = 'high';
-    wctx.drawImage(bitmap, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, outSize.width, outSize.height);
-    const src = wctx.getImageData(0, 0, outSize.width, outSize.height).data;
-    const finished = applyGlobalFinish(src, outSize.width, outSize.height, state.facing);
-
-    ui.exportCanvas.width = outSize.width;
-    ui.exportCanvas.height = outSize.height;
-    const ectx = ui.exportCanvas.getContext('2d', { willReadFrequently: true, alpha: false });
-    ectx.putImageData(finished, 0, 0);
-
-    const blob = await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode === 'fast' ? 0.95 : 0.97);
-    if (!blob) throw new Error('No se pudo exportar la imagen');
-
-    state.currentBlob = blob;
-    setPreviewFromBlob(blob);
-    ui.downloadBtn.disabled = false;
-    await saveToGallery(blob, { label: `${presets[state.preset].title} · ${state.mode}` });
-
-    if (state.autoSave) {
-      setBusy(true);
-      try {
-        await downloadBlob(blob, filenameFromNow());
-      } finally {
-        setBusy(false);
-      }
-    }
-    setStatus('ok', 'Procesado', `Salida ${outSize.width}×${outSize.height}`);
-    setToast('Foto lista');
-  }
-
-  async function capturePhoto() {
-    if (state.busy) return;
-    if (!state.stream) {
-      setStatus('warn', 'Sin cámara', 'Primero inicia la cámara.');
-      return;
-    }
-    setBusy(true);
-    try {
-      let blobs = [];
-      if (state.mode === 'fast') {
-        blobs = [await captureOneBlob()];
-      } else {
-        const frames = await captureBurst();
-        // Use the burst as provided.
-        if (frames.length) {
-          const processedBlobs = [];
-          for (const frame of frames) {
-            const bmp = frame;
-            const canvas = document.createElement('canvas');
-            canvas.width = bmp.width || bmp.naturalWidth;
-            canvas.height = bmp.height || bmp.naturalHeight;
-            const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
-            ctx.drawImage(bmp, 0, 0);
-            const blob = await canvasToBlob(canvas, 'image/jpeg', 0.98);
-            processedBlobs.push(blob);
-          }
-          blobs = processedBlobs;
-        }
-      }
-
-      if (!blobs.length) throw new Error('No se capturó ninguna imagen');
-
-      if (blobs.length === 1) {
-        await processAndSave(blobs[0]);
-        return;
-      }
-
-      // Multi-frame stacking: render each blob to a canvas, align and merge.
-      const bitmaps = [];
-      for (const blob of blobs) bitmaps.push(await imageBlobToBitmap(blob));
-      const firstW = bitmaps[0].width || bitmaps[0].naturalWidth;
-      const firstH = bitmaps[0].height || bitmaps[0].naturalHeight;
-      const outSize = computeOutputSize(firstW, firstH);
-      const crop = fitCover(firstW, firstH, outSize.width, outSize.height);
-
-      const canvases = [];
-      for (const bmp of bitmaps) {
-        const c = document.createElement('canvas');
-        c.width = outSize.width;
-        c.height = outSize.height;
-        const ctx = c.getContext('2d', { willReadFrequently: true, alpha: false });
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(bmp, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, outSize.width, outSize.height);
-        canvases.push(c);
-      }
-
-      const merged = averageFrames(canvases, outSize.width, outSize.height, state.facing);
-      const finished = applyGlobalFinish(merged, outSize.width, outSize.height, state.facing);
-
-      ui.exportCanvas.width = outSize.width;
-      ui.exportCanvas.height = outSize.height;
-      const ectx = ui.exportCanvas.getContext('2d', { willReadFrequently: true, alpha: false });
-      ectx.putImageData(finished, 0, 0);
-
-      const blob = await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode === 'fast' ? 0.95 : 0.97);
-      state.currentBlob = blob;
-      setPreviewFromBlob(blob);
-      ui.downloadBtn.disabled = false;
-      await saveToGallery(blob, { label: `${presets[state.preset].title} · ${state.mode} · burst` });
-
-      if (state.autoSave) {
-        await downloadBlob(blob, filenameFromNow());
-      }
-
-      setStatus('ok', 'Procesado', `Bursts fusionados · ${outSize.width}×${outSize.height}`);
-      setToast('Burst listo');
-    } catch (err) {
-      console.error(err);
-      setStatus('bad', 'Error', err?.message || 'No se pudo procesar la foto.');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function loadFile(file) {
-    if (!file) return;
-    try {
-      const blob = file;
-      await processAndSave(blob);
-    } catch (err) {
-      console.error(err);
-      setStatus('bad', 'Error de archivo', err?.message || 'No se pudo leer la imagen.');
-    }
-  }
-
+  /* ══════════════════════════════════════════════
+     BIND INPUTS
+  ══════════════════════════════════════════════ */
   function bindInputs() {
-    const inputs = [
-      ui.sizePreset, ui.burstCount, ui.detailBoost, ui.noiseReduction,
-      ui.exposure, ui.contrast, ui.saturation, ui.sharpness
-    ];
-    inputs.forEach(el => el.addEventListener('input', () => {
-      if (el === ui.burstCount) {
-        // keep label updated
-      }
-      syncLabels();
-      saveSettings();
-    }));
+    [ui.sizePreset,ui.burstCount,ui.detailBoost,ui.noiseReduction,ui.exposure,ui.contrast,ui.saturation,ui.sharpness]
+      .forEach(el => el.addEventListener('input', ()=>{ syncLabels(); saveSettings(); }));
   }
 
+  /* ══════════════════════════════════════════════
+     INITIALISATION
+  ══════════════════════════════════════════════ */
   function initialState() {
-    loadSettings();
-    syncLabels();
-    renderGallery();
+    loadSettings(); syncLabels(); renderGallery();
     setStatus('ok', 'Listo', 'Pulsa iniciar cámara o abre una imagen.');
     if (!navigator.mediaDevices?.getUserMedia) {
       setStatus('bad', 'Sin soporte', 'Tu navegador no permite cámara.');
-      ui.startBtn.disabled = true;
-      ui.captureBtn.disabled = true;
-      ui.switchBtn.disabled = true;
+      ui.startBtn.disabled=true; ui.captureBtn.disabled=true; ui.switchBtn.disabled=true;
     }
   }
 
+  /* ══════════════════════════════════════════════
+     EVENT LISTENERS
+  ══════════════════════════════════════════════ */
   ui.settingsBtn.addEventListener('click', openSheet);
   ui.closeSheetBtn.addEventListener('click', closeSheet);
-  ui.sheet.addEventListener('click', e => { if (e.target === ui.sheet) closeSheet(); });
+  ui.sheet.addEventListener('click', e=>{ if (e.target===ui.sheet) closeSheet(); });
 
-  ui.startBtn.addEventListener('click', () => void startCamera());
-  ui.switchBtn.addEventListener('click', () => void switchCamera());
-  ui.captureBtn.addEventListener('click', () => void capturePhoto());
-  ui.fileBtn.addEventListener('click', () => ui.fileInput.click());
-  ui.fileInput.addEventListener('change', () => {
-    const file = ui.fileInput.files && ui.fileInput.files[0];
+  ui.startBtn.addEventListener('click', ()=>void startCamera());
+  ui.switchBtn.addEventListener('click', ()=>void switchCamera());
+  ui.captureBtn.addEventListener('click', ()=>void capturePhoto());
+  ui.fileBtn.addEventListener('click', ()=>ui.fileInput.click());
+  ui.fileInput.addEventListener('change', ()=>{
+    const file=ui.fileInput.files&&ui.fileInput.files[0];
     if (file) void loadFile(file);
-    ui.fileInput.value = '';
+    ui.fileInput.value='';
   });
-  ui.folderBtn.addEventListener('click', () => void pickFolder());
-  ui.pickFolderInsideBtn.addEventListener('click', () => void pickFolder());
-  ui.downloadBtn.addEventListener('click', async () => {
-    const selected = state.gallery.find(item => item.id === state.selectedId);
-    if (selected) {
-      await downloadBlob(selected.blob, filenameFromNow());
-    } else if (state.currentBlob) {
-      await downloadBlob(state.currentBlob, filenameFromNow());
-    }
+  ui.folderBtn.addEventListener('click', ()=>void pickFolder());
+  ui.pickFolderInsideBtn.addEventListener('click', ()=>void pickFolder());
+  ui.downloadBtn.addEventListener('click', async ()=>{
+    const sel=state.gallery.find(item=>item.id===state.selectedId);
+    if (sel) await downloadBlob(sel.blob, filenameFromNow());
+    else if (state.currentBlob) await downloadBlob(state.currentBlob, filenameFromNow());
   });
-  ui.downloadSelectedBtn.addEventListener('click', async () => {
-    const selected = state.gallery.find(item => item.id === state.selectedId);
-    if (selected) await downloadBlob(selected.blob, filenameFromNow());
+  ui.downloadSelectedBtn.addEventListener('click', async ()=>{
+    const sel=state.gallery.find(item=>item.id===state.selectedId);
+    if (sel) await downloadBlob(sel.blob, filenameFromNow());
   });
-  ui.deleteSelectedBtn.addEventListener('click', () => void deleteSelected());
-  ui.clearGalleryBtn.addEventListener('click', () => void clearGallery());
+  ui.deleteSelectedBtn.addEventListener('click', ()=>void deleteSelected());
+  ui.clearGalleryBtn.addEventListener('click', ()=>void clearGallery());
   ui.resetBtn.addEventListener('click', resetAll);
-  ui.autoSaveBtn.addEventListener('click', () => { state.autoSave = !state.autoSave; syncLabels(); saveSettings(); setToast(state.autoSave ? 'Auto-guardar activado' : 'Auto-guardar desactivado'); });
-  ui.mirrorBtn.addEventListener('click', () => { state.mirror = !state.mirror; syncLabels(); saveSettings(); setToast(state.mirror ? 'Espejo activado' : 'Espejo desactivado'); });
+  ui.autoSaveBtn.addEventListener('click', ()=>{ state.autoSave=!state.autoSave; syncLabels(); saveSettings(); setToast(state.autoSave?'Auto-guardar activado':'Auto-guardar desactivado'); });
+  ui.mirrorBtn.addEventListener('click', ()=>{ state.mirror=!state.mirror; syncLabels(); saveSettings(); setToast(state.mirror?'Espejo activado':'Espejo desactivado'); });
+  if (ui.aiLiteBtn) ui.aiLiteBtn.addEventListener('click', ()=>{ state.aiLite=!state.aiLite; syncLabels(); saveSettings(); setToast(state.aiLite?'IA Lite activada':'IA Lite desactivada'); });
 
-  ui.fastModeBtn.addEventListener('click', () => applyMode('fast'));
-  ui.qualityModeBtn.addEventListener('click', () => applyMode('quality'));
-  ui.nightModeBtn.addEventListener('click', () => applyMode('night'));
-  ui.portraitModeBtn.addEventListener('click', () => applyMode('portrait'));
+  // Mode sheet buttons
+  ui.fastModeBtn.addEventListener('click',    ()=>applyMode('fast'));
+  ui.qualityModeBtn.addEventListener('click', ()=>applyMode('quality'));
+  ui.nightModeBtn.addEventListener('click',   ()=>applyMode('night'));
+  ui.portraitModeBtn.addEventListener('click',()=>applyMode('portrait'));
 
-  ui.rearBtn.addEventListener('click', () => setFacing('environment'));
-  ui.frontBtn.addEventListener('click', () => setFacing('user'));
+  // Camera facing
+  ui.rearBtn.addEventListener('click',  ()=>setFacing('environment'));
+  ui.frontBtn.addEventListener('click', ()=>setFacing('user'));
 
-  ui.presetButtons.forEach(btn => btn.addEventListener('click', () => applyPreset(btn.dataset.preset)));
+  // Preset chips
+  ui.presetButtons.forEach(btn=>btn.addEventListener('click', ()=>applyPreset(btn.dataset.preset)));
+
+  // Mode strip (main view)
+  ui.modeChips.forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      if (chip.disabled) return;
+      const mode=chip.dataset.mode;
+      if (['fast','quality','night','portrait'].includes(mode)) applyMode(mode);
+    });
+  });
+
+  // Zoom buttons
+  ui.zoomBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>void setZoom(parseFloat(btn.dataset.zoom)));
+  });
+
+  // New v2 buttons
+  ui.gridBtn.addEventListener('click', toggleGrid);
+  ui.timerBtn.addEventListener('click', cycleTimer);
+  ui.torchBtn.addEventListener('click', ()=>void toggleTorch());
+
+  // Timer buttons in sheet
+  ui.timer0Btn.addEventListener('click',  ()=>setTimerDuration(0));
+  ui.timer3Btn.addEventListener('click',  ()=>setTimerDuration(3));
+  ui.timer10Btn.addEventListener('click', ()=>setTimerDuration(10));
+
+  // Thumbnail opens gallery
+  ui.thumbWrap.addEventListener('click', ()=>openSheet());
+
+  // Cancel timer on second shutter tap during countdown
+  ui.timerOverlay.addEventListener('click', ()=>{
+    if (state.timerRunning) { cancelTimer(); setToast('Temporizador cancelado'); }
+  });
 
   bindInputs();
   loadGallery();
