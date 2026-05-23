@@ -633,7 +633,7 @@
           <div class="sectionTitle"><span>Ayuda</span><span>rápida</span></div>
           <div class="fineprint">
             Usa HTTPS o localhost para abrir la cámara. En móvil, la resolución real depende del navegador y del sensor.
-            Esta versión intenta sumar varias fotos, ajustar balance de blancos y recuperar detalle con un flujo simple de entender.
+            Esta versión intenta sostener mejor las altas luces, suavizar el ruido y conservar un acabado más natural.
           </div>
         </div>
 
@@ -723,36 +723,36 @@
   const presets = {
     balanced: {
       title: 'Equilibrado',
-      desc: 'Balance general para fotos diarias.',
-      exposure: 1.05, contrast: 1.10, saturation: 1.06, sharpness: 0.25, noise: 0.30, detail: 0.65
+      desc: 'Balance suave para fotos diarias y escenas brillantes.',
+      exposure: 0.97, contrast: 1.03, saturation: 0.97, sharpness: 0.12, noise: 0.20, detail: 0.58
     },
     vivid: {
       title: 'Vivo',
-      desc: 'Más color y presencia para exteriores.',
-      exposure: 1.02, contrast: 1.18, saturation: 1.24, sharpness: 0.30, noise: 0.22, detail: 0.74
+      desc: 'Un poco más de color y presencia, sin pasarse.',
+      exposure: 0.98, contrast: 1.08, saturation: 1.08, sharpness: 0.16, noise: 0.16, detail: 0.66
     },
     portrait: {
       title: 'Retrato',
-      desc: 'Más suave, pensado para piel y tonos agradables.',
-      exposure: 1.05, contrast: 1.04, saturation: 0.98, sharpness: 0.18, noise: 0.40, detail: 0.44
+      desc: 'Más suave en piel y menos agresivo con las luces.',
+      exposure: 0.99, contrast: 1.01, saturation: 0.94, sharpness: 0.10, noise: 0.26, detail: 0.42
     },
     night: {
       title: 'Nocturno',
-      desc: 'Levanta sombras y limpia ruido para baja luz.',
-      exposure: 1.20, contrast: 1.00, saturation: 0.96, sharpness: 0.10, noise: 0.62, detail: 0.34
+      desc: 'Recupera sombra con más cuidado y menos lavado.',
+      exposure: 1.08, contrast: 1.00, saturation: 0.92, sharpness: 0.08, noise: 0.38, detail: 0.34
     },
     soft: {
       title: 'Suave',
-      desc: 'Menos agresivo, útil para evitar artefactos.',
-      exposure: 1.00, contrast: 1.03, saturation: 0.97, sharpness: 0.10, noise: 0.45, detail: 0.28
+      desc: 'Evita artefactos y mantiene un acabado natural.',
+      exposure: 0.98, contrast: 1.01, saturation: 0.95, sharpness: 0.08, noise: 0.24, detail: 0.30
     }
   };
 
   const modePresets = {
-    fast:   { burst: 1, output: '1600', sharpnessBoost: 0.00, noiseBoost: 0.00, detailBoost: 0.55 },
-    quality:{ burst: 3, output: '2400', sharpnessBoost: 0.04, noiseBoost: 0.12, detailBoost: 0.72 },
-    night:  { burst: 5, output: '2400', sharpnessBoost: -0.04, noiseBoost: 0.28, detailBoost: 0.40 },
-    portrait:{ burst: 3, output: '1920', sharpnessBoost: -0.02, noiseBoost: 0.20, detailBoost: 0.48 }
+    fast:    { burst: 1, output: '1600', sharpnessBoost: 0.00, noiseBoost: 0.00, detailBoost: 0.50 },
+    quality: { burst: 2, output: '2400', sharpnessBoost: 0.03, noiseBoost: 0.10, detailBoost: 0.66 },
+    night:   { burst: 4, output: '2400', sharpnessBoost: -0.03, noiseBoost: 0.24, detailBoost: 0.38 },
+    portrait:{ burst: 3, output: '1920', sharpnessBoost: -0.02, noiseBoost: 0.16, detailBoost: 0.44 }
   };
 
   const defaults = {
@@ -761,12 +761,12 @@
     facing: 'environment',
     output: '1600',
     burst: 1,
-    detail: 0.65,
-    noise: 0.30,
-    exposure: 1.05,
-    contrast: 1.10,
-    saturation: 1.06,
-    sharpness: 0.25,
+    detail: 0.56,
+    noise: 0.22,
+    exposure: 0.98,
+    contrast: 1.04,
+    saturation: 0.98,
+    sharpness: 0.14,
     autoSave: false,
     mirror: false,
     aiLite: true
@@ -802,6 +802,43 @@
 
   function q01(v) {
     return Math.min(1, Math.max(0, v));
+  }
+
+  function analyzeScene(data, stepHint = 0) {
+    const pixelCount = Math.max(1, data.length / 4);
+    const step = stepHint || Math.max(10, Math.floor(pixelCount / 24000));
+    let sum = 0;
+    let samples = 0;
+    let shadows = 0;
+    let highlights = 0;
+    let chromaSum = 0;
+
+    for (let i = 0; i < data.length; i += 4 * step) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const l = rgbToGray(r, g, b) / 255;
+      const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+      sum += l;
+      chromaSum += chroma;
+      samples++;
+      if (l < 0.18) shadows++;
+      if (l > 0.86) highlights++;
+    }
+
+    const inv = 1 / Math.max(1, samples);
+    const avgLum = sum * inv;
+    const shadowRatio = shadows * inv;
+    const highlightRatio = highlights * inv;
+    const avgChroma = chromaSum * inv;
+
+    return {
+      avgLum,
+      shadowRatio,
+      highlightRatio,
+      avgChroma,
+      step
+    };
   }
 
   function formatDate(ts) {
@@ -1163,13 +1200,15 @@
     c.width = ui.previewVideo.videoWidth;
     c.height = ui.previewVideo.videoHeight;
     const ctx = c.getContext('2d', { willReadFrequently: true, alpha: false });
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(ui.previewVideo, 0, 0, c.width, c.height);
-    return await canvasToBlob(c, 'image/jpeg', 0.96);
+    return await canvasToBlob(c, 'image/jpeg', 0.98);
   }
 
   async function captureBurst() {
     const count = Math.max(1, Number(ui.burstCount.value || 1));
-    const delayMs = state.mode === 'fast' ? 60 : 85;
+    const delayMs = state.mode === 'fast' ? 50 : 70;
     const frames = [];
     for (let i = 0; i < count; i++) {
       const blob = await captureOneBlob();
@@ -1372,11 +1411,14 @@ function averageFrames(frameCanvases, width, height, cameraType) {
   return avg;
 }
 
-function estimateWhiteBalance(data, cameraType) {
+function estimateWhiteBalance(data, cameraType, scene = null) {
   let rSum = 0;
   let gSum = 0;
   let bSum = 0;
   let n = 0;
+
+  const stats = scene || analyzeScene(data);
+  const brightScene = stats.avgLum > 0.68;
   const step = Math.max(12, Math.floor((data.length / 4) / 18000));
 
   for (let i = 0; i < data.length; i += 4 * step) {
@@ -1386,8 +1428,8 @@ function estimateWhiteBalance(data, cameraType) {
     const l = rgbToGray(r, g, b);
     const chroma = Math.max(r, g, b) - Math.min(r, g, b);
 
-    // Ignora negros, blancos quemados y píxeles demasiado saturados.
-    if (l < 14 || l > 242 || chroma > 120) continue;
+    // Ignora negros, blancos quemados y píxeles muy saturados.
+    if (l < 18 || l > (brightScene ? 238 : 244) || chroma > 110 + (brightScene ? -12 : 0)) continue;
 
     rSum += r;
     gSum += g;
@@ -1414,16 +1456,25 @@ function estimateWhiteBalance(data, cameraType) {
   let bGain = gray / Math.max(1, bAvg);
 
   const rear = cameraType === 'environment';
-  const warmBias = rear ? 1.00 : 0.98;
-  const coolBias = rear ? 1.00 : 1.02;
+  const warmBias = rear ? 1.00 : 0.985;
+  const coolBias = rear ? 1.00 : 1.015;
+
+  // Limita dominantes raras en escenas duras.
+  if (brightScene) {
+    rGain *= 0.98;
+    bGain *= 1.00;
+  } else if (stats.shadowRatio > 0.32) {
+    rGain *= 1.01;
+    bGain *= 1.01;
+  }
 
   rGain *= warmBias;
   bGain *= coolBias;
 
   return {
-    r: Math.min(1.45, Math.max(0.72, rGain)),
-    g: Math.min(1.35, Math.max(0.75, gGain)),
-    b: Math.min(1.45, Math.max(0.72, bGain))
+    r: Math.min(1.34, Math.max(0.78, rGain)),
+    g: Math.min(1.22, Math.max(0.82, gGain)),
+    b: Math.min(1.34, Math.max(0.78, bGain))
   };
 }
 
@@ -1434,41 +1485,59 @@ function acesTonemap(x) {
 
 function applyToneMap(data, width, height, strength, cameraType) {
   const out = new Uint8ClampedArray(data.length);
-  const wb = estimateWhiteBalance(data, cameraType);
-  const exposure = Number(ui.exposure.value);
-  const contrast = Number(ui.contrast.value);
-  const saturation = Number(ui.saturation.value);
-  const sharpness = Number(ui.sharpness.value);
+  const scene = analyzeScene(data);
+  const wb = estimateWhiteBalance(data, cameraType, scene);
+
+  const exposureUI = Number(ui.exposure.value);
+  const contrastUI = Number(ui.contrast.value);
+  const saturationUI = Number(ui.saturation.value);
+  const sharpnessUI = Number(ui.sharpness.value);
   const detailBoost = Number(ui.detailBoost.value);
   const noiseBoost = Number(ui.noiseReduction.value);
   const rear = cameraType === 'environment';
   const ai = !!state.aiLite;
 
-  const saturationBoost = rear ? 1.00 : 0.93;
-  const sharpenBoost = rear ? 1.08 : 0.76;
-  const shadowLift = rear ? 0.10 : 0.15;
-  const highlightProtect = rear ? 0.22 : 0.28;
-  const localPop = 1 + (detailBoost - 0.5) * 0.16 + (ai ? 0.04 : 0);
+  const brightScene = scene.avgLum > 0.66;
+  const veryBright = scene.avgLum > 0.78 || scene.highlightRatio > 0.24;
+  const lowLight = scene.avgLum < 0.34;
+
+  const exposureBias = rear
+    ? (veryBright ? 0.82 : brightScene ? 0.90 : lowLight ? 1.08 : 1.00)
+    : (veryBright ? 0.86 : brightScene ? 0.94 : lowLight ? 1.05 : 0.99);
+
+  const contrastBias = rear ? (veryBright ? 0.96 : 1.00) : (veryBright ? 0.94 : 0.98);
+  const saturationBias = rear ? (veryBright ? 0.88 : 0.96) : (veryBright ? 0.84 : 0.93);
+  const shadowLift = rear ? (veryBright ? 0.03 : lowLight ? 0.10 : 0.06) : (veryBright ? 0.04 : lowLight ? 0.12 : 0.08);
+  const highlightProtect = rear ? (veryBright ? 0.44 : 0.34) : (veryBright ? 0.48 : 0.36);
+  const sharpenBoost = rear ? 0.82 : 0.68;
+  const localPop = 1 + (detailBoost - 0.5) * 0.10 + (ai ? 0.015 : 0);
+  const sceneDampen = 1 - Math.min(0.18, scene.highlightRatio * 0.22);
+
+  const exposure = exposureUI * exposureBias;
+  const contrast = contrastUI * contrastBias;
+  const saturation = saturationUI * saturationBias;
+  const gammaLift = veryBright ? 0.98 : 1.00;
 
   for (let i = 0; i < data.length; i += 4) {
     let r = (data[i] / 255) * wb.r * exposure;
     let g = (data[i + 1] / 255) * wb.g * exposure;
     let b = (data[i + 2] / 255) * wb.b * exposure;
 
-    // Compresión suave de altas luces + levantado de sombras.
+    // Compresión suave de altas luces y levantado moderado de sombras.
     let lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
     const shadow = shadowLift * (1 - Math.min(1, Math.max(0, lum)));
-    const highlight = highlightProtect * Math.max(0, lum - 0.60);
-    lum = acesTonemap(lum * (1.14 + (ai ? 0.04 : 0))) + shadow - highlight;
+    const highlight = highlightProtect * Math.max(0, lum - (veryBright ? 0.48 : 0.60));
+    lum = acesTonemap((lum * (1.05 + (ai ? 0.02 : 0))) * gammaLift) + shadow - highlight;
     lum = q01(lum);
 
-    const scale = lum / Math.max(0.0001, 0.2126 * r + 0.7152 * g + 0.0722 * b);
+    const sourceLum = Math.max(0.0001, 0.2126 * r + 0.7152 * g + 0.0722 * b);
+    const scale = lum / sourceLum;
     r *= scale;
     g *= scale;
     b *= scale;
 
     const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-    const sat = saturation * saturationBoost * (ai ? 1.02 : 1.0);
+    const sat = saturation * (ai ? 1.01 : 1.0) * sceneDampen;
     r = gray + (r - gray) * sat;
     g = gray + (g - gray) * sat;
     b = gray + (b - gray) * sat;
@@ -1487,11 +1556,16 @@ function applyToneMap(data, width, height, strength, cameraType) {
     out[i + 3] = data[i + 3];
   }
 
-  // Reducción de ruido preservando detalle en luminancia.
-  const blurMix = q01(noiseBoost * (rear ? 0.42 : 0.52) + (cameraType === 'user' ? 0.05 : 0) + (ai ? 0.04 : 0));
+  // Reducción de ruido más suave para no “lavar” la escena.
+  const blurMix = q01(
+    noiseBoost * (rear ? 0.34 : 0.40) +
+    (lowLight ? 0.08 : 0) +
+    (ai ? 0.02 : 0)
+  );
+
   if (blurMix > 0.001) {
     const blurred = boxBlurRGBA(out, width, height, rear ? 1 : 1);
-    const preserve = rear ? 0.50 : 0.62;
+    const preserve = rear ? 0.42 : 0.50;
     for (let i = 0; i < out.length; i += 4) {
       const oldL = rgbToGray(out[i], out[i + 1], out[i + 2]);
       const blurL = rgbToGray(blurred[i], blurred[i + 1], blurred[i + 2]);
@@ -1503,8 +1577,8 @@ function applyToneMap(data, width, height, strength, cameraType) {
     }
   }
 
-  // Enfoque final tipo unsharp, pero con margen para no arruinar piel/fondos.
-  const amount = q01(sharpness * sharpenBoost + (ai ? 0.03 : 0)) * 1.25;
+  // Enfoque final muy moderado para evitar piel plástica y halos.
+  const amount = q01(sharpnessUI * sharpenBoost + (ai ? 0.01 : 0)) * (veryBright ? 0.72 : 0.92);
   if (amount > 0.001) {
     const blurred = boxBlurRGBA(out, width, height, 1);
     for (let i = 0; i < out.length; i += 4) {
@@ -1615,7 +1689,7 @@ function applyGlobalFinish(data, width, height, cameraType) {
     const ectx = ui.exportCanvas.getContext('2d', { willReadFrequently: true, alpha: false });
     ectx.putImageData(finished, 0, 0);
 
-    const blob = await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode === 'fast' ? 0.94 : 0.96);
+    const blob = await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode === 'fast' ? 0.95 : 0.97);
     return blob;
   }
 
@@ -1889,7 +1963,7 @@ function applyGlobalFinish(data, width, height, cameraType) {
     const ectx = ui.exportCanvas.getContext('2d', { willReadFrequently: true, alpha: false });
     ectx.putImageData(finished, 0, 0);
 
-    const blob = await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode === 'fast' ? 0.94 : 0.96);
+    const blob = await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode === 'fast' ? 0.95 : 0.97);
     if (!blob) throw new Error('No se pudo exportar la imagen');
 
     state.currentBlob = blob;
@@ -1974,7 +2048,7 @@ function applyGlobalFinish(data, width, height, cameraType) {
       const ectx = ui.exportCanvas.getContext('2d', { willReadFrequently: true, alpha: false });
       ectx.putImageData(finished, 0, 0);
 
-      const blob = await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode === 'fast' ? 0.94 : 0.96);
+      const blob = await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode === 'fast' ? 0.95 : 0.97);
       state.currentBlob = blob;
       setPreviewFromBlob(blob);
       ui.downloadBtn.disabled = false;
