@@ -233,10 +233,11 @@
     .hintBox{display:grid;gap:4px;max-width:62%}
     .hintBox strong{font-size:13px;font-weight:700}
     .hintBox small{color:var(--muted);font-size:12px;line-height:1.35}
+    /* ── GALLERY THUMB (iOS-style bottom-left preview) ── */
     .thumb{
-      width:76px;height:76px;border-radius:18px;overflow:hidden;
-      border:1px solid rgba(255,255,255,.13);background:#0a0c11;
-      box-shadow:var(--shadow);flex:0 0 auto;pointer-events:auto;cursor:pointer;
+      width:64px;height:64px;border-radius:14px;overflow:hidden;
+      border:2px solid rgba(255,255,255,.20);background:#0a0c11;
+      box-shadow:0 4px 16px rgba(0,0,0,.50);flex:0 0 auto;pointer-events:auto;cursor:pointer;
     }
     .thumb img{width:100%;height:100%;object-fit:cover}
     .toast{
@@ -269,12 +270,12 @@
     .modeStrip::-webkit-scrollbar{display:none}
     .modeChip{
       flex:0 0 auto;
-      padding:6px 14px;
+      padding:8px 18px;
       border-radius:999px;
       border:1px solid rgba(255,255,255,.10);
       background:rgba(255,255,255,.05);
-      color:rgba(255,255,255,.55);
-      font-size:13px;font-weight:600;
+      color:rgba(255,255,255,.60);
+      font-size:14px;font-weight:600;
       cursor:pointer;
       transition:all .15s ease;
       white-space:nowrap;
@@ -319,46 +320,52 @@
     /* ── BOTTOM BAR ── */
     .bottomBar{
       position:relative;z-index:5;
-      padding:12px 12px calc(12px + env(safe-area-inset-bottom));
+      padding:10px 20px calc(14px + env(safe-area-inset-bottom));
       background:
-        linear-gradient(180deg,rgba(5,7,11,0),rgba(5,7,11,.72) 20%,rgba(5,7,11,.96));
+        linear-gradient(180deg,rgba(5,7,11,0),rgba(5,7,11,.75) 18%,rgba(5,7,11,.97));
       border-top:1px solid rgba(255,255,255,.05);
     }
     .bottomRow{
       display:grid;
       grid-template-columns:1fr auto 1fr;
-      align-items:center;gap:12px;
+      align-items:center;gap:0;
     }
     .leftCluster,.rightCluster{display:flex;align-items:center;gap:10px;min-width:0}
     .rightCluster{justify-content:flex-end}
     .captureWrap{display:grid;place-items:center;min-width:0}
 
-    /* ── SHUTTER ── */
+    /* ── SHUTTER (iOS-style: outer ring + inner disc) ── */
     .shutter{
-      width:76px;height:76px;border-radius:999px;
-      border:4px solid rgba(255,255,255,.85);
-      background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.06));
-      box-shadow:0 12px 34px rgba(0,0,0,.45);
+      width:84px;height:84px;border-radius:999px;
+      border:3px solid rgba(255,255,255,.90);
+      background:transparent;
+      box-shadow:0 8px 28px rgba(0,0,0,.50);
       position:relative;
+      padding:0;
     }
     .shutter::after{
-      content:"";position:absolute;inset:11px;
+      content:"";position:absolute;
+      inset:5px;
       border-radius:999px;
-      background:linear-gradient(180deg,#fefefe,#d9dde7);
-      box-shadow:0 0 0 1px rgba(255,255,255,.25) inset;
-      transition:background .18s ease;
+      background:#ffffff;
+      box-shadow:0 2px 10px rgba(0,0,0,.22);
+      transition:background .16s ease, transform .12s ease;
     }
+    .shutter:active::after{transform:scale(.88);background:#e0e4ef}
     .shutter.saving::after{background:linear-gradient(180deg,#8cf0bc,#41bb81)}
     @keyframes shutterRing{
-      0%{box-shadow:0 0 0 0 rgba(119,166,255,.6)}
-      100%{box-shadow:0 0 0 22px rgba(119,166,255,0)}
+      0%{box-shadow:0 8px 28px rgba(0,0,0,.50),0 0 0 0 rgba(255,255,255,.7)}
+      100%{box-shadow:0 8px 28px rgba(0,0,0,.50),0 0 0 24px rgba(255,255,255,0)}
     }
-    .shutter.capture-ring{animation:shutterRing .5s ease-out}
+    .shutter.capture-ring{animation:shutterRing .55s ease-out}
+    /* Camera action buttons (file, flip, start) */
     .cameraButton{
-      width:48px;height:48px;border-radius:999px;
+      width:54px;height:54px;border-radius:999px;
       display:grid;place-items:center;
-      background:rgba(255,255,255,.04);
-      font-size:20px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      backdrop-filter:blur(10px);
+      font-size:22px;
     }
 
     /* ── SETTINGS SHEET ── */
@@ -440,6 +447,72 @@
       .hintBox{max-width:54%}
       .galleryGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
+    /* ── START OVERLAY (shown when cam not active) ── */
+    .startOverlay{
+      position:absolute;inset:0;
+      z-index:7;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:20px;
+      background:rgba(5,7,11,.72);
+      backdrop-filter:blur(6px);
+      transition:opacity .28s ease;
+      pointer-events:auto;
+    }
+    .startOverlay.hidden{opacity:0;pointer-events:none}
+    .startCamBtn{
+      width:88px;height:88px;border-radius:999px;
+      border:3px solid rgba(255,255,255,.85);
+      background:rgba(255,255,255,.10);
+      backdrop-filter:blur(10px);
+      font-size:32px;
+      display:grid;place-items:center;
+      box-shadow:0 0 0 12px rgba(255,255,255,.06),0 12px 40px rgba(0,0,0,.55);
+      cursor:pointer;transition:transform .14s ease,background .14s ease;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .startCamBtn:active{transform:scale(.92);background:rgba(255,255,255,.20)}
+    .startHint{
+      display:flex;flex-direction:column;align-items:center;gap:12px;
+    }
+    .startHint p{color:rgba(255,255,255,.70);font-size:14px;margin:0;letter-spacing:.2px}
+    .startHint button{
+      padding:10px 22px;border-radius:999px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.16);
+      color:rgba(255,255,255,.80);font-size:14px;
+      cursor:pointer;
+    }
+
+    /* ── ZOOM row buttons bigger on mobile ── */
+    .zoomLvl{
+      min-width:48px;height:38px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.45);
+      backdrop-filter:blur(10px);
+      font-size:13px;font-weight:700;color:rgba(255,255,255,.65);
+      cursor:pointer;
+      display:grid;place-items:center;
+      transition:all .14s ease;
+      -webkit-tap-highlight-color:transparent;
+      padding:0 12px;
+    }
+    .zoomLvl:active{transform:scale(.93)}
+    .zoomLvl.active{
+      background:rgba(119,166,255,.22);
+      border-color:rgba(119,166,255,.55);
+      color:#fff;
+    }
+
+    /* ── TOP BAR action icons bigger ── */
+    button.icon{
+      width:50px;height:50px;padding:0;
+      display:grid;place-items:center;
+      border-radius:999px;
+      background:rgba(0,0,0,.38);
+      backdrop-filter:blur(10px);
+      font-size:19px;
+    }
   </style>
 </head>
 <body>
@@ -468,6 +541,15 @@
       <canvas id="exportCanvas"></canvas>
       <img id="fileImage" alt="Imagen cargada" />
 
+      <!-- START OVERLAY (hidden once camera is active) -->
+      <div class="startOverlay" id="startOverlay">
+        <button class="startCamBtn" id="startBtn" aria-label="Activar cámara">▶</button>
+        <div class="startHint">
+          <p>Toca para activar la cámara</p>
+          <button id="fileBtn2" type="button">📁 Abrir imagen</button>
+        </div>
+      </div>
+
       <!-- OVERLAYS -->
       <div class="gridOverlay" id="gridOverlay">
         <div class="gl h h1"></div>
@@ -486,14 +568,11 @@
       </div>
       <div class="flashOverlay" id="flashOverlay"></div>
 
-      <!-- HINTS + THUMBNAIL -->
+      <!-- HINTS + TOAST -->
       <div class="overlayHints">
         <div class="hintBox">
           <strong id="profileBadge">Perfil: Equilibrado</strong>
           <small id="modeBadge">Modo rápido · Salida 1600 px</small>
-        </div>
-        <div class="thumb" id="thumbWrap" title="Ver última foto">
-          <img id="lastPreview" alt="Última foto" />
         </div>
       </div>
       <div class="toast" id="toast">Listo</div>
@@ -517,22 +596,27 @@
     </div>
   </div>
 
-  <!-- BOTTOM BAR -->
+  <!-- BOTTOM BAR (iOS Camera style: thumb | shutter | flip) -->
   <div class="bottomBar">
     <div class="bottomRow">
+      <!-- Left: gallery thumbnail -->
       <div class="leftCluster">
-        <button class="cameraButton" id="startBtn" title="Iniciar cámara" aria-label="Iniciar cámara">▶</button>
-        <button class="cameraButton" id="switchBtn" title="Cambiar cámara" aria-label="Cambiar cámara" disabled>↺</button>
+        <div class="thumb" id="thumbWrap" title="Ver última foto / galería">
+          <img id="lastPreview" alt="Última foto" />
+        </div>
       </div>
+      <!-- Center: shutter -->
       <div class="captureWrap">
         <button class="shutter" id="captureBtn" aria-label="Tomar foto" disabled></button>
       </div>
+      <!-- Right: flip camera + open file -->
       <div class="rightCluster">
-        <button class="cameraButton" id="folderBtn" title="Elegir carpeta" aria-label="Elegir carpeta">📁</button>
-        <button class="cameraButton" id="fileBtn" title="Abrir imagen" aria-label="Abrir imagen">⌁</button>
+        <button class="cameraButton" id="switchBtn" title="Cambiar cámara" aria-label="Cambiar cámara" disabled>↺</button>
+        <button class="cameraButton" id="fileBtn" title="Abrir imagen" aria-label="Abrir imagen" style="font-size:18px">📁</button>
       </div>
     </div>
     <input id="fileInput" class="hidden" type="file" accept="image/*" />
+    <input id="fileInput2" class="hidden" type="file" accept="image/*" />
   </div>
 
   <!-- SETTINGS SHEET -->
@@ -719,8 +803,7 @@
     switchBtn:          document.getElementById('switchBtn'),
     captureBtn:         document.getElementById('captureBtn'),
     fileBtn:            document.getElementById('fileBtn'),
-    folderBtn:          document.getElementById('folderBtn'),
-    fileInput:          document.getElementById('fileInput'),
+    folderBtn:          document.getElementById('folderBtn'),    fileInput:          document.getElementById('fileInput'),
     downloadBtn:        document.getElementById('downloadBtn'),
     resetBtn:           document.getElementById('resetBtn'),
     autoSaveBtn:        document.getElementById('autoSaveBtn'),
@@ -781,22 +864,22 @@
 
   /* ═══════════════════════════════════ PRESETS ═══ */
   const presets = {
-    balanced: { title:'Equilibrado', desc:'Balance suave para fotos diarias y escenas brillantes.',        exposure:0.97, contrast:1.03, saturation:0.97, sharpness:0.12, noise:0.20, detail:0.58 },
-    vivid:    { title:'Vivo',        desc:'Un poco más de color y presencia, sin pasarse.',                exposure:0.98, contrast:1.08, saturation:1.08, sharpness:0.16, noise:0.16, detail:0.66 },
-    portrait: { title:'Retrato',     desc:'Más suave en piel y menos agresivo con las luces.',             exposure:0.99, contrast:1.01, saturation:0.94, sharpness:0.10, noise:0.26, detail:0.42 },
-    night:    { title:'Nocturno',    desc:'Recupera sombra con más cuidado y menos lavado.',               exposure:1.08, contrast:1.00, saturation:0.92, sharpness:0.08, noise:0.38, detail:0.34 },
-    soft:     { title:'Suave',       desc:'Evita artefactos y mantiene un acabado natural.',               exposure:0.98, contrast:1.01, saturation:0.95, sharpness:0.08, noise:0.24, detail:0.30 }
+    balanced: { title:'Equilibrado', desc:'Calidad natural, sombras levantadas, colores fieles.',          exposure:1.00, contrast:1.08, saturation:1.06, sharpness:0.22, noise:0.20, detail:0.64 },
+    vivid:    { title:'Vivo',        desc:'Colores vibrantes con más presencia, sin saturar piel.',         exposure:0.98, contrast:1.12, saturation:1.18, sharpness:0.26, noise:0.16, detail:0.72 },
+    portrait: { title:'Retrato',     desc:'Piel natural, altas luces controladas, acabado suave.',          exposure:1.01, contrast:1.05, saturation:0.99, sharpness:0.16, noise:0.28, detail:0.48 },
+    night:    { title:'Nocturno',    desc:'Levanta sombras, reduce ruido, preserva detalles oscuros.',      exposure:1.10, contrast:1.02, saturation:0.96, sharpness:0.10, noise:0.48, detail:0.36 },
+    soft:     { title:'Suave',       desc:'Acabado natural sin artefactos, ideal para edición posterior.',  exposure:1.00, contrast:1.03, saturation:0.98, sharpness:0.08, noise:0.26, detail:0.30 }
   };
   const modePresets = {
-    fast:    { burst:1, output:'1600', sharpnessBoost:0.00, noiseBoost:0.00,  detailBoost:0.50 },
-    quality: { burst:2, output:'2400', sharpnessBoost:0.03, noiseBoost:0.10,  detailBoost:0.66 },
-    night:   { burst:4, output:'2400', sharpnessBoost:-0.03,noiseBoost:0.24,  detailBoost:0.38 },
-    portrait:{ burst:3, output:'1920', sharpnessBoost:-0.02,noiseBoost:0.16,  detailBoost:0.44 }
+    fast:    { burst:1, output:'1600', sharpnessBoost:0.00, noiseBoost:0.00,  detailBoost:0.60 },
+    quality: { burst:3, output:'2400', sharpnessBoost:0.04, noiseBoost:0.08,  detailBoost:0.68 },
+    night:   { burst:5, output:'2400', sharpnessBoost:-0.04,noiseBoost:0.28,  detailBoost:0.38 },
+    portrait:{ burst:3, output:'2048', sharpnessBoost:-0.02,noiseBoost:0.18,  detailBoost:0.46 }
   };
   const defaults = {
     preset:'balanced', mode:'fast', facing:'environment', output:'1600',
-    burst:1, detail:0.56, noise:0.22, exposure:0.98, contrast:1.04,
-    saturation:0.98, sharpness:0.14, autoSave:false, mirror:false, aiLite:true,
+    burst:1, detail:0.64, noise:0.20, exposure:1.00, contrast:1.08,
+    saturation:1.06, sharpness:0.22, autoSave:false, mirror:false, aiLite:true,
     timerSec:0, showGrid:false
   };
 
@@ -1074,6 +1157,9 @@
       await ui.previewVideo.play();
       ui.captureBtn.disabled = false;
       ui.switchBtn.disabled  = false;
+      // Hide start overlay once camera is live
+      const overlay = document.getElementById('startOverlay');
+      if (overlay) overlay.classList.add('hidden');
       const label = state.facing==='environment' ? 'trasera' : 'frontal';
       setStatus('ok', 'Cámara activa', `Cámara ${label} lista.`);
       setToast('Cámara iniciada');
@@ -1297,7 +1383,7 @@
   /* ══════════════════════════════════════════════
      IMAGE PROCESSING UTILITIES
   ══════════════════════════════════════════════ */
-  function canvasToBlob(canvas, type='image/jpeg', quality=0.94) {
+  function canvasToBlob(canvas, type='image/jpeg', quality=0.97) {
     return new Promise(resolve => canvas.toBlob(resolve, type, quality));
   }
 
@@ -1494,6 +1580,13 @@
     return out;
   }
 
+  function softSCurve(x, strength) {
+    // Smooth-step S-curve: lifts shadows a bit, slightly compresses highlights → more pop
+    const t = Math.min(1, Math.max(0, x));
+    const curved = t * t * (3 - 2 * t);
+    return t + (curved - t) * Math.min(1, strength * 1.3);
+  }
+
   function applyToneMap(data, width, height, strength, cameraType) {
     const out=new Uint8ClampedArray(data.length);
     const scene=analyzeScene(data);
@@ -1509,60 +1602,109 @@
     const brightScene=scene.avgLum>0.66;
     const veryBright=scene.avgLum>0.78||scene.highlightRatio>0.24;
     const lowLight=scene.avgLum<0.34;
-    const exposureBias = rear
-      ? (veryBright?0.82:brightScene?0.90:lowLight?1.08:1.00)
-      : (veryBright?0.86:brightScene?0.94:lowLight?1.05:0.99);
-    const contrastBias  = rear?(veryBright?0.96:1.00):(veryBright?0.94:0.98);
-    const saturationBias= rear?(veryBright?0.88:0.96):(veryBright?0.84:0.93);
-    const shadowLift    = rear?(veryBright?0.03:lowLight?0.10:0.06):(veryBright?0.04:lowLight?0.12:0.08);
-    const highlightProtect=rear?(veryBright?0.44:0.34):(veryBright?0.48:0.36);
-    const sharpenBoost  = rear?0.82:0.68;
-    const localPop      = 1+(detailBoost-0.5)*0.10+(ai?0.015:0);
-    const sceneDampen   = 1-Math.min(0.18,scene.highlightRatio*0.22);
-    const exposure      = exposureUI*exposureBias;
-    const contrast      = contrastUI*contrastBias;
-    const saturation    = saturationUI*saturationBias;
-    const gammaLift     = veryBright?0.98:1.00;
 
+    // iPhone-style scene-adaptive exposure bias
+    const exposureBias=rear
+      ?(veryBright?0.80:brightScene?0.87:lowLight?1.12:0.97)
+      :(veryBright?0.84:brightScene?0.91:lowLight?1.08:0.96);
+
+    // Shadow lift: quadratic falloff so only dark tones are lifted
+    const shadowLift=rear
+      ?(lowLight?0.15:veryBright?0.01:0.07)
+      :(lowLight?0.19:veryBright?0.02:0.09);
+    // Highlight protection strength
+    const hlProtect=veryBright?0.54:brightScene?0.38:0.22;
+
+    const exposure=exposureUI*exposureBias;
+    // Vibrance/saturation: scene-adaptive
+    const satBase=saturationUI*(rear?1.00:0.97)*(veryBright?0.89:1.00)*(ai?1.03:1.0);
+    const contrastBase=contrastUI*(veryBright?0.95:1.00);
+
+    /* ── PASS 1: White balance · tonemap · vibrance · S-curve ── */
     for (let i=0; i<data.length; i+=4) {
-      let r=(data[i]/255)*wb.r*exposure;
+      let r=(data[i]  /255)*wb.r*exposure;
       let g=(data[i+1]/255)*wb.g*exposure;
       let b=(data[i+2]/255)*wb.b*exposure;
+
       let lum=0.2126*r+0.7152*g+0.0722*b;
-      const shadow=shadowLift*(1-Math.min(1,Math.max(0,lum)));
-      const highlight=highlightProtect*Math.max(0,lum-(veryBright?0.48:0.60));
-      lum=acesTonemap((lum*(1.05+(ai?0.02:0)))*gammaLift)+shadow-highlight;
+
+      // Shadow lift – soft knee below 0.30
+      const shadowFactor=shadowLift*Math.pow(Math.max(0,1-lum/0.30),2);
+      // Highlight protection – soft rolloff above 0.65
+      const hlFactor=hlProtect*Math.max(0,(lum-0.65)/0.35);
+
+      // ACES tonemap (slightly punched for pop)
+      lum=acesTonemap(lum*(1.06+(ai?0.025:0)))+shadowFactor-hlFactor;
       lum=q01(lum);
-      const sourceLum=Math.max(0.0001,0.2126*r+0.7152*g+0.0722*b);
-      const scale=lum/sourceLum;
-      r*=scale; g*=scale; b*=scale;
+
+      // Preserve hue/chroma by scaling RGB to new luminance
+      const srcLum=Math.max(0.0001,0.2126*r+0.7152*g+0.0722*b);
+      const scale=lum/srcLum;
+      r=q01(r*scale); g=q01(g*scale); b=q01(b*scale);
+
+      // Vibrance: low-chroma pixels get more saturation boost (protects skin tones)
       const gray=0.299*r+0.587*g+0.114*b;
-      const sat=saturation*(ai?1.01:1.0)*sceneDampen;
-      r=gray+(r-gray)*sat; g=gray+(g-gray)*sat; b=gray+(b-gray)*sat;
-      r=0.5+(r-0.5)*contrast; g=0.5+(g-0.5)*contrast; b=0.5+(b-0.5)*contrast;
-      r*=localPop; g*=localPop; b*=localPop;
+      const chroma=Math.max(r,g,b)-Math.min(r,g,b); // [0..1]
+      // Muted colors (chroma<0.4) get up to 50% extra boost; saturated ones are protected
+      const vibranceFactor=satBase*(1+0.50*Math.max(0,0.40-chroma));
+      r=gray+(r-gray)*vibranceFactor;
+      g=gray+(g-gray)*vibranceFactor;
+      b=gray+(b-gray)*vibranceFactor;
+
+      // S-curve contrast (luminance-space, protects shadows/highlights)
+      const lumNow=q01(0.299*r+0.587*g+0.114*b);
+      const curved=softSCurve(lumNow,contrastBase-1.0);
+      if (lumNow>0.001) {
+        const cscale=curved/lumNow;
+        r=q01(r*cscale); g=q01(g*cscale); b=q01(b*cscale);
+      }
+
       out[i]=clamp(r*255); out[i+1]=clamp(g*255); out[i+2]=clamp(b*255); out[i+3]=data[i+3];
     }
-    const blurMix=q01(noiseBoost*(rear?0.34:0.40)+(lowLight?0.08:0)+(ai?0.02:0));
+
+    /* ── PASS 2: Luminance-preserving noise reduction ── */
+    const blurMix=q01(noiseBoost*(rear?0.28:0.36)+(lowLight?0.12:0)+(ai?0.025:0));
     if (blurMix>0.001) {
       const blurred=boxBlurRGBA(out, width, height, 1);
-      const preserve=rear?0.42:0.50;
       for (let i=0; i<out.length; i+=4) {
-        const oldL=rgbToGray(out[i],out[i+1],out[i+2]);
-        const blurL=rgbToGray(blurred[i],blurred[i+1],blurred[i+2]);
-        const lDetail=(oldL-blurL)*preserve;
-        out[i]=clamp(lerp(out[i],blurred[i],blurMix)+lDetail);
-        out[i+1]=clamp(lerp(out[i+1],blurred[i+1],blurMix)+lDetail);
-        out[i+2]=clamp(lerp(out[i+2],blurred[i+2],blurMix)+lDetail);
+        const origL=rgbToGray(out[i],out[i+1],out[i+2]);
+        // Blend chrominance toward blurred (noise reduction)
+        const nr=lerp(out[i],  blurred[i],  blurMix);
+        const ng=lerp(out[i+1],blurred[i+1],blurMix);
+        const nb=lerp(out[i+2],blurred[i+2],blurMix);
+        // Restore original luminance to preserve detail
+        const newL=Math.max(1,rgbToGray(nr,ng,nb));
+        const lr=origL/newL;
+        out[i]=clamp(nr*lr); out[i+1]=clamp(ng*lr); out[i+2]=clamp(nb*lr);
       }
     }
-    const amount=q01(sharpnessUI*sharpenBoost+(ai?0.01:0))*(veryBright?0.72:0.92);
-    if (amount>0.001) {
-      const blurred=boxBlurRGBA(out, width, height, 1);
+
+    /* ── PASS 3: Luminance-only USM (no colour fringing) ──
+       Two radii: fine-detail (r=1) + clarity/local-contrast (r=4) */
+    const fineAmt=q01(sharpnessUI*(rear?0.92:0.74)+(ai?0.018:0))*(veryBright?0.70:0.92);
+    const clarityAmt=q01((detailBoost-0.42)*0.30);
+
+    if (fineAmt>0.001||clarityAmt>0.001) {
+      const fineBlur   =fineAmt   >0.001?boxBlurRGBA(out,width,height,1):null;
+      const clarityBlur=clarityAmt>0.001?boxBlurRGBA(out,width,height,4):null;
+
       for (let i=0; i<out.length; i+=4) {
-        const detail=rgbToGray(out[i],out[i+1],out[i+2])-rgbToGray(blurred[i],blurred[i+1],blurred[i+2]);
-        const boost=detail*amount;
-        out[i]=clamp(out[i]+boost); out[i+1]=clamp(out[i+1]+boost); out[i+2]=clamp(out[i+2]+boost);
+        const origL=rgbToGray(out[i],out[i+1],out[i+2]);
+        let deltaL=0;
+        if (fineBlur) {
+          const bl=rgbToGray(fineBlur[i],fineBlur[i+1],fineBlur[i+2]);
+          deltaL+=(origL-bl)*fineAmt;
+        }
+        if (clarityBlur) {
+          const cl=rgbToGray(clarityBlur[i],clarityBlur[i+1],clarityBlur[i+2]);
+          deltaL+=(origL-cl)*clarityAmt*0.70;
+        }
+        if (Math.abs(deltaL)>0.5) {
+          // Apply only to luminance channel → scale R,G,B proportionally → zero fringing
+          const newL=Math.max(1,origL+deltaL);
+          const sc=newL/Math.max(1,origL);
+          out[i]=clamp(out[i]*sc); out[i+1]=clamp(out[i+1]*sc); out[i+2]=clamp(out[i+2]*sc);
+        }
       }
     }
     return out;
@@ -1646,7 +1788,7 @@
     ui.exportCanvas.width=outSize.width; ui.exportCanvas.height=outSize.height;
     const ectx=ui.exportCanvas.getContext('2d',{willReadFrequently:true,alpha:false});
     ectx.putImageData(finished, 0, 0);
-    const blob=await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode==='fast'?0.95:0.97);
+    const blob=await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode==='fast'?0.96:0.985);
     if (!blob) throw new Error('No se pudo exportar la imagen');
     state.currentBlob=blob;
     setPreviewFromBlob(blob);
@@ -1709,7 +1851,7 @@
         ui.exportCanvas.width=outSize.width; ui.exportCanvas.height=outSize.height;
         const ectx=ui.exportCanvas.getContext('2d',{willReadFrequently:true,alpha:false});
         ectx.putImageData(finished, 0, 0);
-        const blob=await canvasToBlob(ui.exportCanvas,'image/jpeg',state.mode==='fast'?0.95:0.97);
+        const blob=await canvasToBlob(ui.exportCanvas,'image/jpeg',state.mode==='fast'?0.96:0.985);
         state.currentBlob=blob;
         setPreviewFromBlob(blob);
         ui.downloadBtn.disabled=false;
@@ -1912,7 +2054,10 @@
     if (!navigator.mediaDevices?.getUserMedia) {
       setStatus('bad', 'Sin soporte', 'Tu navegador no permite cámara.');
       ui.startBtn.disabled=true; ui.captureBtn.disabled=true; ui.switchBtn.disabled=true;
+      return;
     }
+    // Try to auto-start camera silently
+    void startCamera().catch(()=>{/* overlay stays visible if denied */});
   }
 
   /* ══════════════════════════════════════════════
@@ -1931,8 +2076,19 @@
     if (file) void loadFile(file);
     ui.fileInput.value='';
   });
-  ui.folderBtn.addEventListener('click', ()=>void pickFolder());
-  ui.pickFolderInsideBtn.addEventListener('click', ()=>void pickFolder());
+  // Second file input from start overlay
+  const fileBtn2=document.getElementById('fileBtn2');
+  const fileInput2=document.getElementById('fileInput2');
+  if (fileBtn2 && fileInput2) {
+    fileBtn2.addEventListener('click', ()=>fileInput2.click());
+    fileInput2.addEventListener('change', ()=>{
+      const file=fileInput2.files&&fileInput2.files[0];
+      if (file) void loadFile(file);
+      fileInput2.value='';
+    });
+  }
+  ui.folderBtn && ui.folderBtn.addEventListener('click', ()=>void pickFolder());
+  ui.pickFolderInsideBtn && ui.pickFolderInsideBtn.addEventListener('click', ()=>void pickFolder());
   ui.downloadBtn.addEventListener('click', async ()=>{
     const sel=state.gallery.find(item=>item.id===state.selectedId);
     if (sel) await downloadBlob(sel.blob, filenameFromNow());
