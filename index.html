@@ -864,22 +864,22 @@
 
   /* ═══════════════════════════════════ PRESETS ═══ */
   const presets = {
-    balanced: { title:'Equilibrado', desc:'Calidad natural, sombras levantadas, colores fieles.',          exposure:1.00, contrast:1.08, saturation:1.06, sharpness:0.22, noise:0.20, detail:0.64 },
-    vivid:    { title:'Vivo',        desc:'Colores vibrantes con más presencia, sin saturar piel.',         exposure:0.98, contrast:1.12, saturation:1.18, sharpness:0.26, noise:0.16, detail:0.72 },
-    portrait: { title:'Retrato',     desc:'Piel natural, altas luces controladas, acabado suave.',          exposure:1.01, contrast:1.05, saturation:0.99, sharpness:0.16, noise:0.28, detail:0.48 },
-    night:    { title:'Nocturno',    desc:'Levanta sombras, reduce ruido, preserva detalles oscuros.',      exposure:1.10, contrast:1.02, saturation:0.96, sharpness:0.10, noise:0.48, detail:0.36 },
-    soft:     { title:'Suave',       desc:'Acabado natural sin artefactos, ideal para edición posterior.',  exposure:1.00, contrast:1.03, saturation:0.98, sharpness:0.08, noise:0.26, detail:0.30 }
+    balanced: { title:'Equilibrado', desc:'Calidad natural, sombras levantadas, colores fieles.',          exposure:1.00, contrast:1.06, saturation:1.00, sharpness:0.20, noise:0.20, detail:0.60 },
+    vivid:    { title:'Vivo',        desc:'Colores vibrantes con más presencia, sin saturar piel.',         exposure:0.98, contrast:1.10, saturation:1.10, sharpness:0.24, noise:0.16, detail:0.68 },
+    portrait: { title:'Retrato',     desc:'Piel natural, altas luces controladas, acabado suave.',          exposure:1.01, contrast:1.04, saturation:0.97, sharpness:0.14, noise:0.28, detail:0.46 },
+    night:    { title:'Nocturno',    desc:'Levanta sombras, reduce ruido, preserva detalles oscuros.',      exposure:1.08, contrast:1.00, saturation:0.94, sharpness:0.08, noise:0.44, detail:0.34 },
+    soft:     { title:'Suave',       desc:'Acabado natural sin artefactos, ideal para edición posterior.',  exposure:1.00, contrast:1.02, saturation:0.96, sharpness:0.06, noise:0.24, detail:0.28 }
   };
   const modePresets = {
-    fast:    { burst:1, output:'1600', sharpnessBoost:0.00, noiseBoost:0.00,  detailBoost:0.60 },
-    quality: { burst:3, output:'2400', sharpnessBoost:0.04, noiseBoost:0.08,  detailBoost:0.68 },
-    night:   { burst:5, output:'2400', sharpnessBoost:-0.04,noiseBoost:0.28,  detailBoost:0.38 },
-    portrait:{ burst:3, output:'2048', sharpnessBoost:-0.02,noiseBoost:0.18,  detailBoost:0.46 }
+    fast:    { burst:1, output:'1600', sharpnessBoost:0.00, noiseBoost:0.00,  detailBoost:0.58 },
+    quality: { burst:3, output:'2400', sharpnessBoost:0.03, noiseBoost:0.08,  detailBoost:0.64 },
+    night:   { burst:5, output:'2400', sharpnessBoost:-0.04,noiseBoost:0.28,  detailBoost:0.36 },
+    portrait:{ burst:3, output:'2048', sharpnessBoost:-0.02,noiseBoost:0.18,  detailBoost:0.44 }
   };
   const defaults = {
     preset:'balanced', mode:'fast', facing:'environment', output:'1600',
-    burst:1, detail:0.64, noise:0.20, exposure:1.00, contrast:1.08,
-    saturation:1.06, sharpness:0.22, autoSave:false, mirror:false, aiLite:true,
+    burst:1, detail:0.60, noise:0.20, exposure:1.00, contrast:1.06,
+    saturation:1.00, sharpness:0.20, autoSave:false, mirror:false, aiLite:true,
     timerSec:0, showGrid:false
   };
 
@@ -1515,38 +1515,51 @@
     const stats = scene || analyzeScene(data);
     const brightScene = stats.avgLum > 0.68;
     const step = Math.max(12, Math.floor((data.length/4)/18000));
+
+    // Sample ONLY bright-ish, near-neutral pixels.
+    // Raising luma min from 18→60 excludes dark colored regions (navy, black clothes)
+    // that would fool the gray-world algorithm into heavy color correction.
+    // Lowering chroma threshold from 98→40 excludes colored objects (red stripes, skin).
+    const lumaMin  = 60;
+    const lumaMax  = brightScene ? 232 : 240;
+    const chromaMax = 40;   // 8-bit. Only near-neutral pixels qualify.
+
     for (let i=0; i<data.length; i+=4*step) {
       const r=data[i], g=data[i+1], b=data[i+2];
       const l = rgbToGray(r,g,b);
       const chroma = Math.max(r,g,b)-Math.min(r,g,b);
-      if (l<18 || l>(brightScene?238:244) || chroma>(110+(brightScene?-12:0))) continue;
+      if (l < lumaMin || l > lumaMax || chroma > chromaMax) continue;
       rSum+=r; gSum+=g; bSum+=b; n++;
     }
-    if (n<24) {
-      for (let i=0; i<data.length; i+=4*step) { rSum+=data[i]; gSum+=data[i+1]; bSum+=data[i+2]; n++; }
-    }
-    const rAvg=rSum/Math.max(1,n), gAvg=gSum/Math.max(1,n), bAvg=bSum/Math.max(1,n);
+    // Fallback if no qualifying pixels (very colorful or very dark scene)
+    if (n < 20) return { r:1.0, g:1.0, b:1.0 }; // neutral WB → don't guess
+
+    const rAvg=rSum/n, gAvg=gSum/n, bAvg=bSum/n;
     const gray = (rAvg+gAvg+bAvg)/3 || 1;
     let rGain=gray/Math.max(1,rAvg), gGain=gray/Math.max(1,gAvg), bGain=gray/Math.max(1,bAvg);
     const rear=cameraType==='environment';
-    // Front camera: no cool bias (was causing blue cast on selfies)
-    // Rear camera: slight warm bias for natural interior lighting
+
+    // Gentle scene-specific nudges only
     if (rear) {
-      if (brightScene){ rGain*=0.98; }
-      else if (stats.shadowRatio>0.32){ rGain*=1.01; bGain*=1.005; }
+      if (brightScene) rGain *= 0.99;
     } else {
-      // Front camera: very gentle warm nudge to counteract typical cool sensor bias
-      rGain*=1.01; bGain*=0.99;
+      // Front camera: slightly warmer to counteract cool sensors
+      rGain *= 1.008; bGain *= 0.993;
     }
-    // Dampen WB correction to 70% so we don't over-correct (blend toward 1.0)
-    const damp = rear ? 0.70 : 0.55;
+
+    // Dampen correction strongly — WB is a hint, not a full correction.
+    // Reduces impact when the scene has few neutral references.
+    const damp = rear ? 0.55 : 0.40;
     rGain = 1.0 + (rGain - 1.0) * damp;
     gGain = 1.0 + (gGain - 1.0) * damp;
     bGain = 1.0 + (bGain - 1.0) * damp;
+
+    // Tight clamps: max ±12% correction.
+    // Prevents WB from turning navy→purple or yellow→green.
     return {
-      r:Math.min(1.22,Math.max(0.84,rGain)),
-      g:Math.min(1.14,Math.max(0.88,gGain)),
-      b:Math.min(1.18,Math.max(0.84,bGain))  // tighter B ceiling prevents blue cast
+      r: Math.min(1.12, Math.max(0.90, rGain)),
+      g: Math.min(1.10, Math.max(0.92, gGain)),
+      b: Math.min(1.12, Math.max(0.90, bGain))
     };
   }
 
@@ -1615,15 +1628,15 @@
 
     // iPhone-style scene-adaptive exposure bias
     const exposureBias=rear
-      ?(veryBright?0.80:brightScene?0.87:lowLight?1.12:0.97)
-      :(veryBright?0.86:brightScene?0.93:lowLight?1.06:0.98);  // front: slightly brighter, less blown
+      ?(veryBright?0.80:brightScene?0.87:lowLight?1.10:0.97)
+      :(veryBright?0.90:brightScene?0.96:lowLight?1.05:0.99);
 
-    // Shadow lift: quadratic falloff so only dark tones are lifted
+    // Shadow lift: keep it small — large values cause scale explosion in darks
     const shadowLift=rear
-      ?(lowLight?0.15:veryBright?0.01:0.07)
-      :(lowLight?0.16:veryBright?0.01:0.08);
+      ?(lowLight?0.05:veryBright?0.00:0.03)
+      :(lowLight?0.06:veryBright?0.00:0.03);
     // Highlight protection strength
-    const hlProtect=veryBright?0.54:brightScene?0.38:0.22;
+    const hlProtect=veryBright?0.44:brightScene?0.28:0.16;
 
     const exposure=exposureUI*exposureBias;
     // Vibrance/saturation: front camera uses gentler saturation to preserve natural skin
@@ -1636,28 +1649,39 @@
       let g=(data[i+1]/255)*wb.g*exposure;
       let b=(data[i+2]/255)*wb.b*exposure;
 
-      let lum=0.2126*r+0.7152*g+0.0722*b;
+      const srcLum=Math.max(0.0001, 0.2126*r+0.7152*g+0.0722*b);
+      let lum=srcLum;
 
-      // Shadow lift – soft knee below 0.30
-      const shadowFactor=shadowLift*Math.pow(Math.max(0,1-lum/0.30),2);
-      // Highlight protection – soft rolloff above 0.65
-      const hlFactor=hlProtect*Math.max(0,(lum-0.65)/0.35);
+      // Shadow lift – NARROW knee (only pixels below 0.12 get lifted, not 0.30)
+      // Wider knee caused scale explosion on dark-but-not-black pixels (navy → purple)
+      const shadowFactor=shadowLift*Math.pow(Math.max(0,1-lum/0.12),2);
+      // Highlight protection – soft rolloff above 0.68
+      const hlFactor=hlProtect*Math.max(0,(lum-0.68)/0.32);
 
-      // ACES tonemap (slightly punched for pop)
-      lum=acesTonemap(lum*(1.06+(ai?0.025:0)))+shadowFactor-hlFactor;
+      // ACES tonemap — minimal extra push (1.02) to avoid dark area distortion
+      lum=acesTonemap(lum*(1.02+(ai?0.01:0)))+shadowFactor-hlFactor;
       lum=q01(lum);
 
-      // Preserve hue/chroma by scaling RGB to new luminance
-      const srcLum=Math.max(0.0001,0.2126*r+0.7152*g+0.0722*b);
-      const scale=lum/srcLum;
+      // Hue-preserving luminance scale with HARD CAP at 5×
+      // Without this cap, near-black pixels (lum=0.005 → 0.06) scale by ×12
+      // which amplifies chroma noise into vivid purple/magenta
+      const scale=Math.min(lum/srcLum, 5.0);
       r=q01(r*scale); g=q01(g*scale); b=q01(b*scale);
+
+      // Chroma noise suppression for heavily lifted darks:
+      // pixels scaled >2× were in deep shadow; their color is mostly sensor noise.
+      // Blend toward neutral gray proportionally to reduce chroma noise → no purple cast.
+      if (scale > 2.0) {
+        const noiseDamp = Math.min(0.70, (scale - 2.0) / 3.0 * 0.70);
+        const gray3 = 0.299*r + 0.587*g + 0.114*b;
+        r = lerp(r, gray3, noiseDamp);
+        g = lerp(g, gray3, noiseDamp);
+        b = lerp(b, gray3, noiseDamp);
+      }
 
       // Vibrance: boost under-saturated colors, protect neutral grays and skin tones
       const gray=0.299*r+0.587*g+0.114*b;
       const chroma=Math.max(r,g,b)-Math.min(r,g,b); // [0..1]
-      // Only boost pixels that have SOME real color (chroma > 0.04).
-      // Near-neutral pixels (gray walls, white shirts) are left at satBase only,
-      // which prevents a subtle gray tint from being amplified into a visible cast.
       const vibranceExtra = chroma > 0.04 ? 0.45 * Math.max(0, 0.38 - chroma) : 0;
       const vibranceFactor=satBase*(1+vibranceExtra);
       r=gray+(r-gray)*vibranceFactor;
@@ -1705,6 +1729,8 @@
 
       for (let i=0; i<out.length; i+=4) {
         const origL=rgbToGray(out[i],out[i+1],out[i+2]);
+        // Don't sharpen very dark pixels — would amplify noise and WB errors in shadows
+        if (origL < 28) continue;
         let deltaL=0;
         if (fineBlur) {
           const bl=rgbToGray(fineBlur[i],fineBlur[i+1],fineBlur[i+2]);
@@ -1715,7 +1741,6 @@
           deltaL+=(origL-cl)*clarityAmt*0.70;
         }
         if (Math.abs(deltaL)>0.5) {
-          // Apply only to luminance channel → scale R,G,B proportionally → zero fringing
           const newL=Math.max(1,origL+deltaL);
           const sc=newL/Math.max(1,origL);
           out[i]=clamp(out[i]*sc); out[i+1]=clamp(out[i+1]*sc); out[i+2]=clamp(out[i+2]*sc);
