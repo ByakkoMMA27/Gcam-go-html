@@ -665,11 +665,13 @@
           <div class="sliderCard">
             <label><strong>Resolución</strong><small id="sizeLabel">1600 px</small></label>
             <select id="sizePreset">
-              <option value="1280">1280 px</option>
-              <option value="1600" selected>1600 px</option>
-              <option value="2400">2400 px</option>
-              <option value="3200">3200 px</option>
-              <option value="native">Nativa si existe</option>
+              <option value="1280">1280 px (≈2MP)</option>
+              <option value="1600" selected>1600 px (≈3MP)</option>
+              <option value="2400">2400 px (≈6MP)</option>
+              <option value="3200">3200 px (≈12MP)</option>
+              <option value="4000">4000 px (≈18MP)</option>
+              <option value="6000">6000 px (≈48MP — lento)</option>
+              <option value="native">Nativa del sensor</option>
             </select>
           </div>
           <div class="sliderCard">
@@ -872,9 +874,9 @@
   };
   const modePresets = {
     fast:    { burst:1, output:'1600', sharpnessBoost:0.00, noiseBoost:0.00,  detailBoost:0.58 },
-    quality: { burst:3, output:'2400', sharpnessBoost:0.03, noiseBoost:0.08,  detailBoost:0.64 },
-    night:   { burst:5, output:'2400', sharpnessBoost:-0.04,noiseBoost:0.28,  detailBoost:0.36 },
-    portrait:{ burst:3, output:'2048', sharpnessBoost:-0.02,noiseBoost:0.18,  detailBoost:0.44 }
+    quality: { burst:3, output:'4000', sharpnessBoost:0.03, noiseBoost:0.08,  detailBoost:0.64 },
+    night:   { burst:5, output:'3200', sharpnessBoost:-0.04,noiseBoost:0.28,  detailBoost:0.36 },
+    portrait:{ burst:3, output:'3200', sharpnessBoost:-0.02,noiseBoost:0.18,  detailBoost:0.44 }
   };
   const defaults = {
     preset:'balanced', mode:'fast', facing:'environment', output:'1600',
@@ -1098,13 +1100,30 @@
   }
 
   function buildConstraints() {
-    const preferredWidth  = state.mode==='fast' ? 1280 : 1920;
-    const preferredHeight = state.mode==='fast' ? 720  : 1080;
-    const camera = { audio:false, video:{ width:{ideal:preferredWidth}, height:{ideal:preferredHeight}, facingMode:{exact:state.facing} } };
+    const fast = state.mode === 'fast';
+    // Always request the highest resolution the camera sensor supports.
+    // Android Chrome uses the camera's native max if ideal is set high enough.
+    // Front cameras: typically 8–16MP (up to 4032×3024).
+    // Rear cameras: typically 12–108MP raw, often output at 12–48MP via ISP.
+    const w = fast ? 1920 : 4096;
+    const h = fast ? 1080 : 3072;
+    const advanced = fast ? [] : [
+      { width:4096, height:3072 },  // 12MP 4:3
+      { width:3840, height:2880 },  // 11MP 4:3
+      { width:3264, height:2448 },  // 8MP 4:3
+      { width:3200, height:2400 },  // 7.7MP
+    ];
+    const baseVideo = {
+      width:  { ideal: w, min: fast ? 640 : 1280 },
+      height: { ideal: h, min: fast ? 480 : 960  },
+      facingMode: { exact: state.facing },
+      ...(advanced.length ? { advanced } : {})
+    };
     if (state.cameraId) {
-      camera.video = { width:{ideal:preferredWidth}, height:{ideal:preferredHeight}, deviceId:{exact:state.cameraId} };
+      delete baseVideo.facingMode;
+      baseVideo.deviceId = { exact: state.cameraId };
     }
-    return camera;
+    return { audio: false, video: baseVideo };
   }
 
   async function listDevices() {
@@ -1603,8 +1622,67 @@
     return out;
   }
 
-  function softSCurve(x, strength) {
-    // Smooth-step S-curve: lifts shadows a bit, slightly compresses highlights → more pop
+  // Simplified bilateral filter — blurs color (chroma) but preserves luminance edges.
+  // Much better than box blur for NR: faces stay sharp, noise disappears.
+  function bilateralChromaNR(data, width, height, radius, sigmaSpatial, sigmaColor) {
+    const out = new Uint8ClampedArray(data.length);
+    const r = Math.max(1, radius|0);
+    const ss2 = 2 * sigmaSpatial * sigmaSpatial;
+    const sc2 = 2 * sigmaColor * sigmaColor;
+    for (let y=0; y<height; y++) {
+      for (let x=0; x<width; x++) {
+        const ci = (y*width+x)*4;
+        const cL = rgbToGray(data[ci], data[ci+1], data[ci+2]);
+        let sr=0, sg=0, sb=0, sw=0;
+        for (let dy=-r; dy<=r; dy++) {
+          const ny=y+dy; if (ny<0||ny>=height) continue;
+          for (let dx=-r; dx<=r; dx++) {
+            const nx=x+dx; if (nx<0||nx>=width) continue;
+            const ni=(ny*width+nx)*4;
+            const nL=rgbToGray(data[ni], data[ni+1], data[ni+2]);
+            const spatialD = dx*dx+dy*dy;
+            const colorD = (cL-nL)*(cL-nL);
+            const w = Math.exp(-spatialD/ss2 - colorD/sc2);
+            sr+=data[ni]*w; sg+=data[ni+1]*w; sb+=data[ni+2]*w; sw+=w;
+          }
+        }
+        // Restore original luminance: only chroma (color) is filtered, not luminance (detail)
+        const nr=sr/sw, ng=sg/sw, nb=sb/sw;
+        const origL = Math.max(1, cL);
+        const newL  = Math.max(1, rgbToGray(nr, ng, nb));
+        const lr = origL / newL;
+        out[ci]  = clamp(nr*lr);
+        out[ci+1]= clamp(ng*lr);
+        out[ci+2]= clamp(nb*lr);
+        out[ci+3]= data[ci+3];
+      }
+    }
+    return out;
+  }
+
+
+  /* Pre-tone-map chrominance NR.
+     Must run BEFORE tone mapping so chroma noise isn't amplified by the shadow lift scale.
+     Blurs only chrominance (via luminance-restore trick), preserves all edge detail. */
+  function preChromaNR(data, width, height, radius, mix) {
+    const blurred = boxBlurRGBA(data, width, height, radius);
+    const out = new Uint8ClampedArray(data.length);
+    for (let i = 0; i < data.length; i += 4) {
+      const lOrig = Math.max(1, rgbToGray(data[i], data[i+1], data[i+2]));
+      const nr = lerp(data[i],   blurred[i],   mix);
+      const ng = lerp(data[i+1], blurred[i+1], mix);
+      const nb = lerp(data[i+2], blurred[i+2], mix);
+      const newL = Math.max(1, rgbToGray(nr, ng, nb));
+      const lr = lOrig / newL;
+      out[i]   = clamp(nr * lr);
+      out[i+1] = clamp(ng * lr);
+      out[i+2] = clamp(nb * lr);
+      out[i+3] = data[i+3];
+    }
+    return out;
+  }
+
+  // Smooth-step S-curve: lifts shadows a bit, slightly compresses highlights → more pop
     const t = Math.min(1, Math.max(0, x));
     const curved = t * t * (3 - 2 * t);
     return t + (curved - t) * Math.min(1, strength * 1.3);
@@ -1626,6 +1704,13 @@
     const veryBright=scene.avgLum>0.78||scene.highlightRatio>0.24;
     const lowLight=scene.avgLum<0.34;
 
+    // Pre-tone-map chroma NR: clean up sensor chroma noise BEFORE shadow lift amplifies it.
+    // Critical for front camera in low light (green/purple grain in dark areas).
+    const preNRmix = lowLight
+      ? (rear ? 0.38 : 0.62)
+      : (scene.avgLum < 0.50 ? (rear ? 0.18 : 0.30) : 0);
+    const pixels = (preNRmix > 0.01) ? preChromaNR(data, width, height, rear?1:2, preNRmix) : data;
+
     // iPhone-style scene-adaptive exposure bias
     const exposureBias=rear
       ?(veryBright?0.80:brightScene?0.87:lowLight?1.10:0.97)
@@ -1645,9 +1730,9 @@
 
     /* ── PASS 1: White balance · tonemap · vibrance · S-curve ── */
     for (let i=0; i<data.length; i+=4) {
-      let r=(data[i]  /255)*wb.r*exposure;
-      let g=(data[i+1]/255)*wb.g*exposure;
-      let b=(data[i+2]/255)*wb.b*exposure;
+      let r=(pixels[i]  /255)*wb.r*exposure;
+      let g=(pixels[i+1]/255)*wb.g*exposure;
+      let b=(pixels[i+2]/255)*wb.b*exposure;
 
       const srcLum=Math.max(0.0001, 0.2126*r+0.7152*g+0.0722*b);
       let lum=srcLum;
