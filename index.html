@@ -251,6 +251,10 @@ body{background:var(--bg);color:var(--text);font-family:'SF Pro Text','Helvetica
 }
 .shutter:not(:disabled):active::after{transform:scale(.85);background:#cdd8ff}
 .shutter.processing::after{background:var(--accent);animation:shutterSpin 1s linear infinite}
+/* Burst ring: animated border shows capture count */
+.shutter.burst1::before{content:attr(data-burst);position:absolute;inset:-10px;border-radius:50%;
+  border:3px solid transparent;border-top-color:var(--accent);
+  animation:shutterSpin .6s linear infinite;font-size:10px;display:none}
 @keyframes shutterSpin{to{transform:rotate(360deg)scale(.8)}}
 .shutter.aimode::after{
   background:linear-gradient(135deg,#5b9fff,#4cd98a);
@@ -521,7 +525,7 @@ input.hidden{display:none}
     <div class="sheetHandle"></div>
     <div class="sheetHeader">
       <div>
-        <strong>GCam AI Studio v4</strong>
+        <strong>GCam AI Studio v4.1</strong>
         <span>Post-procesado impulsado por IA</span>
       </div>
       <button class="chip" id="closeSheetBtn">Cerrar</button>
@@ -1338,8 +1342,19 @@ function applyToneMap(data,width,height,facing,aiHints){
   const contrastBase=contrastUI*(vbright?0.95:1.00);
 
   // Pre-tonemap chroma NR
-  const preNR=dark?(rear?0.38:0.62):(scene.avgLum<0.50?(rear?0.18:0.30):0);
-  const pixels=(preNR>0.01)?preChromaNR(data,width,height,rear?1:2,preNR):data;
+  // Front cam in very dark scenes needs very aggressive bilateral NR (0.82)
+  // because the sensor's chroma noise gets amplified ×5 by the shadow lift scale.
+  const veryDark = scene.avgLum < 0.20;
+  const preNR = veryDark
+    ? (rear ? 0.50 : 0.82)
+    : dark
+      ? (rear ? 0.38 : 0.68)
+      : scene.avgLum < 0.50
+        ? (rear ? 0.18 : 0.36)
+        : 0;
+  // Front cam in very dark scenes: use radius 3 for wider chroma smoothing
+  const preNRradius = (!rear && dark) ? (veryDark ? 3 : 2) : (rear ? 1 : 2);
+  const pixels=(preNR>0.01)?preChromaNR(data,width,height,preNRradius,preNR):data;
 
   const out=new Uint8ClampedArray(data.length);
 
@@ -1459,6 +1474,60 @@ function downscale(c,w,h){
   ctx.drawImage(c,0,0,w,h);
   return ctx.getImageData(0,0,w,h).data;
 }
+/* Block-matching frame alignment.
+   For each non-reference frame, finds the global translation offset
+   that minimises MAD (mean absolute difference) of luminance on a
+   downscaled version, then redraws the frame shifted by that offset.
+   This compensates for hand-shake between burst frames. */
+function alignFrame(refData,srcCanvas,w,h){
+  // Work at 1/8 scale for speed
+  const scale=1/8;
+  const sw=Math.max(8,Math.round(w*scale)), sh=Math.max(8,Math.round(h*scale));
+  // Downscale reference
+  const refC=document.createElement('canvas'); refC.width=sw; refC.height=sh;
+  const refCtx=refC.getContext('2d',{willReadFrequently:true,alpha:false});
+  // Draw ref data into temp canvas first
+  const tmpC=document.createElement('canvas'); tmpC.width=w; tmpC.height=h;
+  tmpC.getContext('2d',{willReadFrequently:true,alpha:false}).putImageData(new ImageData(refData,w,h),0,0);
+  refCtx.imageSmoothingEnabled=true; refCtx.imageSmoothingQuality='high';
+  refCtx.drawImage(tmpC,0,0,sw,sh);
+  const refSmall=refCtx.getImageData(0,0,sw,sh).data;
+  // Downscale source
+  const srcC=document.createElement('canvas'); srcC.width=sw; srcC.height=sh;
+  const srcCtx=srcC.getContext('2d',{willReadFrequently:true,alpha:false});
+  srcCtx.imageSmoothingEnabled=true; srcCtx.imageSmoothingQuality='high';
+  srcCtx.drawImage(srcCanvas,0,0,sw,sh);
+  const srcSmall=srcCtx.getImageData(0,0,sw,sh).data;
+  // Search for best translation within ±6 scaled pixels (±48 full-res pixels)
+  const maxShift=6;
+  let bestMAD=Infinity, bestDx=0, bestDy=0;
+  for (let dy=-maxShift;dy<=maxShift;dy++){
+    for (let dx=-maxShift;dx<=maxShift;dx++){
+      let mad=0, cnt=0;
+      for (let sy=maxShift;sy<sh-maxShift;sy++){
+        for (let sx=maxShift;sx<sw-maxShift;sx++){
+          const ri=(sy*sw+sx)*4;
+          const ni=((sy+dy)*sw+(sx+dx))*4;
+          if (ni<0||ni>=srcSmall.length) continue;
+          mad+=Math.abs(rgbToGray(refSmall[ri],refSmall[ri+1],refSmall[ri+2])
+                       -rgbToGray(srcSmall[ni],srcSmall[ni+1],srcSmall[ni+2]));
+          cnt++;
+        }
+      }
+      const score=cnt?mad/cnt:Infinity;
+      if (score<bestMAD){ bestMAD=score; bestDx=dx; bestDy=dy; }
+    }
+  }
+  // Convert back to full-res pixels
+  const fdx=Math.round(bestDx/scale), fdy=Math.round(bestDy/scale);
+  if (fdx===0&&fdy===0) return srcCanvas; // no shift needed
+  // Redraw srcCanvas shifted by (fdx, fdy)
+  const aligned=document.createElement('canvas'); aligned.width=w; aligned.height=h;
+  const aCtx=aligned.getContext('2d',{willReadFrequently:true,alpha:false});
+  aCtx.drawImage(srcCanvas,fdx,fdy);
+  return aligned;
+}
+
 function averageFrames(canvases,w,h,facing){
   if (!canvases.length) return new Uint8ClampedArray(w*h*4);
   if (canvases.length===1)
@@ -1467,9 +1536,12 @@ function averageFrames(canvases,w,h,facing){
   const smalls=canvases.map(c=>downscale(c,dw,dh));
   const scores=smalls.map(d=>focusScore(d,dw,dh));
   const refI=scores.indexOf(Math.max(...scores));
+  const refData=canvases[refI].getContext('2d',{willReadFrequently:true,alpha:false}).getImageData(0,0,w,h).data;
+  // Align all frames to the sharpest reference frame before averaging
+  const aligned=canvases.map((c,i)=>i===refI?c:alignFrame(refData,c,w,h));
   const acc=new Float32Array(w*h*4);
   let totalW=0;
-  canvases.forEach((c,i)=>{
+  aligned.forEach((c,i)=>{
     const w2=i===refI?3:1;
     const d=c.getContext('2d',{willReadFrequently:true,alpha:false}).getImageData(0,0,w,h).data;
     for (let j=0;j<d.length;j++) acc[j]+=d[j]*w2;
@@ -1525,6 +1597,8 @@ async function capturePhoto(){
     triggerFlash();
     try {
       const burst=Math.max(1,+ui.burstCount.value);
+      // Show burst progress in status
+      if (burst>1) setStatus('ai',`Capturando ${burst} frames…`);
       const frames=await captureBurst(burst);
       const baseW=frames[0].width||frames[0].naturalWidth;
       const baseH=frames[0].height||frames[0].naturalHeight;
@@ -1795,6 +1869,58 @@ ui.clearGalleryBtn.addEventListener('click',()=>void clearGallery());
   .forEach(el=>el.addEventListener('input',()=>{ syncUI(); saveSettings(); }));
 
 window.addEventListener('beforeunload',stopStream);
+
+// ── SWIPE UP on viewfinder to open settings sheet ──
+let touchStartY=0, touchStartX=0;
+ui.stage.addEventListener('touchstart',e=>{
+  if(e.touches.length===1){ touchStartY=e.touches[0].clientY; touchStartX=e.touches[0].clientX; }
+},{passive:true});
+ui.stage.addEventListener('touchend',e=>{
+  if(e.changedTouches.length!==1) return;
+  const dy=touchStartY-e.changedTouches[0].clientY;
+  const dx=Math.abs(e.changedTouches[0].clientX-touchStartX);
+  // Swipe up: vertical > 60px, not too horizontal
+  if(dy>60&&dx<60) ui.sheet.classList.add('open');
+  // Swipe down on sheet: close it
+},{passive:true});
+ui.sheetCard.addEventListener('touchstart',e=>{ if(e.touches.length===1) touchStartY=e.touches[0].clientY; },{passive:true});
+ui.sheetCard.addEventListener('touchend',e=>{
+  if(e.changedTouches.length!==1) return;
+  const dy=e.changedTouches[0].clientY-touchStartY;
+  if(dy>70) ui.sheet.classList.remove('open');
+},{passive:true});
+
+// ── LONG PRESS shutter for quick AI mode toggle ──
+let shutterLongPress=null;
+ui.captureBtn.addEventListener('touchstart',()=>{
+  shutterLongPress=setTimeout(()=>{
+    const newMode=state.mode==='ai'?'fast':'ai';
+    applyMode(newMode);
+    toast(newMode==='ai'?'🤖 Modo IA activado':'Modo rápido');
+  },700);
+},{passive:true});
+['touchend','touchcancel'].forEach(ev=>ui.captureBtn.addEventListener(ev,()=>{
+  clearTimeout(shutterLongPress);
+},{passive:true}));
+
+// ── DOUBLE TAP viewfinder to flip camera ──
+let lastTap=0;
+ui.stage.addEventListener('touchend',e=>{
+  const now=Date.now();
+  if(now-lastTap<280&&e.changedTouches.length===1){
+    // double tap detected — but only if not a swipe
+    const dy=Math.abs(e.changedTouches[0].clientY-(touchStartY||0));
+    if(dy<20) void switchCamera();
+  }
+  lastTap=now;
+},{passive:true});
+
+// ── VOLUME KEYS as shutter (keyboard fallback for desktop) ──
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'||e.code==='Enter') void capturePhoto();
+  if(e.code==='KeyG') { state.showGrid=!state.showGrid; syncUI(); }
+  if(e.code==='KeyM') { state.mirror=!state.mirror; syncUI(); }
+});
 init();
 })();
 </script>
