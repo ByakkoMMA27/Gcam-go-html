@@ -503,7 +503,14 @@ input.hidden{display:none}
 <div class="bottomBar">
   <div class="bottomRow">
     <div class="leftGroup">
-      <div class="thumb" id="thumbWrap"><img id="lastPreview" alt=""/></div>
+      <div style="position:relative;display:inline-block">
+        <div class="thumb" id="thumbWrap"><img id="lastPreview" alt=""/></div>
+        <div id="queueBadge" style="display:none;position:absolute;top:-6px;right:-6px;
+          background:var(--accent);color:#fff;border-radius:999px;
+          padding:2px 7px;font-size:10px;font-weight:700;
+          box-shadow:0 2px 8px rgba(91,159,255,.5);
+          border:2px solid var(--bg);white-space:nowrap;"></div>
+      </div>
     </div>
     <div style="display:grid;place-items:center">
       <button class="shutter" id="captureBtn" disabled aria-label="Capturar"></button>
@@ -525,7 +532,7 @@ input.hidden{display:none}
     <div class="sheetHandle"></div>
     <div class="sheetHeader">
       <div>
-        <strong>GCam AI Studio v4.2</strong>
+        <strong>GCam AI Studio v4.4</strong>
         <span>Post-procesado impulsado por IA</span>
       </div>
       <button class="chip" id="closeSheetBtn">Cerrar</button>
@@ -1038,14 +1045,14 @@ async function toggleTorch(){
 }
 
 /* ═══════════ CAPTURE ═══════════ */
-async function captureOneBlob(){
-  // NEVER use ImageCapture.takePhoto when mirror is on (it bypasses canvas transform)
-  if (!state.mirror&&state.imageCapture?.takePhoto){
-    try { return await state.imageCapture.takePhoto(); } catch(_){}
-  }
+// Always use canvas drawImage — zero shutter lag vs ImageCapture.takePhoto() (800ms-2s on Android).
+// takePhoto() forces the camera to re-expose and autofocus; drawImage captures the current frame instantly.
+function captureFrameToCanvas(){
   const vw=ui.previewVideo.videoWidth, vh=ui.previewVideo.videoHeight;
   if (!vw||!vh) throw new Error('Cámara no lista');
-  const c=ui.photoCanvas; c.width=vw; c.height=vh;
+  // Use an offscreen canvas so we don't block the preview
+  const c=document.createElement('canvas');
+  c.width=vw; c.height=vh;
   const ctx=c.getContext('2d',{willReadFrequently:true,alpha:false});
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
   ctx.save();
@@ -1057,6 +1064,10 @@ async function captureOneBlob(){
     ctx.drawImage(ui.previewVideo,0,0,vw,vh);
   }
   ctx.restore();
+  return c; // returns canvas, not blob — caller decides encoding
+}
+async function captureOneBlob(){
+  const c=captureFrameToCanvas();
   return canvasToBlob(c,'image/jpeg',0.99);
 }
 async function captureBurst(n){
@@ -1315,7 +1326,7 @@ function estimateWB(data,facing,scene){
   return {
     r:Math.min(1.18,Math.max(0.88,rG)),
     g:Math.min(1.06,Math.max(0.94,gG)),
-    b:Math.min(1.08,Math.max(0.93,bG))  // very tight B ceiling stops blue cast on neutrals
+    b:Math.min(1.04,Math.max(0.95,bG))  // ultra-tight B: max 4% boost, prevents cold cast on ceiling/walls
   };
 }
 
@@ -1398,7 +1409,7 @@ function applyToneMap(data,width,height,facing,aiHints){
         else hue=60*((r-g)/delta+4);
         if (hue<0) hue+=360;
         const sat=delta/maxC;
-        if (hue>=0&&hue<45&&sat>0.15&&sat<0.75&&maxC>0.20)
+        if (hue>=0&&hue<55&&sat>0.12&&sat<0.80&&maxC>0.18)  // wider skin range = better face protection
           satFactor=satBase*0.88;
       }
     }
@@ -1430,9 +1441,9 @@ function applyToneMap(data,width,height,facing,aiHints){
   }
 
   // PASS 3: Luminance-only USM (no colour fringing)
-  const sharpenScale=rear?0.92:0.76;  // front: 0.58→0.76 to match native ZTE sharpness
+  const sharpenScale=rear?0.92:0.66;  // front: 0.76→0.66 — halos en cara con 0.76
   const fineAmt=q01(sharpnessUI*sharpenScale)*(vbright?0.70:0.90);
-  const clarityAmt=q01((detailUI-0.42)*0.28)*(rear?1.0:0.82);  // front: 0.65→0.82
+  const clarityAmt=q01((detailUI-0.42)*0.28)*(rear?1.0:0.68);  // front: 0.82→0.68 — halos
   if (fineAmt>0.001||clarityAmt>0.001){
     const fb=fineAmt>0.001?boxBlurRGBA(out,width,height,1):null;
     const cb=clarityAmt>0.001?boxBlurRGBA(out,width,height,4):null;
@@ -1441,7 +1452,7 @@ function applyToneMap(data,width,height,facing,aiHints){
       let dL=0;
       if (fb){ const bl=rgbToGray(fb[i],fb[i+1],fb[i+2]);dL+=(oL-bl)*fineAmt; }
       if (cb){ const cl=rgbToGray(cb[i],cb[i+1],cb[i+2]);dL+=(oL-cl)*clarityAmt*0.70; }
-      if (Math.abs(dL)>0.5){
+      if (Math.abs(dL)>(rear?0.5:1.4)){  // front: higher threshold avoids skin/shadow halos
         const sc=(Math.max(1,oL+dL))/Math.max(1,oL);
         out[i]=clamp(out[i]*sc);out[i+1]=clamp(out[i+1]*sc);out[i+2]=clamp(out[i+2]*sc);
       }
@@ -1566,12 +1577,46 @@ function averageFrames(canvases,w,h,facing){
   return out;
 }
 
+/* ═══════════ PROCESSING QUEUE ═══════════
+   Raw frames are captured instantly. Post-processing (NR, tonemap, sharpen)
+   runs asynchronously in a queue so the user can shoot continuously.
+   Each queued job shows a badge in the thumb area while processing.
+═══════════════════════════════════════════ */
+const processingQueue = [];
+let queueRunning = false;
+let queueCounter = 0;
+
+function enqueueProcessing(job){
+  processingQueue.push(job);
+  updateQueueBadge();
+  if (!queueRunning) drainQueue();
+}
+function updateQueueBadge(){
+  const n = processingQueue.length + (queueRunning ? 1 : 0);
+  const badge = document.getElementById('queueBadge');
+  if (badge) {
+    badge.textContent = n > 0 ? `⚙ ${n}` : '';
+    badge.style.display = n > 0 ? 'flex' : 'none';
+  }
+}
+async function drainQueue(){
+  if (queueRunning || !processingQueue.length) return;
+  queueRunning = true;
+  updateQueueBadge();
+  while (processingQueue.length) {
+    const job = processingQueue.shift();
+    updateQueueBadge();
+    try { await job(); } catch(e){ console.error('Queue job failed:', e); }
+  }
+  queueRunning = false;
+  updateQueueBadge();
+}
+
 /* ═══════════ PROCESS & SAVE ═══════════ */
 function setBusy(flag){
   state.busy=flag;
-  ui.captureBtn.disabled=flag||!state.stream;
-  ui.captureBtn.classList.toggle('processing',flag);
-  ui.switchBtn.disabled=flag||!state.stream;
+  // Processing is now async; shutter is never disabled during post-processing
+  ui.captureBtn.classList.toggle('processing', queueRunning || processingQueue.length>0);
 }
 function triggerFlash(){
   ui.flashOverlay.classList.remove('flash');
@@ -1599,60 +1644,102 @@ async function processAndSave(rawData,width,height,aiHints,label){
 }
 
 async function capturePhoto(){
-  if (state.busy||state.timerRunning) return;
+  if (state.timerRunning) return;
   if (!state.stream){ toast('Inicia la cámara primero'); return; }
+  // Allow concurrent captures: don't gate on state.busy
+  // Only block if no video available
+  if (!ui.previewVideo.videoWidth) return;
+
   runTimer(async ()=>{
-    setBusy(true);
-    triggerFlash();
+    // ── PHASE 1: CAPTURE (instant, ~16ms) ──────────────────────────────
+    triggerFlash();  // flash fires immediately at capture moment
+    const burst=Math.max(1,+ui.burstCount.value);
+    const capturedCanvases=[];
     try {
-      const burst=Math.max(1,+ui.burstCount.value);
-      // Show burst progress in status
-      if (burst>1) setStatus('ai',`Capturando ${burst} frames…`);
-      const frames=await captureBurst(burst);
-      const baseW=frames[0].width||frames[0].naturalWidth;
-      const baseH=frames[0].height||frames[0].naturalHeight;
-      const outSize=computeOutputSize(baseW,baseH);
-      const crop=fitCover(baseW,baseH,outSize.width,outSize.height);
-
-      const canvases=frames.map(bmp=>{
-        const c=document.createElement('canvas');
-        c.width=outSize.width; c.height=outSize.height;
-        const ctx=c.getContext('2d',{willReadFrequently:true,alpha:false});
-        ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-        ctx.drawImage(bmp,crop.sx,crop.sy,crop.sw,crop.sh,0,0,outSize.width,outSize.height);
-        return c;
-      });
-      const merged=averageFrames(canvases,outSize.width,outSize.height,state.facing);
-
-      let aiHints=null;
-      if (state.mode==='ai'){
-        setStatus('ai','Analizando con Claude…');
-        ui.aiBadge.textContent='✦ Analizando escena…';
-        ui.aiBadge.classList.add('show');
-        // Create a blob from merged data for AI analysis
-        const tmpC=document.createElement('canvas');
-        tmpC.width=outSize.width; tmpC.height=outSize.height;
-        const tctx=tmpC.getContext('2d',{willReadFrequently:true,alpha:false});
-        tctx.putImageData(new ImageData(merged,outSize.width,outSize.height),0,0);
-        const tmpBlob=await canvasToBlob(tmpC,'image/jpeg',0.85);
-        const analysis=await analyzeSceneWithAI(tmpBlob);
-        if (analysis){
-          showAIAnalysis(analysis);
-          aiHints=analysis.processingHints;
-          toast('✦ Análisis IA aplicado');
-        } else {
-          toast('IA sin respuesta — usando ajustes manuales');
-          ui.aiBadge.classList.remove('show');
-        }
+      for (let i=0;i<burst;i++){
+        capturedCanvases.push(captureFrameToCanvas());
+        if (i<burst-1) await new Promise(r=>requestAnimationFrame(r)); // next frame
       }
-
-      await processAndSave(merged,outSize.width,outSize.height,aiHints,
-        `${state.mode}${aiHints?'·AI':''}`);
     } catch(err){
-      console.error(err);
-      setStatus('bad','Error al capturar');
-      toast('Error: '+err.message);
-    } finally { setBusy(false); }
+      toast('Error al capturar: '+err.message); return;
+    }
+    toast(`📷 ${burst>1?burst+' frames capturados':'Foto capturada'} — procesando…`);
+
+    // ── PHASE 2: PROCESS (async, in queue, user can keep shooting) ─────
+    const jobFacing = state.facing;
+    const jobMode   = state.mode;
+    const jobParams = {
+      exposure:    +ui.exposure.value,
+      contrast:    +ui.contrast.value,
+      saturation:  +ui.saturation.value,
+      sharpness:   +ui.sharpness.value,
+      noiseReduction: +ui.noiseReduction.value,
+      clarity:     +ui.detailBoost.value,
+      outSize:     ui.sizePreset.value,
+    };
+
+    enqueueProcessing(async ()=>{
+      try {
+        // Scale/crop frames to output size
+        const firstW=capturedCanvases[0].width;
+        const firstH=capturedCanvases[0].height;
+        const ls = jobParams.outSize==='native'?0:+jobParams.outSize;
+        const sc = ls ? ls/Math.max(firstW,firstH) : 1;
+        const outW=Math.max(1,Math.round(firstW*sc));
+        const outH=Math.max(1,Math.round(firstH*sc));
+        const crop=fitCover(firstW,firstH,outW,outH);
+
+        const scaled=capturedCanvases.map(src=>{
+          const c=document.createElement('canvas'); c.width=outW; c.height=outH;
+          const ctx=c.getContext('2d',{willReadFrequently:true,alpha:false});
+          ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+          ctx.drawImage(src,crop.sx,crop.sy,crop.sw,crop.sh,0,0,outW,outH);
+          return c;
+        });
+
+        // Align + average
+        const merged = scaled.length===1
+          ? scaled[0].getContext('2d',{willReadFrequently:true,alpha:false}).getImageData(0,0,outW,outH).data
+          : averageFrames(scaled,outW,outH,jobFacing);
+
+        // AI analysis if in AI mode
+        let aiHints=null;
+        if (jobMode==='ai'){
+          setStatus('ai','Analizando con Claude…');
+          ui.aiBadge.textContent='✦ Analizando escena…';
+          ui.aiBadge.classList.add('show');
+          const tmpC=document.createElement('canvas'); tmpC.width=outW; tmpC.height=outH;
+          tmpC.getContext('2d',{willReadFrequently:true,alpha:false})
+              .putImageData(new ImageData(merged,outW,outH),0,0);
+          const tmpBlob=await canvasToBlob(tmpC,'image/jpeg',0.82);
+          const analysis=await analyzeSceneWithAI(tmpBlob);
+          if (analysis){ showAIAnalysis(analysis); aiHints=analysis.processingHints; }
+          else { ui.aiBadge.classList.remove('show'); }
+        }
+
+        // Tonemap + save
+        const finished=applyToneMap(merged,outW,outH,jobFacing,aiHints);
+        ui.exportCanvas.width=outW; ui.exportCanvas.height=outH;
+        ui.exportCanvas.getContext('2d',{willReadFrequently:true,alpha:false})
+          .putImageData(new ImageData(finished,outW,outH),0,0);
+        const quality = jobMode==='fast'?0.96:0.985;
+        const blob=await canvasToBlob(ui.exportCanvas,'image/jpeg',quality);
+        if (!blob) throw new Error('Export fallido');
+
+        state.currentBlob=blob;
+        if (ui.lastPreview.src) URL.revokeObjectURL(ui.lastPreview.src);
+        ui.lastPreview.src=URL.createObjectURL(blob);
+        ui.downloadBtn.disabled=false;
+        await saveToGallery(blob,{label:jobMode+(aiHints?'·AI':''),w:outW,h:outH});
+        if (state.autoSave) await downloadBlob(blob,filenameFromNow());
+        setStatus('ok',`${outW}×${outH}`);
+        toast(`✓ ${outW}×${outH}${aiHints?' · IA':''}`, 2000);
+      } catch(err){
+        console.error(err);
+        setStatus('bad','Error al procesar');
+        toast('Error: '+err.message);
+      }
+    });
   });
 }
 
