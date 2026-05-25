@@ -1,2311 +1,1801 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#05070b" />
-  <title>GCam Lite Studio</title>
-  <style>
-    :root{
-      color-scheme:dark;
-      --bg:#05070b;
-      --panel:rgba(16,20,28,.78);
-      --panel-strong:#10141c;
-      --panel-soft:#151a25;
-      --line:rgba(255,255,255,.10);
-      --text:#edf3ff;
-      --muted:#99a6bb;
-      --accent:#77a6ff;
-      --accent2:#7be0b1;
-      --warn:#ffd166;
-      --good:#72e09d;
-      --bad:#ff8b8b;
-      --radius:24px;
-      --radius-sm:18px;
-      --shadow:0 18px 50px rgba(0,0,0,.42);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0}
-    body{
-      background:
-        radial-gradient(circle at top,rgba(119,166,255,.16),transparent 32%),
-        radial-gradient(circle at 80% 8%,rgba(123,224,177,.10),transparent 26%),
-        linear-gradient(180deg,#090c12 0%,#040509 100%);
-      color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,sans-serif;
-      overflow:hidden;
-    }
-    button,select,input{font:inherit;color:inherit}
-    button{
-      border:1px solid var(--line);
-      background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
-      border-radius:16px;
-      padding:12px 14px;
-      cursor:pointer;
-      transition:transform .12s ease,opacity .12s ease,border-color .12s ease,background .12s ease;
-      touch-action:manipulation;
-      -webkit-tap-highlight-color:transparent;
-    }
-    button:active{transform:scale(.96)}
-    button:disabled{opacity:.5;cursor:not-allowed}
-    button.primary{background:linear-gradient(180deg,#527ff0,#2f5cd8);border-color:#5f87ff}
-    button.good{background:linear-gradient(180deg,#3bb883,#228a5d);border-color:#2fa56d}
-    button.warn{background:linear-gradient(180deg,#d7a838,#a87612);border-color:#bd8d1c}
-    button.ghost{background:rgba(255,255,255,.03)}
-    button.icon{
-      width:46px;height:46px;padding:0;
-      display:grid;place-items:center;
-      border-radius:999px;
-      background:rgba(0,0,0,.34);
-      backdrop-filter:blur(10px);
-      font-size:18px;
-    }
-    button.chip{
-      border-radius:999px;
-      padding:10px 12px;
-      white-space:nowrap;
-      flex:0 0 auto;
-    }
-    button.chip.active{
-      background:linear-gradient(180deg,rgba(119,166,255,.24),rgba(119,166,255,.10));
-      border-color:rgba(119,166,255,.60);
-      box-shadow:0 0 0 1px rgba(119,166,255,.10) inset;
-    }
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#04060a"/>
+<title>GCam AI v4</title>
+<style>
+:root{
+  --bg:#04060a;
+  --surface:#0d1018;
+  --surface2:#141820;
+  --line:rgba(255,255,255,.07);
+  --text:#e8f0ff;
+  --muted:#7a8aaa;
+  --accent:#5b9fff;
+  --accent-glow:rgba(91,159,255,.30);
+  --green:#4cd98a;
+  --warn:#ffcc55;
+  --red:#ff6b6b;
+  --r:20px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'SF Pro Text','Helvetica Neue',sans-serif;font-size:14px}
 
-    /* ── LAYOUT ── */
-    .app{
-      position:relative;
-      width:100%;height:100%;
-      display:grid;
-      grid-template-rows:auto 1fr auto;
-    }
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:8px;
-      padding:12px 12px 8px;
-      position:relative;z-index:6;
-      pointer-events:none;
-    }
-    .topbar>*{pointer-events:auto}
-    .topRightCluster{display:flex;align-items:center;gap:6px}
+/* ── APP SHELL ── */
+.app{
+  display:grid;
+  grid-template-rows:auto 1fr auto auto auto;
+  height:100%;
+  max-width:440px;
+  margin:0 auto;
+  position:relative;
+}
 
-    /* ── PILL / STATUS ── */
-    .pill{
-      display:inline-flex;align-items:center;gap:8px;
-      max-width:100%;padding:10px 12px;
-      border-radius:999px;
-      background:rgba(0,0,0,.38);
-      border:1px solid rgba(255,255,255,.08);
-      backdrop-filter:blur(10px);
-      box-shadow:0 8px 20px rgba(0,0,0,.15);
-      min-width:0;
-    }
-    .pill strong{font-size:12px;font-weight:750;letter-spacing:.2px}
-    .pill span{color:var(--muted);font-size:12px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .statusDot{
-      width:10px;height:10px;border-radius:999px;
-      background:var(--good);
-      box-shadow:0 0 0 4px rgba(114,224,157,.12);
-      flex:0 0 auto;
-    }
-    .statusDot.warn{background:var(--warn);box-shadow:0 0 0 4px rgba(255,209,102,.12)}
-    .statusDot.bad{background:var(--bad);box-shadow:0 0 0 4px rgba(255,139,139,.12)}
+/* ── TOP BAR ── */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px 6px;
+  padding-top:max(10px,env(safe-area-inset-top));
+  z-index:10;position:relative;
+}
+.statusPill{
+  display:flex;align-items:center;gap:6px;
+  background:var(--surface2);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:6px 12px;
+  font-size:12px;font-weight:600;letter-spacing:.2px;
+  max-width:200px;overflow:hidden;
+}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:background .3s}
+.dot.ok{background:var(--green);box-shadow:0 0 6px var(--green)}
+.dot.warn{background:var(--warn)}
+.dot.bad{background:var(--red)}
+.dot.ai{background:var(--accent);box-shadow:0 0 8px var(--accent-glow);animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.topRight{display:flex;gap:6px}
+.iconBtn{
+  width:42px;height:42px;border-radius:999px;
+  background:var(--surface2);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:17px;cursor:pointer;
+  transition:background .15s,transform .1s;
+}
+.iconBtn:active{transform:scale(.92);background:rgba(255,255,255,.10)}
+.iconBtn.lit{background:rgba(91,159,255,.15);border-color:rgba(91,159,255,.4);color:var(--accent)}
 
-    /* ── STAGE ── */
-    .stageWrap{
-      position:relative;min-height:0;
-      display:grid;
-      grid-template-rows:1fr auto auto;
-    }
-    .stage{
-      position:relative;overflow:hidden;
-      background:#000;
-      border-top:1px solid rgba(255,255,255,.05);
-    }
-    video,canvas,img{display:block;width:100%;height:100%;object-fit:cover;background:#000}
-    #previewVideo.mirrored{transform:scaleX(-1)}
-    #photoCanvas,#workCanvas,#exportCanvas,#fileImage{display:none}
+/* ── STAGE ── */
+.stageWrap{position:relative;overflow:hidden;background:#000}
+.stage{width:100%;height:100%;position:relative;overflow:hidden}
+.stage video{
+  width:100%;height:100%;object-fit:cover;
+  transition:transform .2s ease;
+}
+.stage video.mirrored{transform:scaleX(-1)}
 
-    /* ── GRID OVERLAY ── */
-    .gridOverlay{
-      position:absolute;inset:0;
-      pointer-events:none;z-index:2;
-      opacity:0;transition:opacity .22s ease;
-    }
-    .gridOverlay.on{opacity:1}
-    .gl{position:absolute;background:rgba(255,255,255,.28)}
-    .gl.h{left:0;right:0;height:1px}
-    .gl.h1{top:33.333%}.gl.h2{top:66.666%}
-    .gl.v{top:0;bottom:0;width:1px}
-    .gl.v1{left:33.333%}.gl.v2{left:66.666%}
-    /* Corner dots at intersections */
-    .gc{
-      position:absolute;width:8px;height:8px;
-      border-radius:999px;
-      background:rgba(255,255,255,.45);
-      transform:translate(-50%,-50%);
-    }
+/* ── AI ANALYSIS BADGE ── */
+#aiBadge{
+  position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  z-index:6;
+  background:rgba(13,16,24,.82);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(91,159,255,.25);
+  border-radius:999px;
+  padding:5px 14px;
+  font-size:11px;font-weight:700;letter-spacing:.4px;
+  color:var(--accent);
+  white-space:nowrap;
+  transition:opacity .3s,transform .3s;
+  opacity:0;pointer-events:none;
+  max-width:90%;overflow:hidden;text-overflow:ellipsis;
+}
+#aiBadge.show{opacity:1}
 
-    /* ── FOCUS RING ── */
-    .focusRing{
-      position:absolute;
-      width:72px;height:72px;
-      border:2px solid rgba(119,166,255,.90);
-      border-radius:12px;
-      pointer-events:none;z-index:3;
-      transform:translate(-50%,-50%) scale(1.5);
-      opacity:0;
-      transition:transform .18s ease,opacity .18s ease;
-    }
-    .focusRing.show{transform:translate(-50%,-50%) scale(1);opacity:1}
-    .focusRing::before,.focusRing::after{
-      content:"";position:absolute;
-      width:10px;height:10px;
-      border-color:rgba(119,166,255,.90);
-      border-style:solid;
-    }
-    .focusRing::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
-    .focusRing::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+/* ── FOCUS RING ── */
+#focusRing{
+  position:absolute;width:64px;height:64px;
+  border:2px solid rgba(255,210,80,.9);border-radius:4px;
+  transform:translate(-50%,-50%) scale(1.3);
+  transition:transform .2s ease,opacity .2s ease;
+  opacity:0;pointer-events:none;z-index:5;
+}
+#focusRing.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
 
-    /* ── ZOOM PILL ── */
-    .zoomPill{
-      position:absolute;top:50%;left:50%;
-      transform:translate(-50%,-50%);
-      background:rgba(0,0,0,.55);
-      border:1px solid rgba(255,255,255,.22);
-      border-radius:999px;
-      padding:7px 18px;
-      font-size:16px;font-weight:800;color:#fff;
-      pointer-events:none;z-index:4;
-      opacity:0;
-      transition:opacity .28s ease;
-      backdrop-filter:blur(8px);
-      letter-spacing:-.3px;
-    }
-    .zoomPill.show{opacity:1}
+/* ── ZOOM PILL ── */
+#zoomPill{
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.55);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:999px;padding:4px 12px;
+  font-size:12px;font-weight:700;color:#fff;
+  opacity:0;transition:opacity .3s;pointer-events:none;z-index:5;
+}
+#zoomPill.show{opacity:1}
 
-    /* ── TIMER OVERLAY ── */
-    .timerOverlay{
-      position:absolute;inset:0;
-      display:grid;place-items:center;
-      z-index:8;
-      background:rgba(0,0,0,.35);
-      pointer-events:none;
-      opacity:0;transition:opacity .2s ease;
-    }
-    .timerOverlay.active{opacity:1;pointer-events:auto}
-    .timerNumber{
-      font-size:108px;font-weight:900;color:#fff;
-      text-shadow:0 0 60px rgba(119,166,255,.9),0 4px 30px rgba(0,0,0,.7);
-      letter-spacing:-6px;
-      line-height:1;
-      animation:tpulse 1s ease-in-out infinite;
-    }
-    @keyframes tpulse{
-      0%,100%{transform:scale(1);opacity:1}
-      50%{transform:scale(.91);opacity:.82}
-    }
+/* ── GRID OVERLAY ── */
+.gridOverlay{position:absolute;inset:0;pointer-events:none;z-index:3;opacity:0;transition:opacity .2s}
+.gridOverlay.on{opacity:1}
+.gl{position:absolute;background:rgba(255,255,255,.15)}
+.gl.h{height:1px;left:0;right:0}
+.gl.h1{top:33.333%}.gl.h2{top:66.666%}
+.gl.v{width:1px;top:0;bottom:0}
+.gl.v1{left:33.333%}.gl.v2{left:66.666%}
+.gc{position:absolute;width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);transform:translate(-50%,-50%)}
 
-    /* ── FLASH OVERLAY ── */
-    .flashOverlay{
-      position:absolute;inset:0;
-      background:#fff;
-      z-index:9;opacity:0;
-      pointer-events:none;
-    }
-    @keyframes flashAnim{
-      0%{opacity:.92}
-      100%{opacity:0}
-    }
-    .flashOverlay.flash{animation:flashAnim .38s ease-out forwards}
+/* ── OVERLAY HINTS (profile) ── */
+.sceneHint{
+  position:absolute;bottom:10px;left:10px;
+  background:rgba(13,16,24,.72);
+  backdrop-filter:blur(10px);
+  border:1px solid var(--line);
+  border-radius:12px;padding:6px 10px;
+  font-size:11px;line-height:1.4;
+  z-index:5;pointer-events:none;
+  max-width:170px;
+}
+.sceneHint strong{color:var(--text);display:block}
+.sceneHint small{color:var(--muted)}
 
-    /* ── OVERLAY HINTS ── */
-    .overlayHints{
-      position:absolute;inset:auto 0 0 0;
-      padding:16px 14px 14px;
-      display:flex;justify-content:space-between;align-items:flex-end;gap:12px;
-      pointer-events:none;
-      background:linear-gradient(180deg,transparent,rgba(0,0,0,.18) 20%,rgba(0,0,0,.62));
-      z-index:3;
-    }
-    .hintBox{display:grid;gap:4px;max-width:62%}
-    .hintBox strong{font-size:13px;font-weight:700}
-    .hintBox small{color:var(--muted);font-size:12px;line-height:1.35}
-    /* ── GALLERY THUMB (iOS-style bottom-left preview) ── */
-    .thumb{
-      width:64px;height:64px;border-radius:14px;overflow:hidden;
-      border:2px solid rgba(255,255,255,.20);background:#0a0c11;
-      box-shadow:0 4px 16px rgba(0,0,0,.50);flex:0 0 auto;pointer-events:auto;cursor:pointer;
-    }
-    .thumb img{width:100%;height:100%;object-fit:cover}
-    .toast{
-      position:absolute;left:50%;bottom:110px;
-      transform:translateX(-50%) translateY(12px);
-      opacity:0;z-index:12;
-      max-width:min(92vw,420px);
-      padding:10px 14px;border-radius:999px;
-      background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.12);
-      color:#f3f6ff;font-size:13px;
-      box-shadow:var(--shadow);
-      pointer-events:none;
-      transition:opacity .22s ease,transform .22s ease;
-      text-align:center;white-space:nowrap;
-      overflow:hidden;text-overflow:ellipsis;
-    }
-    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ── TIMER OVERLAY ── */
+#timerOverlay{
+  position:absolute;inset:0;z-index:8;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(4,6,10,.6);backdrop-filter:blur(4px);
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+#timerOverlay.active{opacity:1;pointer-events:auto}
+#timerNum{font-size:96px;font-weight:900;color:#fff;line-height:1;
+  text-shadow:0 0 40px rgba(91,159,255,.8)}
 
-    /* ── MODE STRIP ── */
-    .modeStrip{
-      position:relative;z-index:4;
-      display:flex;gap:6px;
-      overflow-x:auto;
-      padding:7px 12px 5px;
-      -webkit-overflow-scrolling:touch;
-      scrollbar-width:none;
-      background:rgba(5,7,11,.65);
-      border-bottom:1px solid rgba(255,255,255,.05);
-    }
-    .modeStrip::-webkit-scrollbar{display:none}
-    .modeChip{
-      flex:0 0 auto;
-      padding:8px 18px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.05);
-      color:rgba(255,255,255,.60);
-      font-size:14px;font-weight:600;
-      cursor:pointer;
-      transition:all .15s ease;
-      white-space:nowrap;
-      -webkit-tap-highlight-color:transparent;
-    }
-    .modeChip:active{transform:scale(.95)}
-    .modeChip.active{
-      color:#fff;
-      background:rgba(119,166,255,.18);
-      border-color:rgba(119,166,255,.55);
-    }
-    .modeChip.disabled{opacity:.35;cursor:not-allowed}
+/* ── FLASH ── */
+#flashOverlay{
+  position:absolute;inset:0;z-index:9;
+  background:#fff;opacity:0;pointer-events:none;
+}
+@keyframes flashAnim{0%{opacity:.9}100%{opacity:0}}
+#flashOverlay.flash{animation:flashAnim .35s ease-out forwards}
 
-    /* ── ZOOM ROW ── */
-    .zoomRow{
-      position:relative;z-index:4;
-      display:flex;align-items:center;justify-content:center;
-      gap:6px;padding:5px 12px 6px;
-      background:rgba(5,7,11,.55);
-      border-bottom:1px solid rgba(255,255,255,.04);
-    }
-    .zoomLvl{
-      min-width:42px;height:34px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.42);
-      backdrop-filter:blur(10px);
-      font-size:13px;font-weight:700;color:rgba(255,255,255,.65);
-      cursor:pointer;
-      display:grid;place-items:center;
-      transition:all .14s ease;
-      -webkit-tap-highlight-color:transparent;
-      padding:0 10px;
-    }
-    .zoomLvl:active{transform:scale(.93)}
-    .zoomLvl.active{
-      background:rgba(119,166,255,.22);
-      border-color:rgba(119,166,255,.55);
-      color:#fff;
-    }
+/* ── START OVERLAY ── */
+#startOverlay{
+  position:absolute;inset:0;z-index:4;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  background:rgba(4,6,10,.85);backdrop-filter:blur(8px);
+  transition:opacity .3s,visibility .3s;
+}
+#startOverlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.startBtn2{
+  width:80px;height:80px;border-radius:50%;
+  border:2.5px solid rgba(255,255,255,.85);
+  background:rgba(255,255,255,.08);
+  display:grid;place-items:center;font-size:28px;
+  cursor:pointer;transition:transform .14s,background .14s;
+}
+.startBtn2:active{transform:scale(.91);background:rgba(255,255,255,.18)}
+.startTip{color:var(--muted);font-size:13px}
 
-    /* ── BOTTOM BAR ── */
-    .bottomBar{
-      position:relative;z-index:5;
-      padding:10px 20px calc(14px + env(safe-area-inset-bottom));
-      background:
-        linear-gradient(180deg,rgba(5,7,11,0),rgba(5,7,11,.75) 18%,rgba(5,7,11,.97));
-      border-top:1px solid rgba(255,255,255,.05);
-    }
-    .bottomRow{
-      display:grid;
-      grid-template-columns:1fr auto 1fr;
-      align-items:center;gap:0;
-    }
-    .leftCluster,.rightCluster{display:flex;align-items:center;gap:10px;min-width:0}
-    .rightCluster{justify-content:flex-end}
-    .captureWrap{display:grid;place-items:center;min-width:0}
+/* ── MODE STRIP ── */
+.modeStrip{
+  display:flex;overflow-x:auto;gap:6px;
+  padding:6px 16px;
+  background:rgba(4,6,10,.92);
+  border-top:1px solid var(--line);
+  scrollbar-width:none;
+}
+.modeStrip::-webkit-scrollbar{display:none}
+.modeChip{
+  flex:0 0 auto;padding:7px 16px;
+  border-radius:999px;border:1px solid var(--line);
+  background:var(--surface2);
+  color:var(--muted);font-size:13px;font-weight:600;
+  cursor:pointer;white-space:nowrap;
+  transition:all .15s ease;
+}
+.modeChip.active{
+  background:rgba(91,159,255,.15);
+  border-color:rgba(91,159,255,.5);
+  color:var(--accent);
+}
+.modeChip:disabled{opacity:.35;cursor:default}
 
-    /* ── SHUTTER (iOS-style: outer ring + inner disc) ── */
-    .shutter{
-      width:84px;height:84px;border-radius:999px;
-      border:3px solid rgba(255,255,255,.90);
-      background:transparent;
-      box-shadow:0 8px 28px rgba(0,0,0,.50);
-      position:relative;
-      padding:0;
-    }
-    .shutter::after{
-      content:"";position:absolute;
-      inset:5px;
-      border-radius:999px;
-      background:#ffffff;
-      box-shadow:0 2px 10px rgba(0,0,0,.22);
-      transition:background .16s ease, transform .12s ease;
-    }
-    .shutter:active::after{transform:scale(.88);background:#e0e4ef}
-    .shutter.saving::after{background:linear-gradient(180deg,#8cf0bc,#41bb81)}
-    @keyframes shutterRing{
-      0%{box-shadow:0 8px 28px rgba(0,0,0,.50),0 0 0 0 rgba(255,255,255,.7)}
-      100%{box-shadow:0 8px 28px rgba(0,0,0,.50),0 0 0 24px rgba(255,255,255,0)}
-    }
-    .shutter.capture-ring{animation:shutterRing .55s ease-out}
-    /* Camera action buttons (file, flip, start) */
-    .cameraButton{
-      width:54px;height:54px;border-radius:999px;
-      display:grid;place-items:center;
-      background:rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.12);
-      backdrop-filter:blur(10px);
-      font-size:22px;
-    }
+/* ── ZOOM ROW ── */
+.zoomRow{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:6px 16px;
+  background:rgba(4,6,10,.92);
+}
+.zoomBtn{
+  min-width:46px;height:36px;padding:0 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.04);
+  color:rgba(255,255,255,.55);
+  font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .14s;
+}
+.zoomBtn.active{
+  background:rgba(91,159,255,.18);
+  border-color:rgba(91,159,255,.5);
+  color:var(--accent);
+}
 
-    /* ── SETTINGS SHEET ── */
-    .sheet{
-      position:absolute;left:0;right:0;bottom:0;
-      z-index:10;
-      transform:translateY(100%);
-      transition:transform .22s ease;
-      pointer-events:none;
-    }
-    .sheet.open{transform:translateY(0);pointer-events:auto}
-    .sheetCard{
-      margin:0 8px 8px;
-      background:rgba(17,20,28,.95);
-      backdrop-filter:blur(14px);
-      border:1px solid var(--line);
-      border-radius:28px;
-      box-shadow:0 -20px 40px rgba(0,0,0,.38);
-      overflow:hidden;
-      max-height:min(76vh,780px);
-      display:grid;
-      grid-template-rows:auto 1fr;
-    }
-    .sheetHandle{width:54px;height:5px;border-radius:999px;background:rgba(255,255,255,.20);margin:10px auto 8px}
-    .sheetHeader{
-      padding:0 16px 14px;
-      display:flex;justify-content:space-between;align-items:center;gap:10px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-    }
-    .sheetHeader strong{font-size:15px}
-    .sheetHeader span{color:var(--muted);font-size:12px}
-    .sheetBody{padding:14px 14px 16px;overflow:auto;display:grid;gap:14px}
-    .section{border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:20px;padding:12px;display:grid;gap:10px}
-    .sectionTitle{
-      display:flex;justify-content:space-between;align-items:center;gap:10px;
-      font-size:13px;color:var(--muted);
-      text-transform:uppercase;letter-spacing:.3px;
-    }
-    .presetRow{display:flex;gap:8px;overflow:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
-    .presetRow::-webkit-scrollbar{height:8px}
-    .presetRow::-webkit-scrollbar-thumb{background:rgba(255,255,255,.10);border-radius:999px}
-    .sliderCard{display:grid;gap:8px;padding:10px 0 2px}
-    .sliderCard label{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:14px}
-    .sliderCard small{color:var(--muted)}
-    input[type="range"]{width:100%;accent-color:var(--accent)}
-    select{width:100%;border:1px solid var(--line);background:var(--panel-soft);border-radius:14px;padding:12px 14px}
-    .fineprint{color:var(--muted);font-size:12px;line-height:1.5}
-    .galleryHeader{display:flex;justify-content:space-between;align-items:center;gap:10px}
-    .galleryCount{color:var(--muted);font-size:12px;white-space:nowrap}
-    .galleryGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-    .galleryItem{
-      border:1px solid var(--line);background:rgba(255,255,255,.03);
-      border-radius:18px;overflow:hidden;
-      padding:8px;display:grid;gap:8px;text-align:left;
-    }
-    .galleryItem.selected{border-color:rgba(119,166,255,.72);box-shadow:0 0 0 1px rgba(119,166,255,.12) inset}
-    .galleryThumb{aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:#06080d;border:1px solid rgba(255,255,255,.06)}
-    .galleryThumb img{width:100%;height:100%;object-fit:cover;display:block}
-    .galleryMeta{display:grid;gap:2px;min-width:0}
-    .galleryMeta strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .galleryMeta span{color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .galleryActions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .galleryActions .full{grid-column:1/-1}
-    .emptyGallery{color:var(--muted);font-size:12px;line-height:1.5;padding:6px 2px 2px}
-    .footerActions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .hidden{display:none!important}
+/* ── BOTTOM BAR ── */
+.bottomBar{
+  padding:8px 20px calc(12px + var(--safe-b));
+  background:rgba(4,6,10,.96);
+  border-top:1px solid var(--line);
+}
+.bottomRow{
+  display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;
+}
+.leftGroup,.rightGroup{display:flex;align-items:center;gap:10px}
+.rightGroup{justify-content:flex-end}
 
-    /* ── RESPONSIVE ── */
-    @media(min-width:900px){
-      .topbar{padding:16px 16px 8px}
-      .bottomBar{padding:14px 16px calc(14px + env(safe-area-inset-bottom))}
-      .bottomRow{max-width:760px;margin:0 auto}
-      .sheetCard{max-width:760px;margin:0 auto 12px}
-    }
-    @media(max-width:520px){
-      .thumb{width:64px;height:64px;border-radius:16px}
-      .shutter{width:68px;height:68px}
-      .cameraButton{width:44px;height:44px}
-      .hintBox{max-width:54%}
-      .galleryGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
-    }
-    /* ── START OVERLAY (shown when cam not active) ── */
-    .startOverlay{
-      position:absolute;inset:0;
-      z-index:4; /* below topbar z-index but above video */
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      gap:20px;
-      background:rgba(5,7,11,.80);
-      backdrop-filter:blur(6px);
-      transition:opacity .28s ease, visibility .28s ease;
-      pointer-events:auto;
-      border-radius:inherit;
-    }
-    .startOverlay.hidden{
-      opacity:0;
-      pointer-events:none;
-      visibility:hidden;
-    }
-    .startCamBtn{
-      width:88px;height:88px;border-radius:999px;
-      border:3px solid rgba(255,255,255,.85);
-      background:rgba(255,255,255,.10);
-      backdrop-filter:blur(10px);
-      font-size:32px;
-      display:grid;place-items:center;
-      box-shadow:0 0 0 12px rgba(255,255,255,.06),0 12px 40px rgba(0,0,0,.55);
-      cursor:pointer;transition:transform .14s ease,background .14s ease;
-      -webkit-tap-highlight-color:transparent;
-    }
-    .startCamBtn:active{transform:scale(.92);background:rgba(255,255,255,.20)}
-    .startHint{
-      display:flex;flex-direction:column;align-items:center;gap:12px;
-    }
-    .startHint p{color:rgba(255,255,255,.70);font-size:14px;margin:0;letter-spacing:.2px}
-    .startHint button{
-      padding:10px 22px;border-radius:999px;
-      background:rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.16);
-      color:rgba(255,255,255,.80);font-size:14px;
-      cursor:pointer;
-    }
+/* ── SHUTTER ── */
+.shutter{
+  width:82px;height:82px;border-radius:50%;
+  border:3px solid rgba(255,255,255,.88);
+  background:transparent;position:relative;
+  box-shadow:0 8px 28px rgba(0,0,0,.45);
+  cursor:pointer;
+  transition:opacity .2s;
+}
+.shutter:disabled{opacity:.35;cursor:default}
+.shutter::after{
+  content:"";position:absolute;inset:6px;
+  border-radius:50%;background:#fff;
+  transition:transform .12s,background .12s;
+}
+.shutter:not(:disabled):active::after{transform:scale(.85);background:#cdd8ff}
+.shutter.processing::after{background:var(--accent);animation:shutterSpin 1s linear infinite}
+@keyframes shutterSpin{to{transform:rotate(360deg)scale(.8)}}
+.shutter.aimode::after{
+  background:linear-gradient(135deg,#5b9fff,#4cd98a);
+  animation:aiPulse 1.8s ease-in-out infinite;
+}
+@keyframes aiPulse{0%,100%{transform:scale(1)}50%{transform:scale(.9)}}
+.cameraBtn{
+  width:52px;height:52px;border-radius:50%;
+  border:1.5px solid var(--line);
+  background:var(--surface2);
+  display:grid;place-items:center;
+  font-size:20px;cursor:pointer;
+  transition:transform .1s,background .15s;
+}
+.cameraBtn:active{transform:scale(.91);background:rgba(255,255,255,.12)}
+.cameraBtn.lit{background:rgba(91,159,255,.15);border-color:rgba(91,159,255,.35);color:var(--accent)}
 
-    /* ── ZOOM row buttons bigger on mobile ── */
-    .zoomLvl{
-      min-width:48px;height:38px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.45);
-      backdrop-filter:blur(10px);
-      font-size:13px;font-weight:700;color:rgba(255,255,255,.65);
-      cursor:pointer;
-      display:grid;place-items:center;
-      transition:all .14s ease;
-      -webkit-tap-highlight-color:transparent;
-      padding:0 12px;
-    }
-    .zoomLvl:active{transform:scale(.93)}
-    .zoomLvl.active{
-      background:rgba(119,166,255,.22);
-      border-color:rgba(119,166,255,.55);
-      color:#fff;
-    }
+/* ── THUMB ── */
+.thumb{
+  width:58px;height:58px;border-radius:12px;
+  overflow:hidden;
+  border:2px solid rgba(255,255,255,.18);
+  background:var(--surface2);
+  cursor:pointer;
+}
+.thumb img{width:100%;height:100%;object-fit:cover}
 
-    /* ── TOP BAR action icons bigger ── */
-    button.icon{
-      width:50px;height:50px;padding:0;
-      display:grid;place-items:center;
-      border-radius:999px;
-      background:rgba(0,0,0,.38);
-      backdrop-filter:blur(10px);
-      font-size:19px;
-    }
-  </style>
+/* ── SHEET ── */
+.sheet{
+  position:fixed;inset:0;z-index:20;
+  display:flex;flex-direction:column;
+  justify-content:flex-end;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(6px);
+  opacity:0;pointer-events:none;
+  transition:opacity .22s;
+}
+.sheet.open{opacity:1;pointer-events:auto}
+.sheetCard{
+  background:var(--surface);
+  border-radius:28px 28px 0 0;
+  border:1px solid var(--line);
+  border-bottom:none;
+  max-height:88vh;display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.35,1);
+}
+.sheet.open .sheetCard{transform:translateY(0)}
+.sheetHandle{
+  width:36px;height:4px;border-radius:2px;
+  background:rgba(255,255,255,.18);
+  margin:10px auto 0;flex-shrink:0;
+}
+.sheetHeader{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding:14px 20px 10px;
+  border-bottom:1px solid var(--line);flex-shrink:0;
+}
+.sheetHeader strong{font-size:16px;font-weight:700;color:var(--text)}
+.sheetHeader span{font-size:12px;color:var(--muted);display:block;margin-top:2px}
+.sheetBody{overflow-y:auto;padding:0 0 40px;flex:1}
+.section{padding:16px 20px;border-bottom:1px solid var(--line)}
+.secTitle{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:12px;
+}
+.secTitle strong{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.secTitle small{font-size:11px;color:var(--muted)}
+.chipRow{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  padding:7px 14px;border-radius:999px;
+  border:1px solid var(--line);
+  background:var(--surface2);
+  color:var(--muted);font-size:12px;font-weight:600;
+  cursor:pointer;transition:all .14s;
+}
+.chip.active{
+  background:rgba(91,159,255,.15);
+  border-color:rgba(91,159,255,.45);
+  color:var(--accent);
+}
+.chip.good{background:rgba(76,217,138,.12);border-color:rgba(76,217,138,.35);color:var(--green)}
+.chip.warn{background:rgba(255,204,85,.10);border-color:rgba(255,204,85,.3);color:var(--warn)}
+.sliderRow{
+  display:flex;align-items:center;gap:10px;margin:8px 0;
+}
+.sliderRow label{
+  flex:0 0 110px;font-size:12px;color:var(--muted);
+  display:flex;flex-direction:column;gap:1px;
+}
+.sliderRow label strong{color:var(--text);font-size:12px;font-weight:600}
+.sliderRow input[type=range]{
+  flex:1;height:4px;
+  accent-color:var(--accent);cursor:pointer;
+}
+.sliderRow .val{
+  width:38px;text-align:right;font-size:12px;
+  font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;
+}
+select{
+  width:100%;padding:8px 10px;margin-top:4px;
+  background:var(--surface2);border:1px solid var(--line);
+  border-radius:10px;color:var(--text);font-size:13px;
+}
+
+/* ── AI PANEL ── */
+.aiPanel{
+  margin:12px 0 4px;
+  background:rgba(91,159,255,.06);
+  border:1px solid rgba(91,159,255,.18);
+  border-radius:14px;
+  padding:12px 14px;
+  font-size:12px;line-height:1.5;
+}
+.aiPanel .aiHead{
+  display:flex;align-items:center;gap:6px;
+  margin-bottom:8px;
+  font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.5px;color:var(--accent);
+}
+.aiPanel .aiScene{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.aiPanel .aiDesc{color:var(--muted)}
+.aiPanel .aiParams{
+  display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;
+}
+.aiTag{
+  padding:2px 8px;border-radius:999px;
+  background:rgba(91,159,255,.10);
+  color:var(--accent);font-size:10px;font-weight:600;
+  border:1px solid rgba(91,159,255,.2);
+}
+
+/* ── GALLERY ── */
+.galleryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:10px}
+.galleryItem{aspect-ratio:1;overflow:hidden;border-radius:8px;cursor:pointer;
+  border:2px solid transparent;transition:border-color .15s}
+.galleryItem.sel{border-color:var(--accent)}
+.galleryItem img{width:100%;height:100%;object-fit:cover}
+.galleryEmpty{color:var(--muted);font-size:13px;text-align:center;padding:20px 0}
+.galleryActions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.btnRow{display:flex;gap:8px;margin-top:8px}
+.btn{
+  flex:1;padding:10px;border-radius:12px;
+  border:1.5px solid var(--line);
+  background:var(--surface2);
+  color:var(--text);font-size:13px;font-weight:600;
+  cursor:pointer;transition:background .14s,transform .1s;text-align:center;
+}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:rgba(91,159,255,.18);border-color:rgba(91,159,255,.4);color:var(--accent)}
+.btn.danger{background:rgba(255,107,107,.1);border-color:rgba(255,107,107,.3);color:var(--red)}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:calc(120px + var(--safe-b));left:50%;
+  transform:translateX(-50%) translateY(8px);
+  background:var(--surface2);
+  border:1px solid var(--line);
+  border-radius:999px;padding:8px 18px;
+  font-size:13px;font-weight:600;
+  white-space:nowrap;z-index:30;
+  opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .2s;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+input.hidden{display:none}
+</style>
 </head>
 <body>
 <main class="app">
-  <!-- TOP BAR -->
-  <div class="topbar">
-    <div class="pill" style="min-width:0">
-      <span class="statusDot" id="statusDot"></span>
-      <strong id="statusTitle">Listo</strong>
-      <span id="statusText">Pulsa iniciar cámara</span>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="statusPill">
+    <div class="dot" id="statusDot"></div>
+    <span id="statusText">Listo</span>
+  </div>
+  <div class="topRight">
+    <button class="iconBtn" id="torchBtn" style="display:none" title="Linterna">🔦</button>
+    <button class="iconBtn" id="timerBtn" title="Timer">⏱</button>
+    <button class="iconBtn" id="gridBtn" title="Cuadrícula">⊞</button>
+    <button class="iconBtn" id="settingsBtn" title="Ajustes">⚙</button>
+  </div>
+</div>
+
+<!-- STAGE WRAP -->
+<div class="stageWrap">
+  <div class="stage" id="stage">
+    <video id="previewVideo" autoplay playsinline muted></video>
+    <canvas id="photoCanvas" style="display:none"></canvas>
+    <canvas id="workCanvas" style="display:none"></canvas>
+    <canvas id="exportCanvas" style="display:none"></canvas>
+    <img id="fileImage" style="display:none;width:100%;height:100%;object-fit:cover" alt=""/>
+
+    <!-- AI badge -->
+    <div id="aiBadge">✦ Analizando escena…</div>
+
+    <!-- Grid -->
+    <div class="gridOverlay" id="gridOverlay">
+      <div class="gl h h1"></div><div class="gl h h2"></div>
+      <div class="gl v v1"></div><div class="gl v v2"></div>
+      <div class="gc" style="top:33.333%;left:33.333%"></div>
+      <div class="gc" style="top:33.333%;left:66.666%"></div>
+      <div class="gc" style="top:66.666%;left:33.333%"></div>
+      <div class="gc" style="top:66.666%;left:66.666%"></div>
     </div>
-    <div class="topRightCluster">
-      <button class="icon" id="torchBtn" aria-label="Linterna" title="Linterna" style="display:none">🔦</button>
-      <button class="icon" id="timerBtn" aria-label="Temporizador" title="Temporizador">⏱</button>
-      <button class="icon" id="gridBtn" aria-label="Cuadrícula" title="Cuadrícula">⊞</button>
-      <button class="icon" id="settingsBtn" aria-label="Ajustes">⚙</button>
+
+    <div id="focusRing"></div>
+    <div id="zoomPill">1×</div>
+    <div id="timerOverlay"><div id="timerNum">3</div></div>
+    <div id="flashOverlay"></div>
+
+    <!-- Scene info -->
+    <div class="sceneHint">
+      <strong id="profileBadge">Equilibrado</strong>
+      <small id="modeBadge">Foto · 1600px</small>
+    </div>
+
+    <!-- Start overlay -->
+    <div id="startOverlay">
+      <button class="startBtn2" id="startBtn">▶</button>
+      <span class="startTip">Toca para activar la cámara</span>
+      <button class="chip" id="fileBtn2" style="margin-top:4px">📁 Abrir imagen</button>
     </div>
   </div>
+</div>
 
-  <!-- STAGE WRAP -->
-  <div class="stageWrap">
-    <section class="stage" id="stage">
-      <video id="previewVideo" autoplay playsinline muted></video>
-      <canvas id="photoCanvas"></canvas>
-      <canvas id="workCanvas"></canvas>
-      <canvas id="exportCanvas"></canvas>
-      <img id="fileImage" alt="Imagen cargada" />
+<!-- MODE STRIP -->
+<div class="modeStrip" id="modeStrip">
+  <button class="modeChip active" data-mode="fast">📷 Foto</button>
+  <button class="modeChip" data-mode="quality">✨ Calidad</button>
+  <button class="modeChip" data-mode="ai">🤖 IA</button>
+  <button class="modeChip" data-mode="night">🌙 Noche</button>
+  <button class="modeChip" data-mode="portrait">🪞 Retrato</button>
+</div>
 
-      <!-- START OVERLAY (hidden once camera is active) -->
-      <div class="startOverlay" id="startOverlay">
-        <button class="startCamBtn" id="startBtn" aria-label="Activar cámara">▶</button>
-        <div class="startHint">
-          <p>Toca para activar la cámara</p>
-          <button id="fileBtn2" type="button">📁 Abrir imagen</button>
-        </div>
-      </div>
+<!-- ZOOM ROW -->
+<div class="zoomRow" id="zoomRow">
+  <button class="zoomBtn" data-zoom="0.6">0.6×</button>
+  <button class="zoomBtn active" data-zoom="1">1×</button>
+  <button class="zoomBtn" data-zoom="2">2×</button>
+  <button class="zoomBtn" data-zoom="5">5×</button>
+</div>
 
-      <!-- OVERLAYS -->
-      <div class="gridOverlay" id="gridOverlay">
-        <div class="gl h h1"></div>
-        <div class="gl h h2"></div>
-        <div class="gl v v1"></div>
-        <div class="gl v v2"></div>
-        <div class="gc" style="top:33.333%;left:33.333%"></div>
-        <div class="gc" style="top:33.333%;left:66.666%"></div>
-        <div class="gc" style="top:66.666%;left:33.333%"></div>
-        <div class="gc" style="top:66.666%;left:66.666%"></div>
-      </div>
-      <div class="focusRing" id="focusRing"></div>
-      <div class="zoomPill" id="zoomPill">1×</div>
-      <div class="timerOverlay" id="timerOverlay">
-        <div class="timerNumber" id="timerNumber">3</div>
-      </div>
-      <div class="flashOverlay" id="flashOverlay"></div>
-
-      <!-- HINTS + TOAST -->
-      <div class="overlayHints">
-        <div class="hintBox">
-          <strong id="profileBadge">Perfil: Equilibrado</strong>
-          <small id="modeBadge">Modo rápido · Salida 1600 px</small>
-        </div>
-      </div>
-      <div class="toast" id="toast">Listo</div>
-    </section>
-
-    <!-- MODE STRIP -->
-    <div class="modeStrip" id="modeStrip">
-      <button class="modeChip active" data-mode="fast">📷 Foto</button>
-      <button class="modeChip" data-mode="quality">✨ Calidad</button>
-      <button class="modeChip" data-mode="night">🌙 Noche</button>
-      <button class="modeChip" data-mode="portrait">🪞 Retrato</button>
-      <button class="modeChip disabled" data-mode="video" disabled>🎬 Vídeo</button>
+<!-- BOTTOM BAR -->
+<div class="bottomBar">
+  <div class="bottomRow">
+    <div class="leftGroup">
+      <div class="thumb" id="thumbWrap"><img id="lastPreview" alt=""/></div>
     </div>
-
-    <!-- ZOOM ROW -->
-    <div class="zoomRow" id="zoomRow">
-      <button class="zoomLvl" data-zoom="0.6" id="zoom06">0.6×</button>
-      <button class="zoomLvl active" data-zoom="1" id="zoom1">1×</button>
-      <button class="zoomLvl" data-zoom="2" id="zoom2">2×</button>
-      <button class="zoomLvl" data-zoom="5" id="zoom5">5×</button>
+    <div style="display:grid;place-items:center">
+      <button class="shutter" id="captureBtn" disabled aria-label="Capturar"></button>
+    </div>
+    <div class="rightGroup">
+      <button class="cameraBtn" id="mirrorBtn" title="Espejo" aria-label="Espejo">🪞</button>
+      <button class="cameraBtn" id="switchBtn" title="Cambiar cámara" disabled aria-label="Flip">↺</button>
     </div>
   </div>
+  <input class="hidden" id="fileInput" type="file" accept="image/*"/>
+  <input class="hidden" id="fileInput2b" type="file" accept="image/*"/>
+</div>
 
-  <!-- BOTTOM BAR (iOS Camera style: thumb | shutter | flip) -->
-  <div class="bottomBar">
-    <div class="bottomRow">
-      <!-- Left: gallery thumbnail -->
-      <div class="leftCluster">
-        <div class="thumb" id="thumbWrap" title="Ver última foto / galería">
-          <img id="lastPreview" alt="Última foto" />
+<div id="toast"></div>
+
+<!-- SETTINGS SHEET -->
+<div class="sheet" id="sheet">
+  <div class="sheetCard">
+    <div class="sheetHandle"></div>
+    <div class="sheetHeader">
+      <div>
+        <strong>GCam AI Studio v4</strong>
+        <span>Post-procesado impulsado por IA</span>
+      </div>
+      <button class="chip" id="closeSheetBtn">Cerrar</button>
+    </div>
+    <div class="sheetBody">
+
+      <!-- AI Analysis Result -->
+      <div class="section">
+        <div class="secTitle"><strong>Análisis de Escena IA</strong></div>
+        <div class="aiPanel" id="aiPanel">
+          <div class="aiHead">✦ Claude Vision</div>
+          <div class="aiScene" id="aiSceneLabel">Sin análisis todavía</div>
+          <div class="aiDesc" id="aiDescLabel">Captura una foto en modo IA para obtener el análisis semántico.</div>
+          <div class="aiParams" id="aiTagsRow"></div>
+        </div>
+        <div class="secTitle" style="margin-top:12px"><strong>Modo de captura</strong></div>
+        <div class="chipRow">
+          <button class="chip active" id="fastModeBtn">Foto rápida</button>
+          <button class="chip" id="qualityModeBtn">Calidad</button>
+          <button class="chip" id="aiModeBtn">🤖 IA (Claude)</button>
+          <button class="chip" id="nightModeBtn">Noche</button>
+          <button class="chip" id="portraitModeBtn">Retrato</button>
         </div>
       </div>
-      <!-- Center: shutter -->
-      <div class="captureWrap">
-        <button class="shutter" id="captureBtn" aria-label="Tomar foto" disabled></button>
+
+      <!-- Color profile -->
+      <div class="section">
+        <div class="secTitle"><strong>Perfil de Color</strong></div>
+        <div class="chipRow" id="presetRow">
+          <button class="chip active" data-preset="balanced">Equilibrado</button>
+          <button class="chip" data-preset="vivid">Vivo</button>
+          <button class="chip" data-preset="portrait">Retrato</button>
+          <button class="chip" data-preset="night">Nocturno</button>
+          <button class="chip" data-preset="soft">Suave</button>
+        </div>
+        <div style="color:var(--muted);font-size:11px;margin-top:8px" id="presetDesc"></div>
       </div>
-      <!-- Right: flip camera + open file -->
-      <div class="rightCluster">
-        <button class="cameraButton" id="switchBtn" title="Cambiar cámara" aria-label="Cambiar cámara" disabled>↺</button>
-        <button class="cameraButton" id="fileBtn" title="Abrir imagen" aria-label="Abrir imagen" style="font-size:18px">📁</button>
+
+      <!-- Camera / output -->
+      <div class="section">
+        <div class="secTitle"><strong>Cámara y Salida</strong></div>
+        <div class="chipRow" style="margin-bottom:12px">
+          <button class="chip" id="rearBtn">Trasera</button>
+          <button class="chip" id="frontBtn">Frontal</button>
+        </div>
+        <div class="sliderRow">
+          <label><strong>Resolución</strong></label>
+          <select id="sizePreset">
+            <option value="1280">1280px ≈2MP</option>
+            <option value="1600" selected>1600px ≈3MP</option>
+            <option value="2400">2400px ≈6MP</option>
+            <option value="3200">3200px ≈12MP</option>
+            <option value="4000">4000px ≈18MP</option>
+            <option value="native">Nativa</option>
+          </select>
+        </div>
+        <div class="sliderRow">
+          <label><strong>Burst</strong><span id="burstLabel" style="color:var(--accent);font-size:11px">1 foto</span></label>
+          <input type="range" id="burstCount" min="1" max="7" step="1" value="1"/>
+          <span class="val" id="burstVal">1</span>
+        </div>
       </div>
+
+      <!-- Fine controls -->
+      <div class="section">
+        <div class="secTitle"><strong>Procesado Fino</strong><small>(AI Mode anula estos)</small></div>
+        <div class="sliderRow">
+          <label><strong>Exposición</strong></label>
+          <input type="range" id="exposure" min="0.70" max="1.45" step="0.01" value="1.00"/>
+          <span class="val" id="exposureVal">1.00</span>
+        </div>
+        <div class="sliderRow">
+          <label><strong>Contraste</strong></label>
+          <input type="range" id="contrast" min="0.85" max="1.40" step="0.01" value="1.08"/>
+          <span class="val" id="contrastVal">1.08</span>
+        </div>
+        <div class="sliderRow">
+          <label><strong>Saturación</strong></label>
+          <input type="range" id="saturation" min="0.70" max="1.40" step="0.01" value="1.06"/>
+          <span class="val" id="saturationVal">1.06</span>
+        </div>
+        <div class="sliderRow">
+          <label><strong>Nitidez</strong></label>
+          <input type="range" id="sharpness" min="0" max="1" step="0.01" value="0.22"/>
+          <span class="val" id="sharpnessVal">0.22</span>
+        </div>
+        <div class="sliderRow">
+          <label><strong>Reducción ruido</strong></label>
+          <input type="range" id="noiseReduction" min="0" max="1" step="0.01" value="0.20"/>
+          <span class="val" id="noiseVal">0.20</span>
+        </div>
+        <div class="sliderRow">
+          <label><strong>Clarity</strong></label>
+          <input type="range" id="detailBoost" min="0" max="1" step="0.01" value="0.64"/>
+          <span class="val" id="detailVal">0.64</span>
+        </div>
+      </div>
+
+      <!-- Timer / options -->
+      <div class="section">
+        <div class="secTitle"><strong>Opciones</strong></div>
+        <div class="chipRow">
+          <button class="chip active" id="timer0Btn">Sin timer</button>
+          <button class="chip" id="timer3Btn">3s</button>
+          <button class="chip" id="timer10Btn">10s</button>
+        </div>
+        <div class="chipRow" style="margin-top:8px">
+          <button class="chip" id="autoSaveBtn">Auto-guardar: off</button>
+          <button class="chip" id="pickFolderBtn">📁 Carpeta</button>
+          <button class="chip" id="fileOpenBtn">📂 Abrir imagen</button>
+        </div>
+      </div>
+
+      <!-- Gallery -->
+      <div class="section">
+        <div class="secTitle">
+          <strong>Galería</strong>
+          <small id="galleryCount">0 fotos</small>
+        </div>
+        <div class="galleryGrid" id="galleryGrid"></div>
+        <div class="galleryEmpty" id="galleryEmpty">Aún no hay fotos guardadas.</div>
+        <div class="btnRow">
+          <button class="btn" id="downloadSelectedBtn" disabled>Descargar</button>
+          <button class="btn danger" id="deleteSelectedBtn" disabled>Eliminar</button>
+          <button class="btn danger" id="clearGalleryBtn" disabled>Vaciar</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="btnRow">
+          <button class="btn" id="resetBtn">Restablecer</button>
+          <button class="btn primary" id="downloadBtn" disabled>Descargar última</button>
+        </div>
+      </div>
+
     </div>
-    <input id="fileInput" class="hidden" type="file" accept="image/*" />
-    <input id="fileInput2" class="hidden" type="file" accept="image/*" />
   </div>
+</div>
 
-  <!-- SETTINGS SHEET -->
-  <section class="sheet" id="sheet">
-    <div class="sheetCard">
-      <div class="sheetHandle"></div>
-      <div class="sheetHeader">
-        <div>
-          <strong>GCam Lite Studio v2</strong><br/>
-          <span>Cámara, procesado y galería</span>
-        </div>
-        <button class="ghost" id="closeSheetBtn">Cerrar</button>
-      </div>
-      <div class="sheetBody">
-
-        <div class="section">
-          <div class="sectionTitle"><span>Modo de captura</span></div>
-          <div class="footerActions">
-            <button class="chip active" id="fastModeBtn" type="button">Foto rápida</button>
-            <button class="chip" id="qualityModeBtn" type="button">Calidad</button>
-          </div>
-          <div class="footerActions">
-            <button class="chip" id="nightModeBtn" type="button">Noche</button>
-            <button class="chip" id="portraitModeBtn" type="button">Retrato</button>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="sectionTitle"><span>Perfil de color</span><span>ajuste rápido</span></div>
-          <div class="presetRow" id="presetRow">
-            <button class="chip active" data-preset="balanced">Equilibrado</button>
-            <button class="chip" data-preset="vivid">Vivo</button>
-            <button class="chip" data-preset="portrait">Retrato</button>
-            <button class="chip" data-preset="night">Nocturno</button>
-            <button class="chip" data-preset="soft">Suave</button>
-          </div>
-          <div class="fineprint" id="presetDesc">Balance general para fotos diarias.</div>
-        </div>
-
-        <div class="section">
-          <div class="sectionTitle"><span>Cámara</span><span>frontal / trasera</span></div>
-          <div class="footerActions">
-            <button class="ghost" id="rearBtn" type="button">Trasera</button>
-            <button class="ghost" id="frontBtn" type="button">Frontal</button>
-          </div>
-          <div class="sliderCard">
-            <label><strong>Resolución</strong><small id="sizeLabel">1600 px</small></label>
-            <select id="sizePreset">
-              <option value="1280">1280 px (≈2MP)</option>
-              <option value="1600" selected>1600 px (≈3MP)</option>
-              <option value="2400">2400 px (≈6MP)</option>
-              <option value="3200">3200 px (≈12MP)</option>
-              <option value="4000">4000 px (≈18MP)</option>
-              <option value="6000">6000 px (≈48MP — lento)</option>
-              <option value="native">Nativa del sensor</option>
-            </select>
-          </div>
-          <div class="sliderCard">
-            <label><strong>Burst</strong><small id="burstLabel">3 fotos</small></label>
-            <input type="range" id="burstCount" min="1" max="7" step="1" value="3"/>
-          </div>
-          <div class="sliderCard">
-            <label><strong>Enfoque de detalle</strong><small id="detailLabel">0.65</small></label>
-            <input type="range" id="detailBoost" min="0" max="1" step="0.01" value="0.65"/>
-          </div>
-          <div class="sliderCard">
-            <label><strong>Reducción de ruido</strong><small id="noiseLabel">0.30</small></label>
-            <input type="range" id="noiseReduction" min="0" max="1" step="0.01" value="0.30"/>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="sectionTitle"><span>Procesado fino</span></div>
-          <div class="sliderCard">
-            <label><strong>Exposición</strong><small id="exposureLabel">1.05</small></label>
-            <input type="range" id="exposure" min="0.70" max="1.45" step="0.01" value="1.05"/>
-          </div>
-          <div class="sliderCard">
-            <label><strong>Contraste</strong><small id="contrastLabel">1.10</small></label>
-            <input type="range" id="contrast" min="0.85" max="1.40" step="0.01" value="1.10"/>
-          </div>
-          <div class="sliderCard">
-            <label><strong>Saturación</strong><small id="saturationLabel">1.06</small></label>
-            <input type="range" id="saturation" min="0.70" max="1.40" step="0.01" value="1.06"/>
-          </div>
-          <div class="sliderCard">
-            <label><strong>Nitidez</strong><small id="sharpnessLabel">0.25</small></label>
-            <input type="range" id="sharpness" min="0" max="1" step="0.01" value="0.25"/>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="sectionTitle"><span>IA Lite</span><span>mejora heurística</span></div>
-          <button class="chip" id="aiLiteBtn" type="button">IA Lite: desactivada</button>
-          <div class="fineprint">
-            Aplica un pase final que protege luces, levanta sombras suaves y mantiene el detalle sin efecto plástico.
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="sectionTitle"><span>Temporizador</span></div>
-          <div class="footerActions">
-            <button class="chip active" id="timer0Btn" type="button">Sin timer</button>
-            <button class="chip" id="timer3Btn" type="button">3 segundos</button>
-          </div>
-          <div class="footerActions">
-            <button class="chip" id="timer10Btn" type="button">10 segundos</button>
-            <span></span>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="sectionTitle"><span>Salida y guardado</span></div>
-          <div class="footerActions">
-            <button class="good" id="autoSaveBtn" type="button">Auto-guardar: off</button>
-            <button class="ghost" id="mirrorBtn" type="button">Espejo: off</button>
-          </div>
-          <button class="warn" id="pickFolderInsideBtn" type="button">Elegir carpeta de guardado</button>
-          <div class="fineprint">
-            La foto final sale en la resolución máxima que permita el navegador. Si soporta ImageCapture nativo, lo usa; si no, captura por canvas.
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="galleryHeader">
-            <div class="sectionTitle" style="margin:0;padding:0;border:0"><span>Galería local</span></div>
-            <div class="galleryCount" id="galleryCount">0 fotos</div>
-          </div>
-          <div class="galleryGrid" id="galleryGrid"></div>
-          <div class="emptyGallery" id="galleryEmpty">Todavía no hay fotos guardadas.</div>
-          <div class="galleryActions">
-            <button class="ghost full" id="downloadSelectedBtn" type="button" disabled>Descargar seleccionada</button>
-            <button class="ghost" id="deleteSelectedBtn" type="button" disabled>Eliminar seleccionada</button>
-            <button class="ghost" id="clearGalleryBtn" type="button" disabled>Vaciar galería</button>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="sectionTitle"><span>Ayuda rápida</span></div>
-          <div class="fineprint">
-            Usa HTTPS o localhost para abrir la cámara. En móvil, la resolución real depende del navegador y del sensor.
-            <br><br>
-            <strong>Pellizca</strong> el visor para hacer zoom. <strong>Toca</strong> el visor para enfocar. <strong>⏱</strong> para timer. <strong>⊞</strong> para cuadrícula. <strong>🔦</strong> para linterna (solo cámara trasera).
-          </div>
-        </div>
-
-        <div class="footerActions">
-          <button class="ghost" id="resetBtn">Restablecer</button>
-          <button class="ghost" id="downloadBtn" disabled>Descargar</button>
-        </div>
-
-      </div>
-    </div>
-  </section>
 </main>
-
 <script>
 (() => {
-  'use strict';
+'use strict';
 
-  /* ═══════════════════════════════════ UI REFS ═══ */
-  const ui = {
-    previewVideo:       document.getElementById('previewVideo'),
-    photoCanvas:        document.getElementById('photoCanvas'),
-    workCanvas:         document.getElementById('workCanvas'),
-    exportCanvas:       document.getElementById('exportCanvas'),
-    fileImage:          document.getElementById('fileImage'),
-    lastPreview:        document.getElementById('lastPreview'),
-    galleryCount:       document.getElementById('galleryCount'),
-    galleryGrid:        document.getElementById('galleryGrid'),
-    galleryEmpty:       document.getElementById('galleryEmpty'),
-    downloadSelectedBtn:document.getElementById('downloadSelectedBtn'),
-    deleteSelectedBtn:  document.getElementById('deleteSelectedBtn'),
-    clearGalleryBtn:    document.getElementById('clearGalleryBtn'),
-    statusDot:          document.getElementById('statusDot'),
-    statusTitle:        document.getElementById('statusTitle'),
-    statusText:         document.getElementById('statusText'),
-    profileBadge:       document.getElementById('profileBadge'),
-    modeBadge:          document.getElementById('modeBadge'),
-    presetDesc:         document.getElementById('presetDesc'),
-    toast:              document.getElementById('toast'),
-    sheet:              document.getElementById('sheet'),
-    settingsBtn:        document.getElementById('settingsBtn'),
-    closeSheetBtn:      document.getElementById('closeSheetBtn'),
-    startBtn:           document.getElementById('startBtn'),
-    switchBtn:          document.getElementById('switchBtn'),
-    captureBtn:         document.getElementById('captureBtn'),
-    fileBtn:            document.getElementById('fileBtn'),
-    folderBtn:          document.getElementById('folderBtn'),    fileInput:          document.getElementById('fileInput'),
-    downloadBtn:        document.getElementById('downloadBtn'),
-    resetBtn:           document.getElementById('resetBtn'),
-    autoSaveBtn:        document.getElementById('autoSaveBtn'),
-    mirrorBtn:          document.getElementById('mirrorBtn'),
-    aiLiteBtn:          document.getElementById('aiLiteBtn'),
-    pickFolderInsideBtn:document.getElementById('pickFolderInsideBtn'),
-    fastModeBtn:        document.getElementById('fastModeBtn'),
-    qualityModeBtn:     document.getElementById('qualityModeBtn'),
-    nightModeBtn:       document.getElementById('nightModeBtn'),
-    portraitModeBtn:    document.getElementById('portraitModeBtn'),
-    rearBtn:            document.getElementById('rearBtn'),
-    frontBtn:           document.getElementById('frontBtn'),
-    sizePreset:         document.getElementById('sizePreset'),
-    sizeLabel:          document.getElementById('sizeLabel'),
-    burstCount:         document.getElementById('burstCount'),
-    burstLabel:         document.getElementById('burstLabel'),
-    detailBoost:        document.getElementById('detailBoost'),
-    detailLabel:        document.getElementById('detailLabel'),
-    noiseReduction:     document.getElementById('noiseReduction'),
-    noiseLabel:         document.getElementById('noiseLabel'),
-    exposure:           document.getElementById('exposure'),
-    exposureLabel:      document.getElementById('exposureLabel'),
-    contrast:           document.getElementById('contrast'),
-    contrastLabel:      document.getElementById('contrastLabel'),
-    saturation:         document.getElementById('saturation'),
-    saturationLabel:    document.getElementById('saturationLabel'),
-    sharpness:          document.getElementById('sharpness'),
-    sharpnessLabel:     document.getElementById('sharpnessLabel'),
-    presetButtons:      Array.from(document.querySelectorAll('[data-preset]')),
-    // New v2 elements
-    gridOverlay:   document.getElementById('gridOverlay'),
-    focusRing:     document.getElementById('focusRing'),
-    zoomPill:      document.getElementById('zoomPill'),
-    timerOverlay:  document.getElementById('timerOverlay'),
-    timerNumber:   document.getElementById('timerNumber'),
-    flashOverlay:  document.getElementById('flashOverlay'),
-    torchBtn:      document.getElementById('torchBtn'),
-    timerBtn:      document.getElementById('timerBtn'),
-    gridBtn:       document.getElementById('gridBtn'),
-    modeChips:     Array.from(document.querySelectorAll('[data-mode]')),
-    zoomBtns:      Array.from(document.querySelectorAll('[data-zoom]')),
-    stage:         document.getElementById('stage'),
-    thumbWrap:     document.getElementById('thumbWrap'),
-    timer0Btn:     document.getElementById('timer0Btn'),
-    timer3Btn:     document.getElementById('timer3Btn'),
-    timer10Btn:    document.getElementById('timer10Btn'),
-  };
+/* ═══════════ CONSTANTS ═══════════ */
+const STORAGE_KEY = 'gcam_v4_settings';
+const DB_NAME = 'gcam_v4', DB_VER = 1, STORE = 'photos';
 
-  /* ═══════════════════════════════════ STORAGE KEYS ═══ */
-  const STORAGE = {
-    settings: 'gcam_lite_studio_settings_v3',
-    gallery:  'gcam_lite_studio_gallery_v3',
-    lastDevice:'gcam_lite_studio_device_v3'
-  };
-  const DB_NAME  = 'gcam_lite_studio_db_v3';
-  const DB_VERSION = 1;
-  const STORE    = 'photos';
+const presets = {
+  balanced: { title:'Equilibrado', desc:'Natural y versátil.',          exposure:1.00, contrast:1.08, saturation:1.06, sharpness:0.22, noise:0.20, detail:0.64 },
+  vivid:    { title:'Vivo',        desc:'Colores más intensos.',         exposure:0.98, contrast:1.12, saturation:1.18, sharpness:0.26, noise:0.16, detail:0.72 },
+  portrait: { title:'Retrato',     desc:'Suave en piel, tono cálido.',   exposure:1.01, contrast:1.05, saturation:0.99, sharpness:0.16, noise:0.28, detail:0.48 },
+  night:    { title:'Nocturno',    desc:'Sombras levantadas, NR fuerte.',exposure:1.10, contrast:1.02, saturation:0.96, sharpness:0.10, noise:0.48, detail:0.36 },
+  soft:     { title:'Suave',       desc:'Sin artefactos.',               exposure:1.00, contrast:1.03, saturation:0.98, sharpness:0.08, noise:0.26, detail:0.30 }
+};
+const modePresets = {
+  fast:    { burst:1, output:'1600' },
+  quality: { burst:3, output:'3200' },
+  ai:      { burst:3, output:'3200' },
+  night:   { burst:5, output:'3200' },
+  portrait:{ burst:3, output:'2400' }
+};
+const defaults = {
+  preset:'balanced', mode:'fast', facing:'environment',
+  output:'1600', burst:1, exposure:1.00, contrast:1.08,
+  saturation:1.06, sharpness:0.22, noise:0.20, detail:0.64,
+  autoSave:false, mirror:false, timerSec:0, showGrid:false
+};
 
-  /* ═══════════════════════════════════ PRESETS ═══ */
-  const presets = {
-    balanced: { title:'Equilibrado', desc:'Calidad natural, sombras levantadas, colores fieles.',          exposure:1.00, contrast:1.06, saturation:1.00, sharpness:0.20, noise:0.20, detail:0.60 },
-    vivid:    { title:'Vivo',        desc:'Colores vibrantes con más presencia, sin saturar piel.',         exposure:0.98, contrast:1.10, saturation:1.10, sharpness:0.24, noise:0.16, detail:0.68 },
-    portrait: { title:'Retrato',     desc:'Piel natural, altas luces controladas, acabado suave.',          exposure:1.01, contrast:1.04, saturation:0.97, sharpness:0.14, noise:0.28, detail:0.46 },
-    night:    { title:'Nocturno',    desc:'Levanta sombras, reduce ruido, preserva detalles oscuros.',      exposure:1.08, contrast:1.00, saturation:0.94, sharpness:0.08, noise:0.44, detail:0.34 },
-    soft:     { title:'Suave',       desc:'Acabado natural sin artefactos, ideal para edición posterior.',  exposure:1.00, contrast:1.02, saturation:0.96, sharpness:0.06, noise:0.24, detail:0.28 }
-  };
-  const modePresets = {
-    fast:    { burst:1, output:'1600', sharpnessBoost:0.00, noiseBoost:0.00,  detailBoost:0.58 },
-    quality: { burst:3, output:'4000', sharpnessBoost:0.03, noiseBoost:0.08,  detailBoost:0.64 },
-    night:   { burst:5, output:'3200', sharpnessBoost:-0.04,noiseBoost:0.28,  detailBoost:0.36 },
-    portrait:{ burst:3, output:'3200', sharpnessBoost:-0.02,noiseBoost:0.18,  detailBoost:0.44 }
-  };
-  const defaults = {
-    preset:'balanced', mode:'fast', facing:'environment', output:'1600',
-    burst:1, detail:0.60, noise:0.20, exposure:1.00, contrast:1.06,
-    saturation:1.00, sharpness:0.20, autoSave:false, mirror:false, aiLite:true,
-    timerSec:0, showGrid:false
-  };
+/* ═══════════ STATE ═══════════ */
+const state = {
+  ...defaults,
+  stream:null, track:null, imageCapture:null,
+  busy:false, zoom:1,
+  zoomSupported:false, torchSupported:false, torchOn:false,
+  timerRunning:false, timerHandle:null,
+  pinchStartDist:0, pinchStartZoom:1,
+  gallery:[], selectedId:'',
+  currentBlob:null, saveDirHandle:null,
+  lastAiAnalysis:null,
+  aiApiKey:null   // injected by Anthropic proxy
+};
 
-  /* ═══════════════════════════════════ STATE ═══ */
-  const state = {
-    stream:null, track:null, imageCapture:null, cameraId:'',
-    facing:defaults.facing, mode:defaults.mode, preset:defaults.preset,
-    autoSave:defaults.autoSave, mirror:defaults.mirror, aiLite:defaults.aiLite,
-    saveDirHandle:null, currentBlob:null, currentUrl:'',
-    gallery:[], selectedId:'', db:null, busy:false,
-    // New v2 state
-    zoom:1, zoomSupported:false, zoomMin:1, zoomMax:10,
-    torchOn:false, torchSupported:false,
-    showGrid:defaults.showGrid,
-    timerSec:defaults.timerSec,
-    timerRunning:false, timerHandle:null,
-    // Pinch gesture
-    pinchStartDist:0, pinchStartZoom:1,
-  };
+/* ═══════════ UI REFS ═══════════ */
+const ui = {
+  previewVideo:  document.getElementById('previewVideo'),
+  photoCanvas:   document.getElementById('photoCanvas'),
+  workCanvas:    document.getElementById('workCanvas'),
+  exportCanvas:  document.getElementById('exportCanvas'),
+  fileImage:     document.getElementById('fileImage'),
+  lastPreview:   document.getElementById('lastPreview'),
+  stage:         document.getElementById('stage'),
+  statusDot:     document.getElementById('statusDot'),
+  statusText:    document.getElementById('statusText'),
+  profileBadge:  document.getElementById('profileBadge'),
+  modeBadge:     document.getElementById('modeBadge'),
+  presetDesc:    document.getElementById('presetDesc'),
+  aiBadge:       document.getElementById('aiBadge'),
+  aiPanel:       document.getElementById('aiPanel'),
+  aiSceneLabel:  document.getElementById('aiSceneLabel'),
+  aiDescLabel:   document.getElementById('aiDescLabel'),
+  aiTagsRow:     document.getElementById('aiTagsRow'),
+  gridOverlay:   document.getElementById('gridOverlay'),
+  focusRing:     document.getElementById('focusRing'),
+  zoomPill:      document.getElementById('zoomPill'),
+  timerOverlay:  document.getElementById('timerOverlay'),
+  timerNum:      document.getElementById('timerNum'),
+  flashOverlay:  document.getElementById('flashOverlay'),
+  startOverlay:  document.getElementById('startOverlay'),
+  toast:         document.getElementById('toast'),
+  // Buttons
+  startBtn:         document.getElementById('startBtn'),
+  switchBtn:        document.getElementById('switchBtn'),
+  captureBtn:       document.getElementById('captureBtn'),
+  mirrorBtn:        document.getElementById('mirrorBtn'),
+  torchBtn:         document.getElementById('torchBtn'),
+  timerBtn:         document.getElementById('timerBtn'),
+  gridBtn:          document.getElementById('gridBtn'),
+  settingsBtn:      document.getElementById('settingsBtn'),
+  closeSheetBtn:    document.getElementById('closeSheetBtn'),
+  sheet:            document.getElementById('sheet'),
+  fastModeBtn:      document.getElementById('fastModeBtn'),
+  qualityModeBtn:   document.getElementById('qualityModeBtn'),
+  aiModeBtn:        document.getElementById('aiModeBtn'),
+  nightModeBtn:     document.getElementById('nightModeBtn'),
+  portraitModeBtn:  document.getElementById('portraitModeBtn'),
+  rearBtn:          document.getElementById('rearBtn'),
+  frontBtn:         document.getElementById('frontBtn'),
+  autoSaveBtn:      document.getElementById('autoSaveBtn'),
+  pickFolderBtn:    document.getElementById('pickFolderBtn'),
+  fileOpenBtn:      document.getElementById('fileOpenBtn'),
+  resetBtn:         document.getElementById('resetBtn'),
+  downloadBtn:      document.getElementById('downloadBtn'),
+  downloadSelectedBtn: document.getElementById('downloadSelectedBtn'),
+  deleteSelectedBtn:   document.getElementById('deleteSelectedBtn'),
+  clearGalleryBtn:     document.getElementById('clearGalleryBtn'),
+  galleryGrid:     document.getElementById('galleryGrid'),
+  galleryEmpty:    document.getElementById('galleryEmpty'),
+  galleryCount:    document.getElementById('galleryCount'),
+  thumbWrap:       document.getElementById('thumbWrap'),
+  presetButtons:   Array.from(document.querySelectorAll('[data-preset]')),
+  modeChips:       Array.from(document.querySelectorAll('[data-mode]')),
+  zoomBtns:        Array.from(document.querySelectorAll('[data-zoom]')),
+  fileInput:       document.getElementById('fileInput'),
+  fileInput2b:     document.getElementById('fileInput2b'),
+  timer0Btn:       document.getElementById('timer0Btn'),
+  timer3Btn:       document.getElementById('timer3Btn'),
+  timer10Btn:      document.getElementById('timer10Btn'),
+  // Sliders
+  sizePreset:   document.getElementById('sizePreset'),
+  burstCount:   document.getElementById('burstCount'),
+  burstLabel:   document.getElementById('burstLabel'),
+  burstVal:     document.getElementById('burstVal'),
+  exposure:     document.getElementById('exposure'),
+  exposureVal:  document.getElementById('exposureVal'),
+  contrast:     document.getElementById('contrast'),
+  contrastVal:  document.getElementById('contrastVal'),
+  saturation:   document.getElementById('saturation'),
+  saturationVal:document.getElementById('saturationVal'),
+  sharpness:    document.getElementById('sharpness'),
+  sharpnessVal: document.getElementById('sharpnessVal'),
+  noiseReduction:document.getElementById('noiseReduction'),
+  noiseVal:     document.getElementById('noiseVal'),
+  detailBoost:  document.getElementById('detailBoost'),
+  detailVal:    document.getElementById('detailVal'),
+};
 
-  /* ══════════════════════════════════════════════
-     UTILITY FUNCTIONS
-  ══════════════════════════════════════════════ */
-  function clamp(v, min=0, max=255){ return Math.min(max, Math.max(min, v)) }
-  function lerp(a, b, t){ return a + (b - a) * t }
-  function q01(v){ return Math.min(1, Math.max(0, v)) }
-
-  function analyzeScene(data, stepHint=0) {
-    const pixelCount = Math.max(1, data.length / 4);
-    const step = stepHint || Math.max(10, Math.floor(pixelCount / 24000));
-    let sum=0, samples=0, shadows=0, highlights=0, chromaSum=0;
-    for (let i=0; i<data.length; i+=4*step) {
-      const r=data[i], g=data[i+1], b=data[i+2];
-      const l = rgbToGray(r,g,b) / 255;
-      const chroma = Math.max(r,g,b) - Math.min(r,g,b);
-      sum += l; chromaSum += chroma; samples++;
-      if (l < 0.18) shadows++;
-      if (l > 0.86) highlights++;
-    }
-    const inv = 1 / Math.max(1, samples);
-    return {
-      avgLum: sum * inv, shadowRatio: shadows * inv,
-      highlightRatio: highlights * inv, avgChroma: chromaSum * inv, step
+/* ═══════════ DB ═══════════ */
+let _db = null;
+function openDb() {
+  if (_db) return Promise.resolve(_db);
+  return new Promise((res,rej)=>{
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = ()=>{
+      const s=req.result.createObjectStore(STORE,{keyPath:'id'});
+      s.createIndex('ts','ts');
     };
-  }
-
-  function formatDate(ts) {
-    return new Date(ts).toLocaleString('es-AR', { dateStyle:'short', timeStyle:'short' });
-  }
-
-  /* ══════════════════════════════════════════════
-     TOAST / STATUS
-  ══════════════════════════════════════════════ */
-  function setToast(text) {
-    ui.toast.textContent = text;
-    ui.toast.classList.add('show');
-    clearTimeout(setToast._t);
-    setToast._t = setTimeout(() => ui.toast.classList.remove('show'), 1800);
-  }
-  function setStatus(kind, title, text) {
-    ui.statusTitle.textContent = title;
-    ui.statusText.textContent  = text;
-    ui.statusDot.className = 'statusDot' + (kind==='warn' ? ' warn' : kind==='bad' ? ' bad' : '');
-  }
-
-  /* ══════════════════════════════════════════════
-     SHEET
-  ══════════════════════════════════════════════ */
-  function openSheet(){ ui.sheet.classList.add('open') }
-  function closeSheet(){ ui.sheet.classList.remove('open') }
-
-  /* ══════════════════════════════════════════════
-     SETTINGS PERSISTENCE
-  ══════════════════════════════════════════════ */
-  function saveSettings() {
-    const data = {
-      preset:state.preset, mode:state.mode, facing:state.facing,
-      output:ui.sizePreset.value, burst:Number(ui.burstCount.value),
-      detail:Number(ui.detailBoost.value), noise:Number(ui.noiseReduction.value),
-      exposure:Number(ui.exposure.value), contrast:Number(ui.contrast.value),
-      saturation:Number(ui.saturation.value), sharpness:Number(ui.sharpness.value),
-      autoSave:state.autoSave, mirror:state.mirror, aiLite:state.aiLite,
-      timerSec:state.timerSec, showGrid:state.showGrid
-    };
-    try { localStorage.setItem(STORAGE.settings, JSON.stringify(data)); } catch(_){}
-  }
-
-  function loadSettings() {
-    try {
-      const raw = localStorage.getItem(STORAGE.settings);
-      if (!raw) return;
-      const d = JSON.parse(raw);
-      if (!d || typeof d !== 'object') return;
-      state.preset     = d.preset     || defaults.preset;
-      state.mode       = d.mode       || defaults.mode;
-      state.facing     = d.facing     || defaults.facing;
-      ui.sizePreset.value   = d.output     || defaults.output;
-      ui.burstCount.value   = String(d.burst    ?? defaults.burst);
-      ui.detailBoost.value  = String(d.detail   ?? defaults.detail);
-      ui.noiseReduction.value = String(d.noise  ?? defaults.noise);
-      ui.exposure.value     = String(d.exposure  ?? defaults.exposure);
-      ui.contrast.value     = String(d.contrast  ?? defaults.contrast);
-      ui.saturation.value   = String(d.saturation?? defaults.saturation);
-      ui.sharpness.value    = String(d.sharpness ?? defaults.sharpness);
-      state.autoSave   = !!d.autoSave;
-      state.mirror     = !!d.mirror;
-      state.aiLite     = d.aiLite !== undefined ? !!d.aiLite : defaults.aiLite;
-      state.timerSec   = d.timerSec ?? defaults.timerSec;
-      state.showGrid   = !!d.showGrid;
-    } catch(_){}
-  }
-
-  /* ══════════════════════════════════════════════
-     SYNC LABELS
-  ══════════════════════════════════════════════ */
-  function syncLabels() {
-    ui.profileBadge.textContent = `Perfil: ${presets[state.preset].title}`;
-    ui.modeBadge.textContent    = `Modo ${state.mode} · Salida ${ui.sizePreset.value === 'native' ? 'nativa' : `${ui.sizePreset.value} px`} · Burst ${ui.burstCount.value}`;
-    ui.presetDesc.textContent   = presets[state.preset].desc;
-    ui.sizeLabel.textContent    = ui.sizePreset.value === 'native' ? 'Nativa si existe' : `${ui.sizePreset.value} px`;
-    ui.burstLabel.textContent   = `${ui.burstCount.value} foto${Number(ui.burstCount.value)===1?'':'s'}`;
-    ui.detailLabel.textContent  = Number(ui.detailBoost.value).toFixed(2);
-    ui.noiseLabel.textContent   = Number(ui.noiseReduction.value).toFixed(2);
-    ui.exposureLabel.textContent= Number(ui.exposure.value).toFixed(2);
-    ui.contrastLabel.textContent= Number(ui.contrast.value).toFixed(2);
-    ui.saturationLabel.textContent = Number(ui.saturation.value).toFixed(2);
-    ui.sharpnessLabel.textContent  = Number(ui.sharpness.value).toFixed(2);
-    ui.autoSaveBtn.textContent  = `Auto-guardar: ${state.autoSave?'on':'off'}`;
-    ui.mirrorBtn.textContent    = `Espejo: ${state.mirror?'on':'off'}`;
-    if (ui.aiLiteBtn) {
-      ui.aiLiteBtn.textContent = `IA Lite: ${state.aiLite?'activada':'desactivada'}`;
-      ui.aiLiteBtn.classList.toggle('active', state.aiLite);
-    }
-    ui.previewVideo.classList.toggle('mirrored', state.mirror);
-    ui.fastModeBtn.classList.toggle('active',    state.mode==='fast');
-    ui.qualityModeBtn.classList.toggle('active', state.mode==='quality');
-    ui.nightModeBtn.classList.toggle('active',   state.mode==='night');
-    ui.portraitModeBtn.classList.toggle('active',state.mode==='portrait');
-    ui.rearBtn.classList.toggle('active',  state.facing==='environment');
-    ui.frontBtn.classList.toggle('active', state.facing==='user');
-    ui.presetButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.preset===state.preset));
-    // Mode strip sync
-    ui.modeChips.forEach(c => c.classList.toggle('active', c.dataset.mode===state.mode));
-    // Grid
-    ui.gridOverlay.classList.toggle('on', state.showGrid);
-    ui.gridBtn.style.color = state.showGrid ? '#77a6ff' : '';
-    // Timer
-    ui.timerBtn.style.color = state.timerSec > 0 ? '#ffd166' : '';
-    ui.timerBtn.textContent = state.timerSec > 0 ? `⏱${state.timerSec}` : '⏱';
-    ui.timer0Btn.classList.toggle('active',  state.timerSec===0);
-    ui.timer3Btn.classList.toggle('active',  state.timerSec===3);
-    ui.timer10Btn.classList.toggle('active', state.timerSec===10);
-    // Torch
-    if (ui.torchBtn) {
-      ui.torchBtn.style.color = state.torchOn ? '#ffd166' : '';
-    }
-  }
-
-  /* ══════════════════════════════════════════════
-     MODES AND PRESETS
-  ══════════════════════════════════════════════ */
-  function applyMode(mode) {
-    state.mode = mode;
-    const m = modePresets[mode];
-    ui.burstCount.value = String(m.burst);
-    if (ui.sizePreset.value !== 'native') ui.sizePreset.value = m.output;
-    if (Number(ui.sharpness.value) < 0.15 && m.sharpnessBoost > 0) {
-      ui.sharpness.value = String(0.15 + m.sharpnessBoost);
-    }
-    if (mode==='night') {
-      ui.noiseReduction.value = String(Math.max(Number(ui.noiseReduction.value), 0.50));
-    }
-    syncLabels(); saveSettings();
-    const desc = { fast:'Captura rápida.', quality:'Más detalle, más mezcla.', night:'Reducción de ruido reforzada.', portrait:'Tono suave para piel.' };
-    setStatus('ok', 'Modo cargado', desc[mode] || '');
-  }
-
-  function applyPreset(name) {
-    const p = presets[name];
-    state.preset = name;
-    ui.exposure.value   = String(p.exposure);
-    ui.contrast.value   = String(p.contrast);
-    ui.saturation.value = String(p.saturation);
-    ui.sharpness.value  = String(p.sharpness);
-    ui.noiseReduction.value = String(p.noise);
-    ui.detailBoost.value    = String(p.detail);
-    syncLabels(); saveSettings();
-    setStatus('ok', 'Perfil cargado', p.desc);
-  }
-
-  function resetAll() {
-    Object.assign(state, {
-      preset:defaults.preset, mode:defaults.mode, facing:defaults.facing,
-      autoSave:defaults.autoSave, mirror:defaults.mirror, aiLite:defaults.aiLite,
-      timerSec:defaults.timerSec, showGrid:defaults.showGrid
-    });
-    ui.sizePreset.value   = defaults.output;
-    ui.burstCount.value   = String(defaults.burst);
-    ui.detailBoost.value  = String(defaults.detail);
-    ui.noiseReduction.value = String(defaults.noise);
-    ui.exposure.value     = String(defaults.exposure);
-    ui.contrast.value     = String(defaults.contrast);
-    ui.saturation.value   = String(defaults.saturation);
-    ui.sharpness.value    = String(defaults.sharpness);
-    syncLabels(); saveSettings(); setToast('Valores restaurados');
-  }
-
-  /* ══════════════════════════════════════════════
-     CAMERA MANAGEMENT
-  ══════════════════════════════════════════════ */
-  function stopStream() {
-    if (state.stream) {
-      state.stream.getTracks().forEach(t => t.stop());
-      state.stream = null; state.track = null; state.imageCapture = null;
-    }
-  }
-
-  function buildConstraints() {
-    const fast = state.mode === 'fast';
-    // Always request the highest resolution the camera sensor supports.
-    // Android Chrome uses the camera's native max if ideal is set high enough.
-    // Front cameras: typically 8–16MP (up to 4032×3024).
-    // Rear cameras: typically 12–108MP raw, often output at 12–48MP via ISP.
-    const w = fast ? 1920 : 4096;
-    const h = fast ? 1080 : 3072;
-    const advanced = fast ? [] : [
-      { width:4096, height:3072 },  // 12MP 4:3
-      { width:3840, height:2880 },  // 11MP 4:3
-      { width:3264, height:2448 },  // 8MP 4:3
-      { width:3200, height:2400 },  // 7.7MP
-    ];
-    const baseVideo = {
-      width:  { ideal: w, min: fast ? 640 : 1280 },
-      height: { ideal: h, min: fast ? 480 : 960  },
-      facingMode: { exact: state.facing },
-      ...(advanced.length ? { advanced } : {})
-    };
-    if (state.cameraId) {
-      delete baseVideo.facingMode;
-      baseVideo.deviceId = { exact: state.cameraId };
-    }
-    return { audio: false, video: baseVideo };
-  }
-
-  async function listDevices() {
-    if (!navigator.mediaDevices?.enumerateDevices) return [];
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    return devices.filter(d => d.kind==='videoinput');
-  }
-
-  function guessFacingFromLabel(label='') {
-    const text = label.toLowerCase();
-    if (/(back|rear|environment|trasera|posterior)/.test(text)) return 'environment';
-    if (/(front|user|frontal|selfie)/.test(text)) return 'user';
-    return '';
-  }
-
-  async function chooseDeviceIdForFacing(facing) {
-    try {
-      const devices = await listDevices();
-      const guessed = devices.find(d => guessFacingFromLabel(d.label)===facing);
-      return guessed ? guessed.deviceId : '';
-    } catch(_){ return '' }
-  }
-
-  async function startCamera() {
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setStatus('bad', 'Sin soporte', 'Este navegador no soporta cámara.'); return;
-    }
-    if (!window.isSecureContext) {
-      setStatus('warn', 'Contexto inseguro', 'Usa HTTPS o localhost.'); return;
-    }
-    try {
-      stopStream();
-      if (!state.cameraId) state.cameraId = await chooseDeviceIdForFacing(state.facing);
-      let stream;
-      try {
-        stream = await navigator.mediaDevices.getUserMedia(buildConstraints());
-      } catch(err) {
-        if (state.cameraId) {
-          state.cameraId = '';
-          stream = await navigator.mediaDevices.getUserMedia(buildConstraints());
-        } else if (err && (err.name==='OverconstrainedError' || err.name==='NotReadableError')) {
-          const fallback = { audio:false, video:{ width:{ideal:state.mode==='fast'?1280:1920}, height:{ideal:state.mode==='fast'?720:1080}, facingMode:state.facing } };
-          stream = await navigator.mediaDevices.getUserMedia(fallback);
-        } else { throw err; }
-      }
-      state.stream = stream;
-      state.track  = stream.getVideoTracks()[0] || null;
-      state.imageCapture = state.track && 'ImageCapture' in window ? new ImageCapture(state.track) : null;
-      ui.previewVideo.srcObject = stream;
-      await ui.previewVideo.play();
-      ui.captureBtn.disabled = false;
-      ui.switchBtn.disabled  = false;
-      // Hide start overlay once camera is live
-      const overlay = document.getElementById('startOverlay');
-      if (overlay) overlay.classList.add('hidden');
-      const label = state.facing==='environment' ? 'trasera' : 'frontal';
-      setStatus('ok', 'Cámara activa', `Cámara ${label} lista.`);
-      setToast('Cámara iniciada');
-      saveSettings();
-      // After stream starts, probe capabilities
-      await probeCapabilities();
-    } catch(err) {
-      console.error(err);
-      setStatus('bad', 'No se pudo iniciar', `${err.name||'Error'}: ${err.message||'falló la cámara'}`);
-      // Always hide the overlay when camera fails — user should still be able to use file loading
-      const overlay = document.getElementById('startOverlay');
-      if (overlay) {
-        const hint = overlay.querySelector('.startHint p');
-        if (hint) hint.textContent = 'Sin cámara — abre una imagen con 📁';
-        overlay.classList.add('hidden');
-      }
-    }
-  }
-
-  async function probeCapabilities() {
-    if (!state.track) return;
-    try {
-      const caps = state.track.getCapabilities?.() || {};
-      // Zoom support
-      if (caps.zoom) {
-        state.zoomSupported = true;
-        state.zoomMin = caps.zoom.min || 1;
-        state.zoomMax = caps.zoom.max || 10;
-      } else {
-        state.zoomSupported = false;
-      }
-      // Torch support (only rear camera)
-      state.torchSupported = !!(caps.torch);
-      ui.torchBtn.style.display = (state.torchSupported && state.facing==='environment') ? '' : 'none';
-      // Reset zoom to 1
-      state.zoom = 1;
-      updateZoomButtons();
-    } catch(err) {
-      console.warn('probeCapabilities error:', err);
-    }
-  }
-
-  async function switchCamera() {
-    state.facing   = state.facing==='environment' ? 'user' : 'environment';
-    state.cameraId = await chooseDeviceIdForFacing(state.facing);
-    // Turn off torch if switching to front
-    if (state.torchOn && state.facing==='user') await toggleTorch(false);
-    syncLabels(); saveSettings();
-    await startCamera();
-  }
-
-  function setFacing(facing) {
-    state.facing = facing; state.cameraId = '';
-    syncLabels(); saveSettings();
-    setStatus('ok', facing==='environment' ? 'Trasera seleccionada' : 'Frontal seleccionada', 'Reiniciando cámara.');
-    void startCamera();
-  }
-
-  /* ══════════════════════════════════════════════
-     ZOOM
-  ══════════════════════════════════════════════ */
-  async function setZoom(level) {
-    state.zoom = level;
-    if (state.zoomSupported && state.track) {
-      const clamped = Math.max(state.zoomMin, Math.min(state.zoomMax, level));
-      try {
-        await state.track.applyConstraints({ advanced: [{ zoom: clamped }] });
-      } catch(e) { console.warn('zoom constraint failed', e); applyZoomCss(level); }
-    } else {
-      applyZoomCss(level);
-    }
-    showZoomPill(level);
-    updateZoomButtons();
-  }
-
-  function applyZoomCss(level) {
-    // CSS fallback: scale the video, this only affects preview
-    ui.previewVideo.style.transform = `scaleX(${state.mirror ? -1 : 1}) scale(${level})`;
-  }
-
-  function showZoomPill(level) {
-    ui.zoomPill.textContent = `${level}×`;
-    ui.zoomPill.classList.add('show');
-    clearTimeout(showZoomPill._t);
-    showZoomPill._t = setTimeout(() => ui.zoomPill.classList.remove('show'), 1400);
-  }
-
-  function updateZoomButtons() {
-    ui.zoomBtns.forEach(btn => {
-      const z = parseFloat(btn.dataset.zoom);
-      btn.classList.toggle('active', Math.abs(z - state.zoom) < 0.05);
-    });
-  }
-
-  /* Pinch-to-zoom */
-  function pinchDist(touches) {
-    const dx = touches[0].clientX - touches[1].clientX;
-    const dy = touches[0].clientY - touches[1].clientY;
-    return Math.sqrt(dx*dx + dy*dy);
-  }
-
-  ui.stage.addEventListener('touchstart', e => {
-    if (e.touches.length === 2) {
-      state.pinchStartDist = pinchDist(e.touches);
-      state.pinchStartZoom = state.zoom;
-    }
-  }, { passive:true });
-
-  ui.stage.addEventListener('touchmove', e => {
-    if (e.touches.length === 2) {
-      const dist  = pinchDist(e.touches);
-      const ratio = dist / Math.max(1, state.pinchStartDist);
-      const newZoom = Math.max(0.6, Math.min(10, state.pinchStartZoom * ratio));
-      const rounded = Math.round(newZoom * 10) / 10;
-      if (Math.abs(rounded - state.zoom) >= 0.05) void setZoom(rounded);
-    }
-  }, { passive:true });
-
-  /* Tap to focus */
-  ui.stage.addEventListener('click', e => {
-    if (!state.track) return;
-    const rect = ui.stage.getBoundingClientRect();
-    const relX = (e.clientX - rect.left) / rect.width;
-    const relY = (e.clientY - rect.top)  / rect.height;
-    // Show focus ring
-    ui.focusRing.style.left = `${relX * 100}%`;
-    ui.focusRing.style.top  = `${relY * 100}%`;
-    ui.focusRing.classList.add('show');
-    clearTimeout(ui.focusRing._t);
-    ui.focusRing._t = setTimeout(() => ui.focusRing.classList.remove('show'), 1500);
-    // Apply focus constraint if supported
-    try {
-      const caps = state.track.getCapabilities?.() || {};
-      if (caps.focusMode?.includes?.('single-shot')) {
-        state.track.applyConstraints({ advanced: [{ pointOfInterest: { x: relX, y: relY }, focusMode: 'single-shot' }] }).catch(()=>{});
-      }
-    } catch(_){}
+    req.onsuccess = ()=>{ _db=req.result; res(_db); };
+    req.onerror   = ()=>rej(req.error);
   });
+}
 
-  /* ══════════════════════════════════════════════
-     TORCH
-  ══════════════════════════════════════════════ */
-  async function toggleTorch(forcedState) {
-    if (!state.track) return;
-    const desired = forcedState !== undefined ? forcedState : !state.torchOn;
-    try {
-      await state.track.applyConstraints({ advanced: [{ torch: desired }] });
-      state.torchOn = desired;
-      ui.torchBtn.textContent = desired ? '🔦' : '🔦';
-      syncLabels();
-      setToast(desired ? 'Linterna encendida' : 'Linterna apagada');
-    } catch(e) {
-      console.warn('torch error', e);
-      setToast('Linterna no disponible');
+/* ═══════════ UTILS ═══════════ */
+const clamp = (v,lo=0,hi=255)=>Math.min(hi,Math.max(lo,v));
+const lerp  = (a,b,t)=>a+(b-a)*t;
+const q01   = v=>Math.min(1,Math.max(0,v));
+function rgbToGray(r,g,b){ return 0.299*r+0.587*g+0.114*b }
+function canvasToBlob(c,type='image/jpeg',q=0.97){
+  return new Promise(res=>c.toBlob(res,type,q));
+}
+function imageBlobToBitmap(blob){
+  if ('createImageBitmap' in window) return createImageBitmap(blob);
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(blob);
+    const img=new Image();
+    img.onload=()=>{URL.revokeObjectURL(url);res(img);};
+    img.onerror=e=>{URL.revokeObjectURL(url);rej(e);};
+    img.src=url;
+  });
+}
+function filenameFromNow(){ return `gcam_${new Date().toISOString().replace(/[:.]/g,'-').slice(0,19)}.jpg`; }
+async function downloadBlob(blob,name){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=name;
+  document.body.appendChild(a); a.click();
+  requestAnimationFrame(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); });
+}
+
+let _toastTimer=null;
+function toast(msg,dur=2200){
+  ui.toast.textContent=msg;
+  ui.toast.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>ui.toast.classList.remove('show'),dur);
+}
+function setStatus(type,text){
+  ui.statusDot.className='dot '+type;
+  ui.statusText.textContent=text;
+}
+
+/* ═══════════ SETTINGS ═══════════ */
+function saveSettings(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      preset:state.preset, mode:state.mode, facing:state.facing,
+      output:ui.sizePreset.value, burst:+ui.burstCount.value,
+      exposure:+ui.exposure.value, contrast:+ui.contrast.value,
+      saturation:+ui.saturation.value, sharpness:+ui.sharpness.value,
+      noise:+ui.noiseReduction.value, detail:+ui.detailBoost.value,
+      autoSave:state.autoSave, mirror:state.mirror,
+      timerSec:state.timerSec, showGrid:state.showGrid
+    }));
+  } catch(_){}
+}
+function loadSettings(){
+  try {
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const d=JSON.parse(raw);
+    if (!d) return;
+    state.preset    = d.preset    || defaults.preset;
+    state.mode      = d.mode      || defaults.mode;
+    state.facing    = d.facing    || defaults.facing;
+    state.autoSave  = !!d.autoSave;
+    state.mirror    = !!d.mirror;
+    state.timerSec  = d.timerSec  ?? 0;
+    state.showGrid  = !!d.showGrid;
+    ui.sizePreset.value    = d.output     || defaults.output;
+    ui.burstCount.value    = d.burst      ?? 1;
+    ui.exposure.value      = d.exposure   ?? defaults.exposure;
+    ui.contrast.value      = d.contrast   ?? defaults.contrast;
+    ui.saturation.value    = d.saturation ?? defaults.saturation;
+    ui.sharpness.value     = d.sharpness  ?? defaults.sharpness;
+    ui.noiseReduction.value= d.noise      ?? defaults.noise;
+    ui.detailBoost.value   = d.detail     ?? defaults.detail;
+  } catch(_){}
+}
+
+/* ═══════════ SYNC UI ═══════════ */
+function syncUI(){
+  const p=presets[state.preset];
+  ui.profileBadge.textContent=p.title;
+  ui.modeBadge.textContent=`${state.mode} · ${ui.sizePreset.value==='native'?'nativa':ui.sizePreset.value+'px'}`;
+  ui.presetDesc.textContent=p.desc;
+  ui.burstVal.textContent=ui.burstCount.value;
+  ui.burstLabel.textContent=`${ui.burstCount.value} foto${+ui.burstCount.value===1?'':'s'}`;
+  ui.exposureVal.textContent  =(+ui.exposure.value).toFixed(2);
+  ui.contrastVal.textContent  =(+ui.contrast.value).toFixed(2);
+  ui.saturationVal.textContent=(+ui.saturation.value).toFixed(2);
+  ui.sharpnessVal.textContent =(+ui.sharpness.value).toFixed(2);
+  ui.noiseVal.textContent     =(+ui.noiseReduction.value).toFixed(2);
+  ui.detailVal.textContent    =(+ui.detailBoost.value).toFixed(2);
+  ui.autoSaveBtn.textContent  =`Auto-guardar: ${state.autoSave?'on':'off'}`;
+  ui.autoSaveBtn.classList.toggle('active',state.autoSave);
+  ui.previewVideo.classList.toggle('mirrored',state.mirror);
+  ui.mirrorBtn.classList.toggle('lit',state.mirror);
+  ui.gridOverlay.classList.toggle('on',state.showGrid);
+  ui.gridBtn.classList.toggle('lit',state.showGrid);
+  ui.timerBtn.textContent=state.timerSec>0?`⏱${state.timerSec}`:'⏱';
+  ui.timerBtn.classList.toggle('lit',state.timerSec>0);
+  [ui.timer0Btn,ui.timer3Btn,ui.timer10Btn].forEach((b,i)=>
+    b.classList.toggle('active',[0,3,10][i]===state.timerSec));
+  ui.rearBtn.classList.toggle('active',  state.facing==='environment');
+  ui.frontBtn.classList.toggle('active', state.facing==='user');
+  ui.fastModeBtn.classList.toggle('active',    state.mode==='fast');
+  ui.qualityModeBtn.classList.toggle('active', state.mode==='quality');
+  ui.aiModeBtn.classList.toggle('active',      state.mode==='ai');
+  ui.nightModeBtn.classList.toggle('active',   state.mode==='night');
+  ui.portraitModeBtn.classList.toggle('active',state.mode==='portrait');
+  ui.modeChips.forEach(c=>c.classList.toggle('active',c.dataset.mode===state.mode));
+  ui.presetButtons.forEach(b=>b.classList.toggle('active',b.dataset.preset===state.preset));
+  if (state.torchSupported) ui.torchBtn.classList.toggle('lit',state.torchOn);
+  // Shutter mode indicator
+  ui.captureBtn.classList.toggle('aimode',state.mode==='ai');
+}
+
+/* ═══════════ MODES / PRESETS ═══════════ */
+function applyMode(mode){
+  state.mode=mode;
+  const m=modePresets[mode];
+  ui.sizePreset.value=m.output;
+  ui.burstCount.value=m.burst;
+  syncUI(); saveSettings();
+  toast(`Modo ${mode}`);
+}
+function applyPreset(name){
+  const p=presets[name];
+  state.preset=name;
+  ui.exposure.value   =p.exposure;
+  ui.contrast.value   =p.contrast;
+  ui.saturation.value =p.saturation;
+  ui.sharpness.value  =p.sharpness;
+  ui.noiseReduction.value=p.noise;
+  ui.detailBoost.value=p.detail;
+  syncUI(); saveSettings();
+  toast(`Perfil: ${p.title}`);
+}
+
+/* ═══════════ CAMERA ═══════════ */
+function stopStream(){
+  if (state.stream){ state.stream.getTracks().forEach(t=>t.stop()); state.stream=null; }
+  state.track=null; state.imageCapture=null;
+}
+function buildConstraints(){
+  const fast=state.mode==='fast';
+  const baseVideo={
+    width:{ideal:4096, min:640}, height:{ideal:3072, min:480},
+    facingMode:{exact:state.facing},
+    advanced: fast?[]:[
+      {width:4096,height:3072},{width:3840,height:2880},{width:3264,height:2448}
+    ]
+  };
+  return {audio:false,video:baseVideo};
+}
+async function chooseDevice(facing){
+  const devices=await navigator.mediaDevices.enumerateDevices().catch(()=>[]);
+  const cams=devices.filter(d=>d.kind==='videoinput');
+  const match=cams.find(d=>d.label.toLowerCase().includes(facing==='environment'?'back':'front'));
+  return match?match.deviceId:null;
+}
+async function startCamera(){
+  if (!navigator.mediaDevices?.getUserMedia){ setStatus('bad','Sin soporte de cámara'); return; }
+  if (window.location.protocol==='file:'){ setStatus('warn','Requiere HTTPS'); }
+  try {
+    stopStream();
+    let stream;
+    try { stream=await navigator.mediaDevices.getUserMedia(buildConstraints()); }
+    catch(e){
+      const fallback={audio:false,video:{facingMode:state.facing,width:{ideal:1920},height:{ideal:1080}}};
+      stream=await navigator.mediaDevices.getUserMedia(fallback);
     }
+    state.stream=stream;
+    state.track=stream.getVideoTracks()[0]||null;
+    state.imageCapture=state.track&&'ImageCapture'in window?new ImageCapture(state.track):null;
+    ui.previewVideo.srcObject=stream;
+    await ui.previewVideo.play();
+    ui.captureBtn.disabled=false;
+    ui.switchBtn.disabled=false;
+    ui.startOverlay.classList.add('hidden');
+    const label=state.facing==='environment'?'trasera':'frontal';
+    setStatus('ok',`Cámara ${label} lista`);
+    await probeCapabilities();
+    syncUI();
+  } catch(err){
+    console.error(err);
+    setStatus('bad',`${err.name||'Error'}`);
+    ui.startOverlay.classList.add('hidden');
+    toast('No se pudo iniciar la cámara');
   }
-
-  /* ══════════════════════════════════════════════
-     TIMER
-  ══════════════════════════════════════════════ */
-  function setTimerDuration(sec) {
-    state.timerSec = sec;
-    syncLabels(); saveSettings();
-    setToast(sec===0 ? 'Sin temporizador' : `Temporizador: ${sec}s`);
+}
+async function switchCamera(){
+  state.facing=state.facing==='environment'?'user':'environment';
+  await startCamera();
+}
+async function probeCapabilities(){
+  if (!state.track) return;
+  try {
+    const caps=state.track.getCapabilities?.()??{};
+    state.zoomSupported=!!caps.zoom;
+    state.zoomMin=caps.zoom?.min??1;
+    state.zoomMax=caps.zoom?.max??10;
+    state.torchSupported=!!caps.torch;
+    ui.torchBtn.style.display=state.torchSupported&&state.facing==='environment'?'':'none';
+    state.zoom=1;
+  } catch(_){}
+}
+async function setZoom(z){
+  state.zoom=z;
+  if (state.zoomSupported&&state.track){
+    try { await state.track.applyConstraints({advanced:[{zoom:z}]}); } catch(_){}
   }
+  showZoomPill(z);
+  ui.zoomBtns.forEach(b=>b.classList.toggle('active',Math.abs(parseFloat(b.dataset.zoom)-z)<0.05));
+}
+async function setFacing(f){
+  state.facing=f;
+  await startCamera();
+}
+function showZoomPill(z){
+  ui.zoomPill.textContent=`${z}×`;
+  ui.zoomPill.classList.add('show');
+  clearTimeout(showZoomPill._t);
+  showZoomPill._t=setTimeout(()=>ui.zoomPill.classList.remove('show'),1400);
+}
+async function toggleTorch(){
+  if (!state.track) return;
+  const d=!state.torchOn;
+  try { await state.track.applyConstraints({advanced:[{torch:d}]}); state.torchOn=d; syncUI(); } catch(_){}
+}
 
-  function cycleTimer() {
-    const next = state.timerSec===0 ? 3 : state.timerSec===3 ? 10 : 0;
-    setTimerDuration(next);
+/* ═══════════ CAPTURE ═══════════ */
+async function captureOneBlob(){
+  // NEVER use ImageCapture.takePhoto when mirror is on (it bypasses canvas transform)
+  if (!state.mirror&&state.imageCapture?.takePhoto){
+    try { return await state.imageCapture.takePhoto(); } catch(_){}
   }
-
-  function runTimer(onDone) {
-    if (state.timerSec <= 0) { onDone(); return; }
-    if (state.timerRunning) return;
-    state.timerRunning = true;
-    let remaining = state.timerSec;
-    ui.timerNumber.textContent = remaining;
-    ui.timerOverlay.classList.add('active');
-    state.timerHandle = setInterval(() => {
-      remaining--;
-      ui.timerNumber.textContent = remaining;
-      if (remaining <= 0) {
-        clearInterval(state.timerHandle);
-        state.timerRunning = false;
-        ui.timerOverlay.classList.remove('active');
-        onDone();
-      }
-    }, 1000);
+  const vw=ui.previewVideo.videoWidth, vh=ui.previewVideo.videoHeight;
+  if (!vw||!vh) throw new Error('Cámara no lista');
+  const c=ui.photoCanvas; c.width=vw; c.height=vh;
+  const ctx=c.getContext('2d',{willReadFrequently:true,alpha:false});
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  ctx.save();
+  if (state.mirror){ ctx.translate(vw,0); ctx.scale(-1,1); }
+  if (!state.zoomSupported&&state.zoom!==1){
+    const z=state.zoom, sw=vw/z, sh=vh/z, sx=(vw-sw)/2, sy=(vh-sh)/2;
+    ctx.drawImage(ui.previewVideo,sx,sy,sw,sh,0,0,vw,vh);
+  } else {
+    ctx.drawImage(ui.previewVideo,0,0,vw,vh);
   }
-
-  function cancelTimer() {
-    if (state.timerHandle) clearInterval(state.timerHandle);
-    state.timerRunning = false;
-    ui.timerOverlay.classList.remove('active');
+  ctx.restore();
+  return canvasToBlob(c,'image/jpeg',0.99);
+}
+async function captureBurst(n){
+  const frames=[];
+  for (let i=0;i<n;i++){
+    const blob=await captureOneBlob();
+    frames.push(await imageBlobToBitmap(blob));
+    if (i<n-1) await new Promise(r=>setTimeout(r,80));
   }
+  return frames;
+}
 
-  /* ══════════════════════════════════════════════
-     GRID
-  ══════════════════════════════════════════════ */
-  function toggleGrid() {
-    state.showGrid = !state.showGrid;
-    syncLabels(); saveSettings();
-    setToast(state.showGrid ? 'Cuadrícula activada' : 'Cuadrícula desactivada');
+/* ═══════════ AI SCENE ANALYSIS (Anthropic API) ═══════════ */
+async function analyzeSceneWithAI(imageBlob){
+  // Create a small thumbnail for the API call
+  const thumb=await createThumbnail(imageBlob, 512);
+  const b64=await blobToBase64(thumb);
+  const b64data=b64.split(',')[1];
+
+  const prompt=`You are an expert photo ISP (Image Signal Processor). Analyze this photo and return ONLY a valid JSON object with no extra text, no markdown, no backticks.
+
+Required JSON structure:
+{
+  "scene": "string describing the scene in Spanish (max 30 chars)",
+  "type": "portrait|landscape|lowlight|food|document|action|macro|other",
+  "hasFaces": true|false,
+  "skinTone": "light|medium|dark|none",
+  "lighting": "bright_outdoor|indoor_natural|indoor_artificial|mixed|very_dark",
+  "highlightClipping": true|false,
+  "shadowDetail": "good|poor|none",
+  "dominantColors": ["color1","color2"],
+  "processingHints": {
+    "exposure": 0.95,
+    "contrast": 1.10,
+    "saturation": 1.05,
+    "sharpness": 0.20,
+    "noiseReduction": 0.25,
+    "shadows": 0.08,
+    "highlights": -0.10,
+    "warmth": 0.02,
+    "clarity": 0.50,
+    "faceProtection": true|false,
+    "note": "brief Spanish note about main processing decision"
   }
+}
 
-  /* ══════════════════════════════════════════════
-     FLASH ANIMATION
-  ══════════════════════════════════════════════ */
-  function triggerFlash() {
-    ui.flashOverlay.classList.remove('flash');
-    void ui.flashOverlay.offsetWidth; // reflow
-    ui.flashOverlay.classList.add('flash');
-    ui.captureBtn.classList.add('capture-ring');
-    setTimeout(() => ui.captureBtn.classList.remove('capture-ring'), 500);
-  }
+Exposure range: 0.75-1.35. Contrast: 0.90-1.30. Saturation: 0.75-1.30.
+Sharpness: 0.05-0.60. NoiseReduction: 0.10-0.80. Shadows: 0.00-0.25. Highlights: -0.40-0.00.
+Warmth: -0.05 to +0.05 (positive=warmer). Clarity: 0.20-0.80.
+FaceProtection: true if hasFaces=true (protects skin from over-sharpening).`;
 
-  /* ══════════════════════════════════════════════
-     BUSY STATE
-  ══════════════════════════════════════════════ */
-  function setBusy(flag) {
-    state.busy = flag;
-    ui.captureBtn.disabled = flag || !state.stream;
-    ui.startBtn.disabled   = flag;
-    ui.switchBtn.disabled  = flag || !state.stream;
-    ui.captureBtn.classList.toggle('saving', flag);
-  }
-
-  /* ══════════════════════════════════════════════
-     IMAGE PROCESSING UTILITIES
-  ══════════════════════════════════════════════ */
-  function canvasToBlob(canvas, type='image/jpeg', quality=0.97) {
-    return new Promise(resolve => canvas.toBlob(resolve, type, quality));
-  }
-
-  function imageBlobToBitmap(blob) {
-    if ('createImageBitmap' in window) return createImageBitmap(blob);
-    return new Promise((resolve, reject) => {
-      const url = URL.createObjectURL(blob);
-      const img = new Image();
-      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
-      img.onerror = e => { URL.revokeObjectURL(url); reject(e); };
-      img.src = url;
+  try {
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:600,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64data}},
+            {type:'text',text:prompt}
+          ]
+        }]
+      })
     });
+    const data=await resp.json();
+    if (data.error) throw new Error(data.error.message||'API error');
+    const text=data.content.map(c=>c.text||'').join('');
+    const clean=text.replace(/```json|```/g,'').trim();
+    const analysis=JSON.parse(clean);
+    return analysis;
+  } catch(err){
+    console.warn('AI analysis failed:', err);
+    return null;
   }
+}
 
-  function rgbToGray(r, g, b){ return 0.299*r + 0.587*g + 0.114*b }
+async function createThumbnail(blob, maxSize){
+  const bmp=await imageBlobToBitmap(blob);
+  const w=bmp.width||bmp.naturalWidth, h=bmp.height||bmp.naturalHeight;
+  const scale=maxSize/Math.max(w,h);
+  const tw=Math.round(w*scale), th=Math.round(h*scale);
+  const c=document.createElement('canvas'); c.width=tw; c.height=th;
+  const ctx=c.getContext('2d',{alpha:false});
+  ctx.drawImage(bmp,0,0,tw,th);
+  return canvasToBlob(c,'image/jpeg',0.85);
+}
+function blobToBase64(blob){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=()=>res(fr.result);
+    fr.onerror=()=>rej(fr.error);
+    fr.readAsDataURL(blob);
+  });
+}
 
-  function estimateShift(ref, img, width, height, range=6, sampleStep=4) {
-    const cx=Math.floor(width*.5), cy=Math.floor(height*.5);
-    const roiW=Math.floor(width*.5), roiH=Math.floor(height*.5);
-    const x0=Math.max(0,cx-Math.floor(roiW/2)), y0=Math.max(0,cy-Math.floor(roiH/2));
-    let best = { dx:0, dy:0, score:Infinity };
-    for (let dy=-range; dy<=range; dy++) {
-      for (let dx=-range; dx<=range; dx++) {
-        let score=0, count=0;
-        for (let y=0; y<roiH; y+=sampleStep) {
-          const yy=y0+y, yy2=yy+dy;
-          if (yy2<0||yy2>=height) continue;
-          for (let x=0; x<roiW; x+=sampleStep) {
-            const xx=x0+x, xx2=xx+dx;
-            if (xx2<0||xx2>=width) continue;
-            const i1=(yy*width+xx)*4, i2=(yy2*width+xx2)*4;
-            score += Math.abs(rgbToGray(ref[i1],ref[i1+1],ref[i1+2]) - rgbToGray(img[i2],img[i2+1],img[i2+2]));
-            count++;
-          }
-        }
-        score = score / Math.max(1, count);
-        if (score < best.score) best = {dx,dy,score};
+function showAIAnalysis(analysis){
+  if (!analysis) return;
+  state.lastAiAnalysis=analysis;
+  ui.aiSceneLabel.textContent=analysis.scene||'Escena desconocida';
+  ui.aiDescLabel.textContent=analysis.processingHints?.note||'Procesado optimizado por IA.';
+  ui.aiTagsRow.innerHTML='';
+  const tags=[
+    analysis.type, analysis.lighting,
+    analysis.hasFaces?`${analysis.skinTone} skin`:'sin caras',
+    analysis.shadowDetail==='poor'?'sombras recuperadas':null,
+    analysis.highlightClipping?'luces recortadas':null
+  ].filter(Boolean);
+  tags.forEach(t=>{
+    const span=document.createElement('span');
+    span.className='aiTag'; span.textContent=t;
+    ui.aiTagsRow.appendChild(span);
+  });
+  // Show badge on viewfinder
+  ui.aiBadge.textContent=`✦ ${analysis.scene}`;
+  ui.aiBadge.classList.add('show');
+  setTimeout(()=>ui.aiBadge.classList.remove('show'),4000);
+}
+
+/* ═══════════ IMAGE PROCESSING PIPELINE ═══════════ */
+function acesTonemap(x){
+  const v=Math.max(0,x);
+  return Math.min(1,(v*(2.51*v+0.03))/(v*(2.43*v+0.59)+0.14));
+}
+function softSCurve(x,s){
+  const t=q01(x), c=t*t*(3-2*t);
+  return t+(c-t)*Math.min(1,s*1.3);
+}
+function boxBlurRGBA(data,w,h,r=1){
+  const out=new Uint8ClampedArray(data.length);
+  // Horizontal
+  const tmp=new Uint8ClampedArray(data.length);
+  const kw=2*r+1;
+  for (let y=0;y<h;y++){
+    for (let x=0;x<w;x++){
+      let sr=0,sg=0,sb=0;
+      for (let k=-r;k<=r;k++){
+        const nx=Math.min(w-1,Math.max(0,x+k));
+        const i=(y*w+nx)*4;
+        sr+=data[i];sg+=data[i+1];sb+=data[i+2];
       }
+      const i=(y*w+x)*4;
+      tmp[i]=sr/kw;tmp[i+1]=sg/kw;tmp[i+2]=sb/kw;tmp[i+3]=data[i+3];
     }
-    return best;
   }
-
-  function applyShiftedFrame(acc, img, width, height, dx, dy, weight) {
-    const out = acc.data, src = img;
-    for (let y=0; y<height; y++) {
-      const sy = y+dy;
-      if (sy<0||sy>=height) continue;
-      for (let x=0; x<width; x++) {
-        const sx = x+dx;
-        if (sx<0||sx>=width) continue;
-        const di=(y*width+x)*4, si=(sy*width+sx)*4;
-        out[di]   += src[si]   * weight;
-        out[di+1] += src[si+1] * weight;
-        out[di+2] += src[si+2] * weight;
-        out[di+3] += src[si+3] * weight;
+  // Vertical
+  for (let x=0;x<w;x++){
+    for (let y=0;y<h;y++){
+      let sr=0,sg=0,sb=0;
+      for (let k=-r;k<=r;k++){
+        const ny=Math.min(h-1,Math.max(0,y+k));
+        const i=(ny*w+x)*4;
+        sr+=tmp[i];sg+=tmp[i+1];sb+=tmp[i+2];
       }
+      const i=(y*w+x)*4;
+      out[i]=sr/kw;out[i+1]=sg/kw;out[i+2]=sb/kw;out[i+3]=tmp[i+3];
     }
-    acc.weight += weight;
   }
+  return out;
+}
 
-  function focusScore(data, width, height) {
-    let sum=0, count=0;
-    for (let y=1; y<height; y+=2) {
-      for (let x=1; x<width; x+=2) {
-        const i=(y*width+x)*4;
-        const l  = rgbToGray(data[i],   data[i+1],   data[i+2]);
-        const l1 = rgbToGray(data[i-4], data[i-3],   data[i-2]);
-        const l2 = rgbToGray(data[i-width*4], data[i-width*4+1], data[i-width*4+2]);
-        sum += Math.abs(l-l1) + Math.abs(l-l2);
-        count += 2;
-      }
+/* Bilateral-lite chroma NR (downsample → bilateral → upsample → luminance restore) */
+function preChromaNR(srcData,width,height,radius,mix){
+  const scale=Math.min(1,320/width);
+  const sw=Math.max(4,Math.round(width*scale)), sh=Math.max(4,Math.round(height*scale));
+  const small=new Uint8ClampedArray(sw*sh*4);
+  const xR=width/sw, yR=height/sh;
+  for (let sy=0;sy<sh;sy++){
+    for (let sx=0;sx<sw;sx++){
+      const si=(Math.min(height-1,Math.floor(sy*yR))*width+Math.min(width-1,Math.floor(sx*xR)))*4;
+      const di=(sy*sw+sx)*4;
+      small[di]=srcData[si];small[di+1]=srcData[si+1];small[di+2]=srcData[si+2];small[di+3]=255;
     }
-    return count ? sum/count : 0;
   }
-
-  function downscaleCanvasData(canvas, width, height) {
-    const temp = document.createElement('canvas');
-    temp.width=width; temp.height=height;
-    const ctx = temp.getContext('2d', { willReadFrequently:true, alpha:false });
-    ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-    ctx.drawImage(canvas, 0, 0, width, height);
-    return ctx.getImageData(0, 0, width, height).data;
-  }
-
-  function averageFrames(frameCanvases, width, height, cameraType) {
-    if (!frameCanvases.length) return new Uint8ClampedArray(width*height*4);
-    if (frameCanvases.length===1) {
-      return frameCanvases[0].getContext('2d',{willReadFrequently:true,alpha:false}).getImageData(0,0,width,height).data;
-    }
-    const downW = Math.max(160, Math.round(width/12));
-    const downH = Math.max(160, Math.round(height/12));
-    const smallFrames = frameCanvases.map(c => downscaleCanvasData(c, downW, downH));
-    const scores      = smallFrames.map(d => focusScore(d, downW, downH));
-    const refIndex    = scores.indexOf(Math.max(...scores));
-    const refSmall    = smallFrames[refIndex];
-    const refScore    = scores[refIndex] || 1;
-    const shifts=[]; let motionSum=0;
-    for (let i=0; i<smallFrames.length; i++) {
-      if (i===refIndex) continue;
-      const shift = estimateShift(refSmall, smallFrames[i], downW, downH, cameraType==='environment'?5:3, 4);
-      const dx = Math.round(shift.dx*(width/downW));
-      const dy = Math.round(shift.dy*(height/downH));
-      const mag = Math.abs(dx)+Math.abs(dy);
-      motionSum += mag;
-      shifts.push({i,dx,dy,mag});
-    }
-    const avgMotion  = shifts.length ? motionSum/shifts.length : 0;
-    const motionLimit = cameraType==='environment' ? 2.3 : 1.7;
-    if (avgMotion > motionLimit) {
-      return frameCanvases[refIndex].getContext('2d',{willReadFrequently:true,alpha:false}).getImageData(0,0,width,height).data;
-    }
-    const accumulator = { data: new Float32Array(width*height*4), weight:0 };
-    const refData = frameCanvases[refIndex].getContext('2d',{willReadFrequently:true,alpha:false}).getImageData(0,0,width,height).data;
-    applyShiftedFrame(accumulator, refData, width, height, 0, 0, 1.08);
-    for (const s of shifts) {
-      const data = frameCanvases[s.i].getContext('2d',{willReadFrequently:true,alpha:false}).getImageData(0,0,width,height).data;
-      const scoreWeight = q01(scores[s.i] / refScore);
-      const weight = 0.68 + scoreWeight * 0.42;
-      applyShiftedFrame(accumulator, data, width, height, s.dx, s.dy, weight);
-    }
-    const avg = new Uint8ClampedArray(width*height*4);
-    const denom = Math.max(1, accumulator.weight);
-    for (let i=0; i<avg.length; i++) avg[i] = clamp(accumulator.data[i]/denom);
-    return avg;
-  }
-
-  function estimateWhiteBalance(data, cameraType, scene=null) {
-    let rSum=0, gSum=0, bSum=0, n=0;
-    const stats = scene || analyzeScene(data);
-    const brightScene = stats.avgLum > 0.68;
-    const step = Math.max(12, Math.floor((data.length/4)/18000));
-
-    // Sample ONLY bright-ish, near-neutral pixels.
-    // Raising luma min from 18→60 excludes dark colored regions (navy, black clothes)
-    // that would fool the gray-world algorithm into heavy color correction.
-    // Lowering chroma threshold from 98→40 excludes colored objects (red stripes, skin).
-    const lumaMin  = 60;
-    const lumaMax  = brightScene ? 232 : 240;
-    const chromaMax = 40;   // 8-bit. Only near-neutral pixels qualify.
-
-    for (let i=0; i<data.length; i+=4*step) {
-      const r=data[i], g=data[i+1], b=data[i+2];
-      const l = rgbToGray(r,g,b);
-      const chroma = Math.max(r,g,b)-Math.min(r,g,b);
-      if (l < lumaMin || l > lumaMax || chroma > chromaMax) continue;
-      rSum+=r; gSum+=g; bSum+=b; n++;
-    }
-    // Fallback if no qualifying pixels (very colorful or very dark scene)
-    if (n < 20) return { r:1.0, g:1.0, b:1.0 }; // neutral WB → don't guess
-
-    const rAvg=rSum/n, gAvg=gSum/n, bAvg=bSum/n;
-    const gray = (rAvg+gAvg+bAvg)/3 || 1;
-    let rGain=gray/Math.max(1,rAvg), gGain=gray/Math.max(1,gAvg), bGain=gray/Math.max(1,bAvg);
-    const rear=cameraType==='environment';
-
-    // Gentle scene-specific nudges only
-    if (rear) {
-      if (brightScene) rGain *= 0.99;
-    } else {
-      // Front camera: slightly warmer to counteract cool sensors
-      rGain *= 1.008; bGain *= 0.993;
-    }
-
-    // Dampen correction strongly — WB is a hint, not a full correction.
-    // Reduces impact when the scene has few neutral references.
-    const damp = rear ? 0.55 : 0.40;
-    rGain = 1.0 + (rGain - 1.0) * damp;
-    gGain = 1.0 + (gGain - 1.0) * damp;
-    bGain = 1.0 + (bGain - 1.0) * damp;
-
-    // Tight clamps: max ±12% correction.
-    // Prevents WB from turning navy→purple or yellow→green.
-    return {
-      r: Math.min(1.12, Math.max(0.90, rGain)),
-      g: Math.min(1.10, Math.max(0.92, gGain)),
-      b: Math.min(1.12, Math.max(0.90, bGain))
-    };
-  }
-
-  function acesTonemap(x) {
-    const v=Math.max(0,x);
-    return Math.min(1,(v*(2.51*v+0.03))/(v*(2.43*v+0.59)+0.14));
-  }
-
-  function boxBlurRGBA(data, width, height, radius=1) {
-    const r=Math.max(1,radius|0);
-    const temp=new Float32Array(data.length);
-    const out=new Uint8ClampedArray(data.length);
-    const w4=width*4;
-    for (let y=0; y<height; y++) {
-      const row=y*w4;
-      for (let x=0; x<width; x++) {
-        let rs=0,gs=0,bs=0,as=0,count=0;
-        for (let dx=-r; dx<=r; dx++) {
-          const sx=x+dx;
-          if (sx<0||sx>=width) continue;
-          const i=row+sx*4;
-          rs+=data[i]; gs+=data[i+1]; bs+=data[i+2]; as+=data[i+3]; count++;
-        }
-        const o=row+x*4;
-        temp[o]=rs/count; temp[o+1]=gs/count; temp[o+2]=bs/count; temp[o+3]=as/count;
-      }
-    }
-    for (let y=0; y<height; y++) {
-      for (let x=0; x<width; x++) {
-        let rs=0,gs=0,bs=0,as=0,count=0;
-        for (let dy=-r; dy<=r; dy++) {
-          const sy=y+dy;
-          if (sy<0||sy>=height) continue;
-          const i=(sy*width+x)*4;
-          rs+=temp[i]; gs+=temp[i+1]; bs+=temp[i+2]; as+=temp[i+3]; count++;
-        }
-        const o=(y*width+x)*4;
-        out[o]=rs/count; out[o+1]=gs/count; out[o+2]=bs/count; out[o+3]=as/count;
-      }
-    }
-    return out;
-  }
-
-  // Simplified bilateral filter — blurs color (chroma) but preserves luminance edges.
-  // Much better than box blur for NR: faces stay sharp, noise disappears.
-  function bilateralChromaNR(data, width, height, radius, sigmaSpatial, sigmaColor) {
-    const out = new Uint8ClampedArray(data.length);
-    const r = Math.max(1, radius|0);
-    const ss2 = 2 * sigmaSpatial * sigmaSpatial;
-    const sc2 = 2 * sigmaColor * sigmaColor;
-    for (let y=0; y<height; y++) {
-      for (let x=0; x<width; x++) {
-        const ci = (y*width+x)*4;
-        const cL = rgbToGray(data[ci], data[ci+1], data[ci+2]);
-        let sr=0, sg=0, sb=0, sw=0;
-        for (let dy=-r; dy<=r; dy++) {
-          const ny=y+dy; if (ny<0||ny>=height) continue;
-          for (let dx=-r; dx<=r; dx++) {
-            const nx=x+dx; if (nx<0||nx>=width) continue;
-            const ni=(ny*width+nx)*4;
-            const nL=rgbToGray(data[ni], data[ni+1], data[ni+2]);
-            const spatialD = dx*dx+dy*dy;
-            const colorD = (cL-nL)*(cL-nL);
-            const w = Math.exp(-spatialD/ss2 - colorD/sc2);
-            sr+=data[ni]*w; sg+=data[ni+1]*w; sb+=data[ni+2]*w; sw+=w;
-          }
-        }
-        // Restore original luminance: only chroma (color) is filtered, not luminance (detail)
-        const nr=sr/sw, ng=sg/sw, nb=sb/sw;
-        const origL = Math.max(1, cL);
-        const newL  = Math.max(1, rgbToGray(nr, ng, nb));
-        const lr = origL / newL;
-        out[ci]  = clamp(nr*lr);
-        out[ci+1]= clamp(ng*lr);
-        out[ci+2]= clamp(nb*lr);
-        out[ci+3]= data[ci+3];
-      }
-    }
-    return out;
-  }
-
-
-  /* Pre-tone-map chrominance NR.
-     Must run BEFORE tone mapping so chroma noise isn't amplified by the shadow lift scale.
-     Blurs only chrominance (via luminance-restore trick), preserves all edge detail. */
-  function preChromaNR(data, width, height, radius, mix) {
-    const blurred = boxBlurRGBA(data, width, height, radius);
-    const out = new Uint8ClampedArray(data.length);
-    for (let i = 0; i < data.length; i += 4) {
-      const lOrig = Math.max(1, rgbToGray(data[i], data[i+1], data[i+2]));
-      const nr = lerp(data[i],   blurred[i],   mix);
-      const ng = lerp(data[i+1], blurred[i+1], mix);
-      const nb = lerp(data[i+2], blurred[i+2], mix);
-      const newL = Math.max(1, rgbToGray(nr, ng, nb));
-      const lr = lOrig / newL;
-      out[i]   = clamp(nr * lr);
-      out[i+1] = clamp(ng * lr);
-      out[i+2] = clamp(nb * lr);
-      out[i+3] = data[i+3];
-    }
-    return out;
-  }
-
-  // Smooth-step S-curve: lifts shadows a bit, slightly compresses highlights → more pop
-  function softSCurve(x, strength) {
-    const t = Math.min(1, Math.max(0, x));
-    const curved = t * t * (3 - 2 * t);
-    return t + (curved - t) * Math.min(1, strength * 1.3);
-  }
-
-  function applyToneMap(data, width, height, strength, cameraType) {
-    const out=new Uint8ClampedArray(data.length);
-    const scene=analyzeScene(data);
-    const wb=estimateWhiteBalance(data, cameraType, scene);
-    const exposureUI=Number(ui.exposure.value);
-    const contrastUI=Number(ui.contrast.value);
-    const saturationUI=Number(ui.saturation.value);
-    const sharpnessUI=Number(ui.sharpness.value);
-    const detailBoost=Number(ui.detailBoost.value);
-    const noiseBoost=Number(ui.noiseReduction.value);
-    const rear=cameraType==='environment';
-    const ai=!!state.aiLite;
-    const brightScene=scene.avgLum>0.66;
-    const veryBright=scene.avgLum>0.78||scene.highlightRatio>0.24;
-    const lowLight=scene.avgLum<0.34;
-
-    // Pre-tone-map chroma NR: clean up sensor chroma noise BEFORE shadow lift amplifies it.
-    // Critical for front camera in low light (green/purple grain in dark areas).
-    const preNRmix = lowLight
-      ? (rear ? 0.38 : 0.62)
-      : (scene.avgLum < 0.50 ? (rear ? 0.18 : 0.30) : 0);
-    const pixels = (preNRmix > 0.01) ? preChromaNR(data, width, height, rear?1:2, preNRmix) : data;
-
-    // iPhone-style scene-adaptive exposure bias
-    const exposureBias=rear
-      ?(veryBright?0.80:brightScene?0.87:lowLight?1.10:0.97)
-      :(veryBright?0.90:brightScene?0.96:lowLight?1.05:0.99);
-
-    // Shadow lift: keep it small — large values cause scale explosion in darks
-    const shadowLift=rear
-      ?(lowLight?0.05:veryBright?0.00:0.03)
-      :(lowLight?0.06:veryBright?0.00:0.03);
-    // Highlight protection strength
-    const hlProtect=veryBright?0.44:brightScene?0.28:0.16;
-
-    const exposure=exposureUI*exposureBias;
-    // Vibrance/saturation: front camera uses gentler saturation to preserve natural skin
-    const satBase=saturationUI*(rear?1.00:0.94)*(veryBright?0.89:1.00)*(ai?1.02:1.0);
-    const contrastBase=contrastUI*(veryBright?0.95:1.00);
-
-    /* ── PASS 1: White balance · tonemap · vibrance · S-curve ── */
-    for (let i=0; i<data.length; i+=4) {
-      let r=(pixels[i]  /255)*wb.r*exposure;
-      let g=(pixels[i+1]/255)*wb.g*exposure;
-      let b=(pixels[i+2]/255)*wb.b*exposure;
-
-      const srcLum=Math.max(0.0001, 0.2126*r+0.7152*g+0.0722*b);
-      let lum=srcLum;
-
-      // Shadow lift – NARROW knee (only pixels below 0.12 get lifted, not 0.30)
-      // Wider knee caused scale explosion on dark-but-not-black pixels (navy → purple)
-      const shadowFactor=shadowLift*Math.pow(Math.max(0,1-lum/0.12),2);
-      // Highlight protection – soft rolloff above 0.68
-      const hlFactor=hlProtect*Math.max(0,(lum-0.68)/0.32);
-
-      // ACES tonemap — minimal extra push (1.02) to avoid dark area distortion
-      lum=acesTonemap(lum*(1.02+(ai?0.01:0)))+shadowFactor-hlFactor;
-      lum=q01(lum);
-
-      // Hue-preserving luminance scale with HARD CAP at 5×
-      // Without this cap, near-black pixels (lum=0.005 → 0.06) scale by ×12
-      // which amplifies chroma noise into vivid purple/magenta
-      const scale=Math.min(lum/srcLum, 5.0);
-      r=q01(r*scale); g=q01(g*scale); b=q01(b*scale);
-
-      // Chroma noise suppression for heavily lifted darks:
-      // pixels scaled >2× were in deep shadow; their color is mostly sensor noise.
-      // Blend toward neutral gray proportionally to reduce chroma noise → no purple cast.
-      if (scale > 2.0) {
-        const noiseDamp = Math.min(0.70, (scale - 2.0) / 3.0 * 0.70);
-        const gray3 = 0.299*r + 0.587*g + 0.114*b;
-        r = lerp(r, gray3, noiseDamp);
-        g = lerp(g, gray3, noiseDamp);
-        b = lerp(b, gray3, noiseDamp);
-      }
-
-      // Vibrance: boost under-saturated colors, protect neutral grays and skin tones
-      const gray=0.299*r+0.587*g+0.114*b;
-      const chroma=Math.max(r,g,b)-Math.min(r,g,b); // [0..1]
-      const vibranceExtra = chroma > 0.04 ? 0.45 * Math.max(0, 0.38 - chroma) : 0;
-      const vibranceFactor=satBase*(1+vibranceExtra);
-      r=gray+(r-gray)*vibranceFactor;
-      g=gray+(g-gray)*vibranceFactor;
-      b=gray+(b-gray)*vibranceFactor;
-
-      // S-curve contrast (luminance-space, protects shadows/highlights)
-      const lumNow=q01(0.299*r+0.587*g+0.114*b);
-      const curved=softSCurve(lumNow,contrastBase-1.0);
-      if (lumNow>0.001) {
-        const cscale=curved/lumNow;
-        r=q01(r*cscale); g=q01(g*cscale); b=q01(b*cscale);
-      }
-
-      out[i]=clamp(r*255); out[i+1]=clamp(g*255); out[i+2]=clamp(b*255); out[i+3]=data[i+3];
-    }
-
-    /* ── PASS 2: Luminance-preserving noise reduction ── */
-    // Front camera sensors are noisier → more aggressive smoothing needed
-    const nrBase = rear ? 0.28 : 0.44;
-    const blurMix=q01(noiseBoost*nrBase+(lowLight?0.12:0)+(ai?0.025:0));
-    if (blurMix>0.001) {
-      const blurred=boxBlurRGBA(out, width, height, 1);
-      for (let i=0; i<out.length; i+=4) {
-        const origL=rgbToGray(out[i],out[i+1],out[i+2]);
-        const nr=lerp(out[i],  blurred[i],  blurMix);
-        const ng=lerp(out[i+1],blurred[i+1],blurMix);
-        const nb=lerp(out[i+2],blurred[i+2],blurMix);
-        // Restore original luminance → smooths chroma noise, preserves detail
-        const newL=Math.max(1,rgbToGray(nr,ng,nb));
-        const lr=origL/newL;
-        out[i]=clamp(nr*lr); out[i+1]=clamp(ng*lr); out[i+2]=clamp(nb*lr);
-      }
-    }
-
-    /* ── PASS 3: Luminance-only USM (no colour fringing) ──
-       Front camera: gentler sharpening to avoid amplifying sensor noise */
-    const sharpenScale = rear ? 0.92 : 0.58;  // front cam much gentler
-    const fineAmt=q01(sharpnessUI*sharpenScale+(ai?0.015:0))*(veryBright?0.70:0.90);
-    const clarityAmt=q01((detailBoost-0.42)*0.28)*(rear?1.0:0.65); // clarity softer on front
-
-    if (fineAmt>0.001||clarityAmt>0.001) {
-      const fineBlur   =fineAmt   >0.001?boxBlurRGBA(out,width,height,1):null;
-      const clarityBlur=clarityAmt>0.001?boxBlurRGBA(out,width,height,4):null;
-
-      for (let i=0; i<out.length; i+=4) {
-        const origL=rgbToGray(out[i],out[i+1],out[i+2]);
-        // Don't sharpen very dark pixels — would amplify noise and WB errors in shadows
-        if (origL < 28) continue;
-        let deltaL=0;
-        if (fineBlur) {
-          const bl=rgbToGray(fineBlur[i],fineBlur[i+1],fineBlur[i+2]);
-          deltaL+=(origL-bl)*fineAmt;
-        }
-        if (clarityBlur) {
-          const cl=rgbToGray(clarityBlur[i],clarityBlur[i+1],clarityBlur[i+2]);
-          deltaL+=(origL-cl)*clarityAmt*0.70;
-        }
-        if (Math.abs(deltaL)>0.5) {
-          const newL=Math.max(1,origL+deltaL);
-          const sc=newL/Math.max(1,origL);
-          out[i]=clamp(out[i]*sc); out[i+1]=clamp(out[i+1]*sc); out[i+2]=clamp(out[i+2]*sc);
+  const R=Math.min(2,Math.round(radius)), sc2=2*35*35;
+  const blt=new Uint8ClampedArray(small.length);
+  for (let sy=0;sy<sh;sy++){
+    for (let sx=0;sx<sw;sx++){
+      const ci=(sy*sw+sx)*4;
+      const cL=rgbToGray(small[ci],small[ci+1],small[ci+2]);
+      let sr=0,sg=0,sb=0,sw2=0;
+      for (let dy=-R;dy<=R;dy++){
+        const ny=Math.min(sh-1,Math.max(0,sy+dy));
+        for (let dx=-R;dx<=R;dx++){
+          const nx=Math.min(sw-1,Math.max(0,sx+dx));
+          const ni=(ny*sw+nx)*4;
+          const d=cL-rgbToGray(small[ni],small[ni+1],small[ni+2]);
+          const ww=Math.exp(-(d*d)/sc2);
+          sr+=small[ni]*ww;sg+=small[ni+1]*ww;sb+=small[ni+2]*ww;sw2+=ww;
         }
       }
+      blt[ci]=sr/sw2;blt[ci+1]=sg/sw2;blt[ci+2]=sb/sw2;blt[ci+3]=255;
     }
-    return out;
   }
-
-  function applyGlobalFinish(data, width, height, cameraType) {
-    const out = applyToneMap(data, width, height, 1, cameraType);
-    return new ImageData(out, width, height);
-  }
-
-  function targetLongSide() {
-    if (ui.sizePreset.value==='native') return 0;
-    return Number(ui.sizePreset.value);
-  }
-  function computeOutputSize(sourceW, sourceH) {
-    const longSide=targetLongSide();
-    if (!longSide) return { width:sourceW, height:sourceH };
-    const scale=longSide/Math.max(sourceW,sourceH);
-    return { width:Math.max(1,Math.round(sourceW*scale)), height:Math.max(1,Math.round(sourceH*scale)) };
-  }
-  function fitCover(srcW, srcH, dstW, dstH) {
-    const srcRatio=srcW/srcH, dstRatio=dstW/dstH;
-    if (srcRatio>dstRatio) {
-      const cropW=Math.round(srcH*dstRatio);
-      return { sx:Math.floor((srcW-cropW)/2), sy:0, sw:cropW, sh:srcH };
+  const out=new Uint8ClampedArray(srcData.length);
+  for (let y=0;y<height;y++){
+    for (let x=0;x<width;x++){
+      const si=(y*width+x)*4;
+      const bx=Math.min(sw-1.001,x*scale),by=Math.min(sh-1.001,y*scale);
+      const bx0=Math.floor(bx),bx1=Math.min(sw-1,bx0+1);
+      const by0=Math.floor(by),by1=Math.min(sh-1,by0+1);
+      const tx=bx-bx0,ty=by-by0;
+      const i00=(by0*sw+bx0)*4,i10=(by0*sw+bx1)*4,i01=(by1*sw+bx0)*4,i11=(by1*sw+bx1)*4;
+      const br=lerp(lerp(blt[i00],blt[i10],tx),lerp(blt[i01],blt[i11],tx),ty);
+      const bg=lerp(lerp(blt[i00+1],blt[i10+1],tx),lerp(blt[i01+1],blt[i11+1],tx),ty);
+      const bb=lerp(lerp(blt[i00+2],blt[i10+2],tx),lerp(blt[i01+2],blt[i11+2],tx),ty);
+      const nr=lerp(srcData[si],br,mix),ng=lerp(srcData[si+1],bg,mix),nb=lerp(srcData[si+2],bb,mix);
+      const oL=Math.max(1,rgbToGray(srcData[si],srcData[si+1],srcData[si+2]));
+      const nL=Math.max(1,rgbToGray(nr,ng,nb));
+      const lr=oL/nL;
+      out[si]=clamp(nr*lr);out[si+1]=clamp(ng*lr);out[si+2]=clamp(nb*lr);out[si+3]=srcData[si+3];
     }
-    const cropH=Math.round(srcW/dstRatio);
-    return { sx:0, sy:Math.floor((srcH-cropH)/2), sw:srcW, sh:cropH };
+  }
+  return out;
+}
+
+/* Analyse scene statistics */
+function analyzeSceneLocal(data){
+  let lSum=0,hCount=0,sCount=0,n=0;
+  const step=Math.max(4,Math.floor(data.length/4/8000));
+  for (let i=0;i<data.length;i+=4*step){
+    const l=rgbToGray(data[i],data[i+1],data[i+2])/255;
+    lSum+=l; n++;
+    if (l>0.85) hCount++;
+    if (l<0.15) sCount++;
+  }
+  const avg=lSum/Math.max(1,n);
+  return { avgLum:avg, highlightRatio:hCount/n, shadowRatio:sCount/n };
+}
+
+/* White balance (damped gray world) */
+function estimateWB(data,facing,scene){
+  let rSum=0,gSum=0,bSum=0,n=0;
+  const step=Math.max(12,Math.floor(data.length/4/16000));
+  const bright=scene.avgLum>0.68;
+  for (let i=0;i<data.length;i+=4*step){
+    const l=rgbToGray(data[i],data[i+1],data[i+2]);
+    const ch=Math.max(data[i],data[i+1],data[i+2])-Math.min(data[i],data[i+1],data[i+2]);
+    if (l<18||l>(bright?238:244)||ch>108) continue;
+    rSum+=data[i];gSum+=data[i+1];bSum+=data[i+2];n++;
+  }
+  if (n<24){ for (let i=0;i<data.length;i+=4*step){rSum+=data[i];gSum+=data[i+1];bSum+=data[i+2];n++;} }
+  const g=(rSum+gSum+bSum)/3/Math.max(1,n);
+  let rG=g/Math.max(1,rSum/n), gG=g/Math.max(1,gSum/n), bG=g/Math.max(1,bSum/n);
+  const rear=facing==='environment';
+  if (rear&&!bright){ rG*=1.01; }
+  else if (!rear){ rG*=1.01;bG*=0.99; }
+  const damp=rear?0.65:0.50;
+  rG=1+(rG-1)*damp; gG=1+(gG-1)*damp; bG=1+(bG-1)*damp;
+  return {
+    r:Math.min(1.20,Math.max(0.86,rG)),
+    g:Math.min(1.08,Math.max(0.92,gG)),
+    b:Math.min(1.16,Math.max(0.86,bG))
+  };
+}
+
+/* Main tone mapping pipeline — with optional AI hints */
+function applyToneMap(data,width,height,facing,aiHints){
+  const scene=analyzeSceneLocal(data);
+  const wb=estimateWB(data,facing,scene);
+  const rear=facing==='environment';
+  const bright=scene.avgLum>0.66, vbright=scene.avgLum>0.78||scene.highlightRatio>0.24;
+  const dark=scene.avgLum<0.34;
+
+  // Use AI hints if available, otherwise use UI slider values
+  const H=aiHints||{};
+  const exposureUI   = H.exposure    ?? +ui.exposure.value;
+  const contrastUI   = H.contrast    ?? +ui.contrast.value;
+  const saturationUI = H.saturation  ?? +ui.saturation.value;
+  const sharpnessUI  = H.sharpness   ?? +ui.sharpness.value;
+  const noiseUI      = H.noiseReduction ?? +ui.noiseReduction.value;
+  const detailUI     = H.clarity     ?? +ui.detailBoost.value;
+  const shadowLiftAI = H.shadows     ?? (dark?(rear?0.05:0.06):(rear?0.02:0.02));
+  const hlProtAI     = H.highlights  !== undefined ? -H.highlights : (vbright?0.44:bright?0.28:0.16);
+  const warmthAI     = H.warmth      ?? 0;
+  const faceProt     = H.faceProtection ?? false;
+
+  const expBias=rear?(vbright?0.80:bright?0.87:dark?1.10:0.97):(vbright?0.90:bright?0.96:dark?1.05:0.99);
+  const exposure=exposureUI*expBias;
+  const satBase=saturationUI*(rear?1.00:0.94)*(vbright?0.89:1.00);
+  const contrastBase=contrastUI*(vbright?0.95:1.00);
+
+  // Pre-tonemap chroma NR
+  const preNR=dark?(rear?0.38:0.62):(scene.avgLum<0.50?(rear?0.18:0.30):0);
+  const pixels=(preNR>0.01)?preChromaNR(data,width,height,rear?1:2,preNR):data;
+
+  const out=new Uint8ClampedArray(data.length);
+
+  // PASS 1: WB + tonemap + vibrance + S-curve
+  for (let i=0;i<data.length;i+=4){
+    let r=(pixels[i]  /255)*(wb.r+warmthAI)*exposure;
+    let g=(pixels[i+1]/255)*(wb.g)         *exposure;
+    let b=(pixels[i+2]/255)*(wb.b-warmthAI)*exposure;
+    const srcL=Math.max(0.0001,0.2126*r+0.7152*g+0.0722*b);
+    const shadow=shadowLiftAI*Math.pow(Math.max(0,1-srcL/0.12),2);
+    const hl=hlProtAI*Math.max(0,(srcL-0.68)/0.32);
+    let lum=q01(acesTonemap(srcL*1.02)+shadow-hl);
+    const scale=Math.min(lum/srcL, 5.0);
+    r=q01(r*scale); g=q01(g*scale); b=q01(b*scale);
+    // Chroma noise damp in heavily lifted darks
+    if (scale>2.0){
+      const nd=Math.min(0.70,(scale-2.0)/3.0*0.70);
+      const gr=0.299*r+0.587*g+0.114*b;
+      r=lerp(r,gr,nd); g=lerp(g,gr,nd); b=lerp(b,gr,nd);
+    }
+    // Vibrance (protects neutrals and skin)
+    const gray=0.299*r+0.587*g+0.114*b;
+    const chroma=Math.max(r,g,b)-Math.min(r,g,b);
+    // Face protection: skin-hue pixels get satBase*0.88 (gentler)
+    let satFactor=satBase;
+    if (faceProt){
+      // Detect skin: hue approx 0-40° (red-orange), saturation 0.15-0.70
+      const maxC=Math.max(r,g,b), minC=Math.min(r,g,b), delta=maxC-minC;
+      if (delta>0.05&&maxC>0.10){
+        let hue=0;
+        if (maxC===r) hue=60*((g-b)/delta%6);
+        else if (maxC===g) hue=60*((b-r)/delta+2);
+        else hue=60*((r-g)/delta+4);
+        if (hue<0) hue+=360;
+        const sat=delta/maxC;
+        if (hue>=0&&hue<45&&sat>0.15&&sat<0.75&&maxC>0.20)
+          satFactor=satBase*0.88;
+      }
+    }
+    const vibExtra=chroma>0.04?0.45*Math.max(0,0.38-chroma):0;
+    const vf=satFactor*(1+vibExtra);
+    r=gray+(r-gray)*vf; g=gray+(g-gray)*vf; b=gray+(b-gray)*vf;
+    // S-curve contrast
+    const lumNow=q01(0.299*r+0.587*g+0.114*b);
+    const curved=softSCurve(lumNow,contrastBase-1.0);
+    if (lumNow>0.001){ const cs=curved/lumNow; r=q01(r*cs);g=q01(g*cs);b=q01(b*cs); }
+    out[i]=clamp(r*255);out[i+1]=clamp(g*255);out[i+2]=clamp(b*255);out[i+3]=data[i+3];
   }
 
-  /* ══════════════════════════════════════════════
-     CAPTURE
-  ══════════════════════════════════════════════ */
-  async function captureOneBlob() {
-    if (state.imageCapture?.takePhoto) {
-      try { return await state.imageCapture.takePhoto(); }
-      catch(err){ console.warn('takePhoto falló, uso canvas', err); }
+  // PASS 2: Post-tonemap chroma NR
+  const nrBase=rear?0.28:0.44;
+  const blurMix=q01(noiseUI*nrBase+(dark?0.12:0));
+  if (blurMix>0.001){
+    const blurred=boxBlurRGBA(out,width,height,1);
+    for (let i=0;i<out.length;i+=4){
+      const oL=rgbToGray(out[i],out[i+1],out[i+2]);
+      const nr=lerp(out[i],blurred[i],blurMix);
+      const ng=lerp(out[i+1],blurred[i+1],blurMix);
+      const nb=lerp(out[i+2],blurred[i+2],blurMix);
+      const nL=Math.max(1,rgbToGray(nr,ng,nb));
+      const lr=oL/nL;
+      out[i]=clamp(nr*lr);out[i+1]=clamp(ng*lr);out[i+2]=clamp(nb*lr);
     }
-    if (!ui.previewVideo.videoWidth || !ui.previewVideo.videoHeight) throw new Error('La cámara todavía no está lista');
-    const c=ui.photoCanvas;
-    c.width=ui.previewVideo.videoWidth; c.height=ui.previewVideo.videoHeight;
-    const ctx=c.getContext('2d',{willReadFrequently:true,alpha:false});
-    ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-
-    // ── Mirror fix: apply flip BEFORE post-processing when mirror toggle is on ──
-    // The CSS `.mirrored` only flips the preview visually. We must flip the canvas
-    // so that post-processing (tonemap, sharpening, etc.) operates on the mirrored data.
-    const shouldMirror = !!state.mirror;
-    if (shouldMirror) {
-      ctx.translate(c.width, 0);
-      ctx.scale(-1, 1);
-    }
-
-    if (!state.zoomSupported && state.zoom!==1) {
-      const z=state.zoom;
-      const sw=c.width/z, sh=c.height/z;
-      const sx=(c.width-sw)/2, sy=(c.height-sh)/2;
-      ctx.drawImage(ui.previewVideo, sx, sy, sw, sh, 0, 0, c.width, c.height);
-    } else {
-      ctx.drawImage(ui.previewVideo, 0, 0, c.width, c.height);
-    }
-    if (shouldMirror) ctx.setTransform(1,0,0,1,0,0);
-    return await canvasToBlob(c, 'image/jpeg', 0.98);
   }
 
-  async function captureBurst() {
-    const count=Math.max(1, Number(ui.burstCount.value||1));
-    const delayMs=state.mode==='fast'?50:70;
-    const frames=[];
-    for (let i=0; i<count; i++) {
-      const blob=await captureOneBlob();
-      const bitmap=await imageBlobToBitmap(blob);
-      frames.push(bitmap);
-      if (i<count-1) await new Promise(r=>setTimeout(r,delayMs));
+  // PASS 3: Luminance-only USM (no colour fringing)
+  const sharpenScale=rear?0.92:0.58;
+  const fineAmt=q01(sharpnessUI*sharpenScale)*(vbright?0.70:0.90);
+  const clarityAmt=q01((detailUI-0.42)*0.28)*(rear?1.0:0.65);
+  if (fineAmt>0.001||clarityAmt>0.001){
+    const fb=fineAmt>0.001?boxBlurRGBA(out,width,height,1):null;
+    const cb=clarityAmt>0.001?boxBlurRGBA(out,width,height,4):null;
+    for (let i=0;i<out.length;i+=4){
+      const oL=rgbToGray(out[i],out[i+1],out[i+2]);
+      let dL=0;
+      if (fb){ const bl=rgbToGray(fb[i],fb[i+1],fb[i+2]);dL+=(oL-bl)*fineAmt; }
+      if (cb){ const cl=rgbToGray(cb[i],cb[i+1],cb[i+2]);dL+=(oL-cl)*clarityAmt*0.70; }
+      if (Math.abs(dL)>0.5){
+        const sc=(Math.max(1,oL+dL))/Math.max(1,oL);
+        out[i]=clamp(out[i]*sc);out[i+1]=clamp(out[i+1]*sc);out[i+2]=clamp(out[i+2]*sc);
+      }
     }
-    return frames;
   }
+  return out;
+}
 
-  async function processAndSave(sourceBlob) {
-    const bitmap=await imageBlobToBitmap(sourceBlob);
-    const baseW=bitmap.width||bitmap.naturalWidth;
-    const baseH=bitmap.height||bitmap.naturalHeight;
-    const outSize=computeOutputSize(baseW, baseH);
-    const crop=fitCover(baseW, baseH, outSize.width, outSize.height);
+/* ═══════════ FRAME STACKING ═══════════ */
+function computeOutputSize(sw,sh){
+  const ls=ui.sizePreset.value==='native'?0:+ui.sizePreset.value;
+  if (!ls) return {width:sw,height:sh};
+  const sc=ls/Math.max(sw,sh);
+  return {width:Math.max(1,Math.round(sw*sc)),height:Math.max(1,Math.round(sh*sc))};
+}
+function fitCover(sw,sh,dw,dh){
+  const sr=sw/sh, dr=dw/dh;
+  if (sr>dr){ const cw=Math.round(sh*dr); return {sx:Math.floor((sw-cw)/2),sy:0,sw:cw,sh}; }
+  const ch=Math.round(sw/dr);
+  return {sx:0,sy:Math.floor((sh-ch)/2),sw,sh:ch};
+}
+function focusScore(data,w,h){
+  let sum=0,count=0;
+  for (let y=2;y<h-2;y+=3){
+    for (let x=2;x<w-2;x+=3){
+      const i=(y*w+x)*4;
+      const l=rgbToGray(data[i],data[i+1],data[i+2]);
+      const l1=rgbToGray(data[i-4],data[i-3],data[i-2]);
+      const l2=rgbToGray(data[i-w*4],data[i-w*4+1],data[i-w*4+2]);
+      sum+=Math.abs(l-l1)+Math.abs(l-l2); count+=2;
+    }
+  }
+  return count?sum/count:0;
+}
+function downscale(c,w,h){
+  const t=document.createElement('canvas'); t.width=w; t.height=h;
+  const ctx=t.getContext('2d',{willReadFrequently:true,alpha:false});
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+  ctx.drawImage(c,0,0,w,h);
+  return ctx.getImageData(0,0,w,h).data;
+}
+function averageFrames(canvases,w,h,facing){
+  if (!canvases.length) return new Uint8ClampedArray(w*h*4);
+  if (canvases.length===1)
+    return canvases[0].getContext('2d',{willReadFrequently:true,alpha:false}).getImageData(0,0,w,h).data;
+  const dw=Math.max(80,Math.round(w/12)), dh=Math.max(80,Math.round(h/12));
+  const smalls=canvases.map(c=>downscale(c,dw,dh));
+  const scores=smalls.map(d=>focusScore(d,dw,dh));
+  const refI=scores.indexOf(Math.max(...scores));
+  const acc=new Float32Array(w*h*4);
+  let totalW=0;
+  canvases.forEach((c,i)=>{
+    const w2=i===refI?3:1;
+    const d=c.getContext('2d',{willReadFrequently:true,alpha:false}).getImageData(0,0,w,h).data;
+    for (let j=0;j<d.length;j++) acc[j]+=d[j]*w2;
+    totalW+=w2;
+  });
+  const out=new Uint8ClampedArray(w*h*4);
+  for (let j=0;j<out.length;j+=4){
+    out[j]=clamp(acc[j]/totalW);
+    out[j+1]=clamp(acc[j+1]/totalW);
+    out[j+2]=clamp(acc[j+2]/totalW);
+    out[j+3]=255;
+  }
+  return out;
+}
+
+/* ═══════════ PROCESS & SAVE ═══════════ */
+function setBusy(flag){
+  state.busy=flag;
+  ui.captureBtn.disabled=flag||!state.stream;
+  ui.captureBtn.classList.toggle('processing',flag);
+  ui.switchBtn.disabled=flag||!state.stream;
+}
+function triggerFlash(){
+  ui.flashOverlay.classList.remove('flash');
+  void ui.flashOverlay.offsetWidth;
+  ui.flashOverlay.classList.add('flash');
+}
+
+async function processAndSave(rawData,width,height,aiHints,label){
+  const finished=applyToneMap(rawData,width,height,state.facing,aiHints||null);
+  ui.exportCanvas.width=width; ui.exportCanvas.height=height;
+  const ectx=ui.exportCanvas.getContext('2d',{willReadFrequently:true,alpha:false});
+  ectx.putImageData(new ImageData(finished,width,height),0,0);
+  const quality=state.mode==='fast'?0.96:0.985;
+  const blob=await canvasToBlob(ui.exportCanvas,'image/jpeg',quality);
+  if (!blob) throw new Error('Export fallido');
+  state.currentBlob=blob;
+  // Thumbnail
+  if (ui.lastPreview.src) URL.revokeObjectURL(ui.lastPreview.src);
+  ui.lastPreview.src=URL.createObjectURL(blob);
+  ui.downloadBtn.disabled=false;
+  await saveToGallery(blob,{label:label||state.mode,w:width,h:height});
+  if (state.autoSave) await downloadBlob(blob,filenameFromNow());
+  setStatus('ok',`${width}×${height}`);
+  toast(`✓ ${width}×${height}${aiHints?' · IA aplicada':''}`);
+}
+
+async function capturePhoto(){
+  if (state.busy||state.timerRunning) return;
+  if (!state.stream){ toast('Inicia la cámara primero'); return; }
+  runTimer(async ()=>{
+    setBusy(true);
+    triggerFlash();
+    try {
+      const burst=Math.max(1,+ui.burstCount.value);
+      const frames=await captureBurst(burst);
+      const baseW=frames[0].width||frames[0].naturalWidth;
+      const baseH=frames[0].height||frames[0].naturalHeight;
+      const outSize=computeOutputSize(baseW,baseH);
+      const crop=fitCover(baseW,baseH,outSize.width,outSize.height);
+
+      const canvases=frames.map(bmp=>{
+        const c=document.createElement('canvas');
+        c.width=outSize.width; c.height=outSize.height;
+        const ctx=c.getContext('2d',{willReadFrequently:true,alpha:false});
+        ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+        ctx.drawImage(bmp,crop.sx,crop.sy,crop.sw,crop.sh,0,0,outSize.width,outSize.height);
+        return c;
+      });
+      const merged=averageFrames(canvases,outSize.width,outSize.height,state.facing);
+
+      let aiHints=null;
+      if (state.mode==='ai'){
+        setStatus('ai','Analizando con Claude…');
+        ui.aiBadge.textContent='✦ Analizando escena…';
+        ui.aiBadge.classList.add('show');
+        // Create a blob from merged data for AI analysis
+        const tmpC=document.createElement('canvas');
+        tmpC.width=outSize.width; tmpC.height=outSize.height;
+        const tctx=tmpC.getContext('2d',{willReadFrequently:true,alpha:false});
+        tctx.putImageData(new ImageData(merged,outSize.width,outSize.height),0,0);
+        const tmpBlob=await canvasToBlob(tmpC,'image/jpeg',0.85);
+        const analysis=await analyzeSceneWithAI(tmpBlob);
+        if (analysis){
+          showAIAnalysis(analysis);
+          aiHints=analysis.processingHints;
+          toast('✦ Análisis IA aplicado');
+        } else {
+          toast('IA sin respuesta — usando ajustes manuales');
+          ui.aiBadge.classList.remove('show');
+        }
+      }
+
+      await processAndSave(merged,outSize.width,outSize.height,aiHints,
+        `${state.mode}${aiHints?'·AI':''}`);
+    } catch(err){
+      console.error(err);
+      setStatus('bad','Error al capturar');
+      toast('Error: '+err.message);
+    } finally { setBusy(false); }
+  });
+}
+
+/* ═══════════ LOAD FILE ═══════════ */
+async function loadFile(file){
+  const url=URL.createObjectURL(file);
+  ui.fileImage.src=url;
+  ui.fileImage.style.display='block';
+  ui.fileImage.onload=async ()=>{
+    const w=ui.fileImage.naturalWidth, h=ui.fileImage.naturalHeight;
+    const outSize=computeOutputSize(w,h);
+    const crop=fitCover(w,h,outSize.width,outSize.height);
     ui.workCanvas.width=outSize.width; ui.workCanvas.height=outSize.height;
     const wctx=ui.workCanvas.getContext('2d',{willReadFrequently:true,alpha:false});
     wctx.imageSmoothingEnabled=true; wctx.imageSmoothingQuality='high';
-    wctx.drawImage(bitmap, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, outSize.width, outSize.height);
+    wctx.drawImage(ui.fileImage,crop.sx,crop.sy,crop.sw,crop.sh,0,0,outSize.width,outSize.height);
     const src=wctx.getImageData(0,0,outSize.width,outSize.height).data;
-    const finished=applyGlobalFinish(src, outSize.width, outSize.height, state.facing);
-    ui.exportCanvas.width=outSize.width; ui.exportCanvas.height=outSize.height;
-    const ectx=ui.exportCanvas.getContext('2d',{willReadFrequently:true,alpha:false});
-    ectx.putImageData(finished, 0, 0);
-    const blob=await canvasToBlob(ui.exportCanvas, 'image/jpeg', state.mode==='fast'?0.96:0.985);
-    if (!blob) throw new Error('No se pudo exportar la imagen');
-    state.currentBlob=blob;
-    setPreviewFromBlob(blob);
-    ui.downloadBtn.disabled=false;
-    await saveToGallery(blob, { label:`${presets[state.preset].title} · ${state.mode}` });
-    if (state.autoSave) {
-      setBusy(true);
-      try { await downloadBlob(blob, filenameFromNow()); } finally { setBusy(false); }
+    let aiHints=null;
+    if (state.mode==='ai'){
+      setStatus('ai','Analizando con Claude…');
+      const analysis=await analyzeSceneWithAI(file);
+      if (analysis){ showAIAnalysis(analysis); aiHints=analysis.processingHints; }
     }
-    setStatus('ok', 'Procesado', `Salida ${outSize.width}×${outSize.height}`);
-    setToast('✓ Foto lista');
-  }
+    await processAndSave(src,outSize.width,outSize.height,aiHints,'archivo');
+    URL.revokeObjectURL(url);
+  };
+}
 
-  async function capturePhoto() {
-    if (state.busy || state.timerRunning) return;
-    if (!state.stream) { setStatus('warn', 'Sin cámara', 'Primero inicia la cámara.'); return; }
-    runTimer(async () => {
-      setBusy(true);
-      triggerFlash();
-      try {
-        let blobs=[];
-        if (state.mode==='fast') {
-          blobs=[await captureOneBlob()];
-        } else {
-          const frames=await captureBurst();
-          if (frames.length) {
-            const processedBlobs=[];
-            for (const frame of frames) {
-              const canvas=document.createElement('canvas');
-              canvas.width=frame.width||frame.naturalWidth;
-              canvas.height=frame.height||frame.naturalHeight;
-              const ctx=canvas.getContext('2d',{willReadFrequently:true,alpha:false});
-              ctx.drawImage(frame, 0, 0);
-              const blob=await canvasToBlob(canvas,'image/jpeg',0.98);
-              processedBlobs.push(blob);
-            }
-            blobs=processedBlobs;
-          }
-        }
-        if (!blobs.length) throw new Error('No se capturó ninguna imagen');
-        if (blobs.length===1) { await processAndSave(blobs[0]); return; }
-        // Multi-frame stacking
-        const bitmaps=[];
-        for (const blob of blobs) bitmaps.push(await imageBlobToBitmap(blob));
-        const firstW=bitmaps[0].width||bitmaps[0].naturalWidth;
-        const firstH=bitmaps[0].height||bitmaps[0].naturalHeight;
-        const outSize=computeOutputSize(firstW, firstH);
-        const crop=fitCover(firstW, firstH, outSize.width, outSize.height);
-        const canvases=[];
-        for (const bmp of bitmaps) {
-          const c=document.createElement('canvas');
-          c.width=outSize.width; c.height=outSize.height;
-          const ctx=c.getContext('2d',{willReadFrequently:true,alpha:false});
-          ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-          ctx.drawImage(bmp, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, outSize.width, outSize.height);
-          canvases.push(c);
-        }
-        const merged=averageFrames(canvases, outSize.width, outSize.height, state.facing);
-        const finished=applyGlobalFinish(merged, outSize.width, outSize.height, state.facing);
-        ui.exportCanvas.width=outSize.width; ui.exportCanvas.height=outSize.height;
-        const ectx=ui.exportCanvas.getContext('2d',{willReadFrequently:true,alpha:false});
-        ectx.putImageData(finished, 0, 0);
-        const blob=await canvasToBlob(ui.exportCanvas,'image/jpeg',state.mode==='fast'?0.96:0.985);
-        state.currentBlob=blob;
-        setPreviewFromBlob(blob);
-        ui.downloadBtn.disabled=false;
-        await saveToGallery(blob, { label:`${presets[state.preset].title} · ${state.mode} · burst` });
-        if (state.autoSave) await downloadBlob(blob, filenameFromNow());
-        setStatus('ok', 'Procesado', `Bursts fusionados · ${outSize.width}×${outSize.height}`);
-        setToast('✓ Burst listo');
-      } catch(err) {
-        console.error(err);
-        setStatus('bad', 'Error', err?.message||'No se pudo procesar la foto.');
-      } finally { setBusy(false); }
-    });
-  }
-
-  async function loadFile(file) {
-    if (!file) return;
-    try { await processAndSave(file); }
-    catch(err) { console.error(err); setStatus('bad', 'Error de archivo', err?.message||'No se pudo leer la imagen.'); }
-  }
-
-  /* ══════════════════════════════════════════════
-     GALLERY + DB
-  ══════════════════════════════════════════════ */
-  function revokeCurrentUrl() {
-    if (state.currentUrl && state.currentUrl.startsWith('blob:')) {
-      try { URL.revokeObjectURL(state.currentUrl); } catch(_){}
-    }
-    state.currentUrl='';
-  }
-  function setPreviewFromBlob(blob) {
-    revokeCurrentUrl();
-    const url=URL.createObjectURL(blob);
-    state.currentUrl=url;
-    ui.lastPreview.src=url;
-  }
-
-  async function openDb() {
-    if (state.db) return state.db;
-    state.db=await new Promise((resolve,reject) => {
-      const req=indexedDB.open(DB_NAME, DB_VERSION);
-      req.onupgradeneeded=()=>{
-        const db=req.result;
-        if (!db.objectStoreNames.contains(STORE)) {
-          const store=db.createObjectStore(STORE, { keyPath:'id' });
-          store.createIndex('ts','ts',{unique:false});
-        }
-      };
-      req.onsuccess=()=>resolve(req.result);
-      req.onerror=()=>reject(req.error);
-    });
-    return state.db;
-  }
-
-  async function saveToGallery(blob, meta={}) {
+/* ═══════════ GALLERY ═══════════ */
+async function saveToGallery(blob,meta){
+  try {
     const db=await openDb();
-    const record={
-      id:(crypto?.randomUUID?.() || `g_${Date.now()}_${Math.random().toString(16).slice(2)}`),
-      ts:Date.now(),
-      label:meta.label||`${presets[state.preset].title} · ${state.mode}`,
-      blob, preset:state.preset, mode:state.mode, facing:state.facing,
-      size:`${ui.exportCanvas.width}×${ui.exportCanvas.height}`
-    };
-    await new Promise((resolve,reject)=>{
+    const id=Date.now().toString(36)+Math.random().toString(36).slice(2);
+    const entry={id,blob,ts:Date.now(),...meta};
+    await new Promise((res,rej)=>{
       const tx=db.transaction(STORE,'readwrite');
-      tx.objectStore(STORE).put(record);
-      tx.oncomplete=()=>resolve();
-      tx.onerror=()=>reject(tx.error);
+      tx.objectStore(STORE).put(entry);
+      tx.oncomplete=res; tx.onerror=rej;
     });
-    state.selectedId=record.id;
+    state.selectedId=id;
     await loadGallery();
-  }
-
-  async function loadGallery() {
-    try {
-      const db=await openDb();
-      const items=await new Promise((resolve,reject)=>{
-        const tx=db.transaction(STORE,'readonly');
-        const store=tx.objectStore(STORE);
-        const index=store.index('ts');
-        const req=index.openCursor(null,'prev');
-        const arr=[];
-        req.onsuccess=()=>{ const c=req.result; if(c){ arr.push(c.value); c.continue(); } else resolve(arr); };
-        req.onerror=()=>reject(req.error);
-      });
-      state.gallery=items.slice(0,12);
-      if (!state.selectedId && state.gallery[0]) state.selectedId=state.gallery[0].id;
-      renderGallery();
-    } catch(err) { console.warn(err); state.gallery=[]; renderGallery(); }
-  }
-
-  function renderGallery() {
-    ui.galleryCount.textContent=`${state.gallery.length} foto${state.gallery.length===1?'':'s'}`;
-    ui.galleryEmpty.style.display=state.gallery.length?'none':'block';
-    ui.galleryGrid.innerHTML='';
-    const hasSelection=!!state.gallery.find(item=>item.id===state.selectedId);
-    ui.downloadSelectedBtn.disabled=!hasSelection;
-    ui.deleteSelectedBtn.disabled=!hasSelection;
-    ui.clearGalleryBtn.disabled=state.gallery.length===0;
-    if (!hasSelection && state.gallery[0]) state.selectedId=state.gallery[0].id;
-    state.gallery.forEach(item => {
-      const card=document.createElement('button');
-      card.type='button';
-      card.className='galleryItem'+(item.id===state.selectedId?' selected':'');
-      card.innerHTML=`<div class="galleryThumb"><img alt="Foto guardada"/></div><div class="galleryMeta"><strong>${item.label||'Foto'}</strong><span>${formatDate(item.ts)}</span></div>`;
-      const img=card.querySelector('img');
-      const url=URL.createObjectURL(item.blob);
-      img.src=url;
-      img.onload=()=>setTimeout(()=>URL.revokeObjectURL(url),1500);
-      card.addEventListener('click',()=>{ state.selectedId=item.id; renderGallery(); setPreviewFromBlob(item.blob); ui.downloadBtn.disabled=false; });
-      ui.galleryGrid.appendChild(card);
-    });
-    const selected=state.gallery.find(item=>item.id===state.selectedId);
-    if (selected){ setPreviewFromBlob(selected.blob); ui.downloadBtn.disabled=false; }
-  }
-
-  async function deleteSelected() {
-    const item=state.gallery.find(x=>x.id===state.selectedId);
-    if (!item) return;
+  } catch(e){ console.warn(e); }
+}
+async function loadGallery(){
+  try {
     const db=await openDb();
-    await new Promise((resolve,reject)=>{ const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).delete(item.id); tx.oncomplete=()=>resolve(); tx.onerror=()=>reject(tx.error); });
-    state.selectedId=''; await loadGallery(); setToast('Foto eliminada');
-  }
-
-  async function clearGallery() {
-    if (!state.gallery.length) return;
-    if (!confirm('¿Vaciar la galería interna?')) return;
+    const items=await new Promise((res,rej)=>{
+      const tx=db.transaction(STORE,'readonly');
+      const idx=tx.objectStore(STORE).index('ts');
+      const req=idx.openCursor(null,'prev');
+      const arr=[];
+      req.onsuccess=()=>{ const c=req.result; if(c){arr.push(c.value);c.continue();}else res(arr); };
+      req.onerror=()=>rej(req.error);
+    });
+    state.gallery=items.slice(0,16);
+    if (!state.selectedId&&state.gallery[0]) state.selectedId=state.gallery[0].id;
+    renderGallery();
+  } catch(e){ state.gallery=[]; renderGallery(); }
+}
+function renderGallery(){
+  const n=state.gallery.length;
+  ui.galleryCount.textContent=`${n} foto${n===1?'':'s'}`;
+  ui.galleryEmpty.style.display=n?'none':'block';
+  ui.galleryGrid.innerHTML='';
+  const hasSel=!!state.gallery.find(x=>x.id===state.selectedId);
+  state.gallery.forEach(item=>{
+    const div=document.createElement('div');
+    div.className='galleryItem'+(item.id===state.selectedId?' sel':'');
+    const img=document.createElement('img');
+    img.src=URL.createObjectURL(item.blob);
+    img.alt='';
+    div.appendChild(img);
+    div.addEventListener('click',()=>{ state.selectedId=item.id; renderGallery(); });
+    ui.galleryGrid.appendChild(div);
+  });
+  const hasSel2=!!state.gallery.find(x=>x.id===state.selectedId);
+  ui.downloadSelectedBtn.disabled=!hasSel2;
+  ui.deleteSelectedBtn.disabled=!hasSel2;
+  ui.clearGalleryBtn.disabled=n===0;
+}
+async function deleteSelected(){
+  const item=state.gallery.find(x=>x.id===state.selectedId);
+  if (!item) return;
+  try {
     const db=await openDb();
-    await new Promise((resolve,reject)=>{ const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).clear(); tx.oncomplete=()=>resolve(); tx.onerror=()=>reject(tx.error); });
-    state.selectedId=''; await loadGallery(); setToast('Galería vaciada');
-  }
-
-  /* ══════════════════════════════════════════════
-     SAVE / DOWNLOAD
-  ══════════════════════════════════════════════ */
-  async function downloadBlob(blob, filename) {
-    if (!blob) return;
-    if ('showSaveFilePicker' in window) {
-      try {
-        const handle=await window.showSaveFilePicker({ suggestedName:filename, types:[{description:'JPEG image',accept:{'image/jpeg':['.jpg','.jpeg']}}] });
-        const writable=await handle.createWritable();
-        await writable.write(blob); await writable.close();
-        setToast(`Guardada: ${filename}`); return;
-      } catch(err){ if (err?.name!=='AbortError') console.warn(err); }
-    }
-    if (state.saveDirHandle && 'showDirectoryPicker' in window) {
-      try {
-        const perm=await state.saveDirHandle.queryPermission({mode:'readwrite'});
-        if (perm!=='granted') { const req=await state.saveDirHandle.requestPermission({mode:'readwrite'}); if (req!=='granted') throw new Error('Permiso denegado'); }
-        const fh=await state.saveDirHandle.getFileHandle(filename,{create:true});
-        const writable=await fh.createWritable();
-        await writable.write(blob); await writable.close();
-        setToast(`Guardada en carpeta: ${filename}`); return;
-      } catch(err){ console.warn(err); state.saveDirHandle=null; }
-    }
-    if (navigator.canShare?.({files:[new File([blob],filename,{type:blob.type||'image/jpeg'})]})) {
-      try {
-        const file=new File([blob],filename,{type:blob.type||'image/jpeg'});
-        await navigator.share({files:[file],title:'Foto procesada',text:'Imagen procesada por GCam Lite Studio'});
-        setToast('Compartir abierto'); return;
-      } catch(err){ if (err?.name!=='AbortError') console.warn(err); }
-    }
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url; a.download=filename; a.rel='noopener';
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url), 2000);
-    setToast('Descarga iniciada');
-  }
-
-  function filenameFromNow() {
-    return `gcam_${new Date().toISOString().replace(/[:.]/g,'-').replace('T','_').slice(0,19)}.jpg`;
-  }
-
-  async function pickFolder() {
-    if (!('showDirectoryPicker' in window)) {
-      setStatus('warn', 'No disponible', 'Este navegador no soporta selección de carpeta.');
-      setToast('Usando descarga automática'); return;
-    }
-    try {
-      state.saveDirHandle=await window.showDirectoryPicker({mode:'readwrite'});
-      setToast('Carpeta seleccionada');
-      setStatus('ok', 'Carpeta lista', 'Las próximas fotos pueden guardarse allí.');
-    } catch(err){ if (err?.name!=='AbortError'){ console.warn(err); setStatus('warn','Sin carpeta','No se pudo elegir una carpeta.'); } }
-  }
-
-  /* ══════════════════════════════════════════════
-     BIND INPUTS
-  ══════════════════════════════════════════════ */
-  function bindInputs() {
-    [ui.sizePreset,ui.burstCount,ui.detailBoost,ui.noiseReduction,ui.exposure,ui.contrast,ui.saturation,ui.sharpness]
-      .forEach(el => el.addEventListener('input', ()=>{ syncLabels(); saveSettings(); }));
-  }
-
-  /* ══════════════════════════════════════════════
-     INITIALISATION
-  ══════════════════════════════════════════════ */
-  function initialState() {
-    loadSettings(); syncLabels(); renderGallery();
-    setStatus('ok', 'Listo', 'Pulsa iniciar cámara o abre una imagen.');
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setStatus('bad', 'Sin soporte', 'Tu navegador no permite cámara.');
-      ui.startBtn.disabled=true; ui.captureBtn.disabled=true; ui.switchBtn.disabled=true;
-      return;
-    }
-    // Try to auto-start camera silently
-    void startCamera().catch(()=>{
-      // Camera failed or was denied — hide overlay so user can still access file loading
-      const overlay = document.getElementById('startOverlay');
-      if (overlay) overlay.classList.add('hidden');
+    await new Promise((res,rej)=>{
+      const tx=db.transaction(STORE,'readwrite');
+      tx.objectStore(STORE).delete(item.id);
+      tx.oncomplete=res; tx.onerror=rej;
     });
-  }
-
-  /* ══════════════════════════════════════════════
-     EVENT LISTENERS
-  ══════════════════════════════════════════════ */
-  ui.settingsBtn.addEventListener('click', openSheet);
-  ui.closeSheetBtn.addEventListener('click', closeSheet);
-  ui.sheet.addEventListener('click', e=>{ if (e.target===ui.sheet) closeSheet(); });
-
-  ui.startBtn.addEventListener('click', ()=>void startCamera());
-  ui.switchBtn.addEventListener('click', ()=>void switchCamera());
-  ui.captureBtn.addEventListener('click', ()=>void capturePhoto());
-  ui.fileBtn.addEventListener('click', ()=>ui.fileInput.click());
-  ui.fileInput.addEventListener('change', ()=>{
-    const file=ui.fileInput.files&&ui.fileInput.files[0];
-    if (file) void loadFile(file);
-    ui.fileInput.value='';
-  });
-  // Second file input from start overlay
-  const fileBtn2=document.getElementById('fileBtn2');
-  const fileInput2=document.getElementById('fileInput2');
-  if (fileBtn2 && fileInput2) {
-    fileBtn2.addEventListener('click', ()=>fileInput2.click());
-    fileInput2.addEventListener('change', ()=>{
-      const file=fileInput2.files&&fileInput2.files[0];
-      if (file) void loadFile(file);
-      fileInput2.value='';
+    state.selectedId='';
+    await loadGallery();
+    toast('Foto eliminada');
+  } catch(e){ console.warn(e); }
+}
+async function clearGallery(){
+  if (!confirm('¿Vaciar toda la galería?')) return;
+  try {
+    const db=await openDb();
+    await new Promise((res,rej)=>{
+      const tx=db.transaction(STORE,'readwrite');
+      tx.objectStore(STORE).clear();
+      tx.oncomplete=res; tx.onerror=rej;
     });
+    state.gallery=[]; state.selectedId='';
+    renderGallery(); toast('Galería vaciada');
+  } catch(e){ console.warn(e); }
+}
+
+/* ═══════════ TIMER ═══════════ */
+function runTimer(cb){
+  if (state.timerSec<=0){ cb(); return; }
+  if (state.timerRunning) return;
+  state.timerRunning=true;
+  let rem=state.timerSec;
+  ui.timerNum.textContent=rem;
+  ui.timerOverlay.classList.add('active');
+  state.timerHandle=setInterval(()=>{
+    rem--;
+    ui.timerNum.textContent=rem;
+    if (rem<=0){
+      clearInterval(state.timerHandle);
+      state.timerRunning=false;
+      ui.timerOverlay.classList.remove('active');
+      cb();
+    }
+  },1000);
+}
+function cancelTimer(){
+  if (state.timerHandle) clearInterval(state.timerHandle);
+  state.timerRunning=false;
+  ui.timerOverlay.classList.remove('active');
+}
+
+/* ═══════════ PINCH + TAP FOCUS ═══════════ */
+function pinchDist(t){ return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY); }
+ui.stage.addEventListener('touchstart',e=>{ if(e.touches.length===2){state.pinchStartDist=pinchDist(e.touches);state.pinchStartZoom=state.zoom;} },{passive:true});
+ui.stage.addEventListener('touchmove',e=>{ if(e.touches.length===2){ const r=pinchDist(e.touches)/Math.max(1,state.pinchStartDist); const z=Math.round(Math.max(0.6,Math.min(10,state.pinchStartZoom*r))*10)/10; if(Math.abs(z-state.zoom)>=0.05)void setZoom(z); } },{passive:true});
+ui.stage.addEventListener('click',e=>{
+  if (!state.track) return;
+  const rect=ui.stage.getBoundingClientRect();
+  const rx=(e.clientX-rect.left)/rect.width, ry=(e.clientY-rect.top)/rect.height;
+  ui.focusRing.style.left=`${rx*100}%`; ui.focusRing.style.top=`${ry*100}%`;
+  ui.focusRing.classList.add('show');
+  setTimeout(()=>ui.focusRing.classList.remove('show'),1200);
+  if (state.track.applyConstraints){
+    state.track.applyConstraints({advanced:[{pointOfInterest:{x:rx,y:ry},focusMode:'single-shot'}]}).catch(()=>{});
   }
-  ui.folderBtn && ui.folderBtn.addEventListener('click', ()=>void pickFolder());
-  ui.pickFolderInsideBtn && ui.pickFolderInsideBtn.addEventListener('click', ()=>void pickFolder());
-  ui.downloadBtn.addEventListener('click', async ()=>{
-    const sel=state.gallery.find(item=>item.id===state.selectedId);
-    if (sel) await downloadBlob(sel.blob, filenameFromNow());
-    else if (state.currentBlob) await downloadBlob(state.currentBlob, filenameFromNow());
-  });
-  ui.downloadSelectedBtn.addEventListener('click', async ()=>{
-    const sel=state.gallery.find(item=>item.id===state.selectedId);
-    if (sel) await downloadBlob(sel.blob, filenameFromNow());
-  });
-  ui.deleteSelectedBtn.addEventListener('click', ()=>void deleteSelected());
-  ui.clearGalleryBtn.addEventListener('click', ()=>void clearGallery());
-  ui.resetBtn.addEventListener('click', resetAll);
-  ui.autoSaveBtn.addEventListener('click', ()=>{ state.autoSave=!state.autoSave; syncLabels(); saveSettings(); setToast(state.autoSave?'Auto-guardar activado':'Auto-guardar desactivado'); });
-  ui.mirrorBtn.addEventListener('click', ()=>{ state.mirror=!state.mirror; syncLabels(); saveSettings(); setToast(state.mirror?'Espejo activado':'Espejo desactivado'); });
-  if (ui.aiLiteBtn) ui.aiLiteBtn.addEventListener('click', ()=>{ state.aiLite=!state.aiLite; syncLabels(); saveSettings(); setToast(state.aiLite?'IA Lite activada':'IA Lite desactivada'); });
+});
 
-  // Mode sheet buttons
-  ui.fastModeBtn.addEventListener('click',    ()=>applyMode('fast'));
-  ui.qualityModeBtn.addEventListener('click', ()=>applyMode('quality'));
-  ui.nightModeBtn.addEventListener('click',   ()=>applyMode('night'));
-  ui.portraitModeBtn.addEventListener('click',()=>applyMode('portrait'));
+/* ═══════════ INITIALISE ═══════════ */
+function init(){
+  loadSettings(); syncUI(); loadGallery();
+  setStatus('ok','Listo');
+  void startCamera().catch(()=>{ ui.startOverlay.classList.add('hidden'); });
+}
 
-  // Camera facing
-  ui.rearBtn.addEventListener('click',  ()=>setFacing('environment'));
-  ui.frontBtn.addEventListener('click', ()=>setFacing('user'));
+/* ═══════════ EVENT LISTENERS ═══════════ */
+ui.settingsBtn.addEventListener('click',()=>ui.sheet.classList.add('open'));
+ui.closeSheetBtn.addEventListener('click',()=>ui.sheet.classList.remove('open'));
+ui.sheet.addEventListener('click',e=>{ if(e.target===ui.sheet) ui.sheet.classList.remove('open'); });
+ui.startBtn.addEventListener('click',()=>void startCamera());
+ui.switchBtn.addEventListener('click',()=>void switchCamera());
+ui.captureBtn.addEventListener('click',()=>void capturePhoto());
+ui.mirrorBtn.addEventListener('click',()=>{ state.mirror=!state.mirror; syncUI(); saveSettings(); toast(state.mirror?'🪞 Espejo ON':'Espejo OFF'); });
+ui.torchBtn.addEventListener('click',()=>void toggleTorch());
+ui.timerBtn.addEventListener('click',()=>{ const n=state.timerSec===0?3:state.timerSec===3?10:0; state.timerSec=n; syncUI(); saveSettings(); });
+ui.gridBtn.addEventListener('click',()=>{ state.showGrid=!state.showGrid; syncUI(); saveSettings(); });
+ui.timerOverlay.addEventListener('click',()=>{ if(state.timerRunning)cancelTimer(); });
 
-  // Preset chips
-  ui.presetButtons.forEach(btn=>btn.addEventListener('click', ()=>applyPreset(btn.dataset.preset)));
+// Modes
+ui.fastModeBtn.addEventListener('click',()=>applyMode('fast'));
+ui.qualityModeBtn.addEventListener('click',()=>applyMode('quality'));
+ui.aiModeBtn.addEventListener('click',()=>applyMode('ai'));
+ui.nightModeBtn.addEventListener('click',()=>applyMode('night'));
+ui.portraitModeBtn.addEventListener('click',()=>applyMode('portrait'));
+ui.modeChips.forEach(c=>c.addEventListener('click',()=>{ const m=c.dataset.mode; if(m&&modePresets[m])applyMode(m); }));
 
-  // Mode strip (main view)
-  ui.modeChips.forEach(chip=>{
-    chip.addEventListener('click', ()=>{
-      if (chip.disabled) return;
-      const mode=chip.dataset.mode;
-      if (['fast','quality','night','portrait'].includes(mode)) applyMode(mode);
-    });
-  });
+// Zoom
+ui.zoomBtns.forEach(b=>b.addEventListener('click',()=>void setZoom(parseFloat(b.dataset.zoom))));
 
-  // Zoom buttons
-  ui.zoomBtns.forEach(btn=>{
-    btn.addEventListener('click', ()=>void setZoom(parseFloat(btn.dataset.zoom)));
-  });
+// Presets
+ui.presetButtons.forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.preset)));
 
-  // New v2 buttons
-  ui.gridBtn.addEventListener('click', toggleGrid);
-  ui.timerBtn.addEventListener('click', cycleTimer);
-  ui.torchBtn.addEventListener('click', ()=>void toggleTorch());
+// Camera facing
+ui.rearBtn.addEventListener('click',()=>setFacing('environment'));
+ui.frontBtn.addEventListener('click',()=>setFacing('user'));
 
-  // Timer buttons in sheet
-  ui.timer0Btn.addEventListener('click',  ()=>setTimerDuration(0));
-  ui.timer3Btn.addEventListener('click',  ()=>setTimerDuration(3));
-  ui.timer10Btn.addEventListener('click', ()=>setTimerDuration(10));
+// Options
+ui.autoSaveBtn.addEventListener('click',()=>{ state.autoSave=!state.autoSave; syncUI(); saveSettings(); });
+ui.timer0Btn.addEventListener('click',()=>{ state.timerSec=0; syncUI(); saveSettings(); });
+ui.timer3Btn.addEventListener('click',()=>{ state.timerSec=3; syncUI(); saveSettings(); });
+ui.timer10Btn.addEventListener('click',()=>{ state.timerSec=10; syncUI(); saveSettings(); });
+ui.resetBtn.addEventListener('click',()=>{
+  Object.assign(state,{...defaults,stream:state.stream,track:state.track,imageCapture:state.imageCapture,
+    busy:false,gallery:state.gallery,selectedId:state.selectedId});
+  loadSettings(); applyPreset(defaults.preset); syncUI(); saveSettings(); toast('Valores restaurados');
+});
 
-  // Thumbnail opens gallery
-  ui.thumbWrap.addEventListener('click', ()=>openSheet());
+// File
+ui.fileOpenBtn.addEventListener('click',()=>ui.fileInput.click());
+ui.fileInput.addEventListener('change',()=>{ const f=ui.fileInput.files?.[0]; if(f)loadFile(f); ui.fileInput.value=''; });
+const fb2=document.getElementById('fileBtn2');
+fb2?.addEventListener('click',()=>ui.fileInput2b.click());
+ui.fileInput2b.addEventListener('change',()=>{ const f=ui.fileInput2b.files?.[0]; if(f)loadFile(f); ui.fileInput2b.value=''; });
+ui.pickFolderBtn.addEventListener('click',async()=>{
+  if (!('showDirectoryPicker'in window)){ toast('No disponible en este navegador'); return; }
+  try { state.saveDirHandle=await window.showDirectoryPicker({mode:'readwrite'}); toast('Carpeta lista'); } catch(_){}
+});
 
-  // Cancel timer on second shutter tap during countdown
-  ui.timerOverlay.addEventListener('click', ()=>{
-    if (state.timerRunning) { cancelTimer(); setToast('Temporizador cancelado'); }
-  });
+// Gallery
+ui.thumbWrap.addEventListener('click',()=>ui.sheet.classList.add('open'));
+ui.downloadBtn.addEventListener('click',async()=>{ if(state.currentBlob)await downloadBlob(state.currentBlob,filenameFromNow()); });
+ui.downloadSelectedBtn.addEventListener('click',async()=>{
+  const sel=state.gallery.find(x=>x.id===state.selectedId);
+  if(sel)await downloadBlob(sel.blob,filenameFromNow());
+});
+ui.deleteSelectedBtn.addEventListener('click',()=>void deleteSelected());
+ui.clearGalleryBtn.addEventListener('click',()=>void clearGallery());
 
-  bindInputs();
-  loadGallery();
-  initialState();
-  window.addEventListener('beforeunload', stopStream);
+// Sliders
+[ui.sizePreset,ui.burstCount,ui.exposure,ui.contrast,ui.saturation,ui.sharpness,ui.noiseReduction,ui.detailBoost]
+  .forEach(el=>el.addEventListener('input',()=>{ syncUI(); saveSettings(); }));
+
+window.addEventListener('beforeunload',stopStream);
+init();
 })();
 </script>
 </body>
