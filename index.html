@@ -525,7 +525,7 @@ input.hidden{display:none}
     <div class="sheetHandle"></div>
     <div class="sheetHeader">
       <div>
-        <strong>GCam AI Studio v4.1</strong>
+        <strong>GCam AI Studio v4.2</strong>
         <span>Post-procesado impulsado por IA</span>
       </div>
       <button class="chip" id="closeSheetBtn">Cerrar</button>
@@ -1305,13 +1305,17 @@ function estimateWB(data,facing,scene){
   let rG=g/Math.max(1,rSum/n), gG=g/Math.max(1,gSum/n), bG=g/Math.max(1,bSum/n);
   const rear=facing==='environment';
   if (rear&&!bright){ rG*=1.01; }
-  else if (!rear){ rG*=1.01;bG*=0.99; }
-  const damp=rear?0.65:0.50;
+  else if (!rear){
+    // Front cam: tiny warm nudge only — no cool bias at all
+    rG*=1.005; bG*=0.995;
+  }
+  // Damp: rear 65%, front only 30% (less correction = less blue cast on walls)
+  const damp=rear?0.65:0.30;
   rG=1+(rG-1)*damp; gG=1+(gG-1)*damp; bG=1+(bG-1)*damp;
   return {
-    r:Math.min(1.20,Math.max(0.86,rG)),
-    g:Math.min(1.08,Math.max(0.92,gG)),
-    b:Math.min(1.16,Math.max(0.86,bG))
+    r:Math.min(1.18,Math.max(0.88,rG)),
+    g:Math.min(1.06,Math.max(0.94,gG)),
+    b:Math.min(1.08,Math.max(0.93,bG))  // very tight B ceiling stops blue cast on neutrals
   };
 }
 
@@ -1336,24 +1340,28 @@ function applyToneMap(data,width,height,facing,aiHints){
   const warmthAI     = H.warmth      ?? 0;
   const faceProt     = H.faceProtection ?? false;
 
-  const expBias=rear?(vbright?0.80:bright?0.87:dark?1.10:0.97):(vbright?0.90:bright?0.96:dark?1.05:0.99);
+  // Front: reduce bright bias slightly — native ZTE doesn't blow out whites
+  const expBias=rear?(vbright?0.80:bright?0.87:dark?1.10:0.97):(vbright?0.88:bright?0.94:dark?1.04:0.98);
   const exposure=exposureUI*expBias;
   const satBase=saturationUI*(rear?1.00:0.94)*(vbright?0.89:1.00);
   const contrastBase=contrastUI*(vbright?0.95:1.00);
 
   // Pre-tonemap chroma NR
-  // Front cam in very dark scenes needs very aggressive bilateral NR (0.82)
-  // because the sensor's chroma noise gets amplified ×5 by the shadow lift scale.
-  const veryDark = scene.avgLum < 0.20;
+  // Tiers based on scene luminance to avoid over-smoothing in normal light.
+  // Front cam: only uses high mix in truly dark/very-dark conditions.
+  // Normal/bright scenes: skip pre-NR entirely (post-NR pass handles it).
+  const veryDark = scene.avgLum < 0.18;  // nearly pitch-black
+  const medDark  = scene.avgLum < 0.28;  // clearly dark room
   const preNR = veryDark
-    ? (rear ? 0.50 : 0.82)
-    : dark
-      ? (rear ? 0.38 : 0.68)
-      : scene.avgLum < 0.50
-        ? (rear ? 0.18 : 0.36)
-        : 0;
-  // Front cam in very dark scenes: use radius 3 for wider chroma smoothing
-  const preNRradius = (!rear && dark) ? (veryDark ? 3 : 2) : (rear ? 1 : 2);
+    ? (rear ? 0.42 : 0.72)   // very dark: aggressive on front, moderate on rear
+    : medDark
+      ? (rear ? 0.28 : 0.52)  // dark: moderate front, light rear
+      : dark                  // avgLum 0.28-0.34
+        ? (rear ? 0.16 : 0.34)
+        : scene.avgLum < 0.50
+          ? (rear ? 0.08 : 0.16) // semi-dark: light touch
+          : 0;                   // normal/bright: no pre-NR
+  const preNRradius = veryDark ? (!rear ? 3 : 1) : (!rear ? 2 : 1);
   const pixels=(preNR>0.01)?preChromaNR(data,width,height,preNRradius,preNR):data;
 
   const out=new Uint8ClampedArray(data.length);
@@ -1405,7 +1413,8 @@ function applyToneMap(data,width,height,facing,aiHints){
   }
 
   // PASS 2: Post-tonemap chroma NR
-  const nrBase=rear?0.28:0.44;
+  // Post-NR: front cam only applies extra NR in dark conditions, not normal light
+  const nrBase=rear?0.28:(dark?0.40:0.22);
   const blurMix=q01(noiseUI*nrBase+(dark?0.12:0));
   if (blurMix>0.001){
     const blurred=boxBlurRGBA(out,width,height,1);
@@ -1421,9 +1430,9 @@ function applyToneMap(data,width,height,facing,aiHints){
   }
 
   // PASS 3: Luminance-only USM (no colour fringing)
-  const sharpenScale=rear?0.92:0.58;
+  const sharpenScale=rear?0.92:0.76;  // front: 0.58→0.76 to match native ZTE sharpness
   const fineAmt=q01(sharpnessUI*sharpenScale)*(vbright?0.70:0.90);
-  const clarityAmt=q01((detailUI-0.42)*0.28)*(rear?1.0:0.65);
+  const clarityAmt=q01((detailUI-0.42)*0.28)*(rear?1.0:0.82);  // front: 0.65→0.82
   if (fineAmt>0.001||clarityAmt>0.001){
     const fb=fineAmt>0.001?boxBlurRGBA(out,width,height,1):null;
     const cb=clarityAmt>0.001?boxBlurRGBA(out,width,height,4):null;
