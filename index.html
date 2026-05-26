@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="theme-color" content="#04060a"/>
-<title>GCam AI v4</title>
+<title>GCam AI v5 · iPhone 8 Look</title>
 <style>
 :root{
   --bg:#04060a;
@@ -484,9 +484,9 @@ input.hidden{display:none}
 
 <!-- MODE STRIP -->
 <div class="modeStrip" id="modeStrip">
-  <button class="modeChip active" data-mode="fast">📷 Foto</button>
-  <button class="modeChip" data-mode="quality">✨ Calidad</button>
-  <button class="modeChip" data-mode="ai">🤖 IA</button>
+  <button class="modeChip active" data-mode="fast">🍏 Auto iPhone 8</button>
+  <button class="modeChip" data-mode="quality">⚙️ Pro</button>
+  <button class="modeChip" data-mode="ai">🤖 Auto IA</button>
   <button class="modeChip" data-mode="night">🌙 Noche</button>
   <button class="modeChip" data-mode="portrait">🪞 Retrato</button>
 </div>
@@ -532,8 +532,8 @@ input.hidden{display:none}
     <div class="sheetHandle"></div>
     <div class="sheetHeader">
       <div>
-        <strong>GCam AI Studio v4.5</strong>
-        <span>Post-procesado impulsado por IA</span>
+        <strong>GCam AI Studio v5</strong>
+        <span>Auto iPhone 8 · menos manual, más automático</span>
       </div>
       <button class="chip" id="closeSheetBtn">Cerrar</button>
     </div>
@@ -541,20 +541,20 @@ input.hidden{display:none}
 
       <!-- AI Analysis Result -->
       <div class="section">
-        <div class="secTitle"><strong>Análisis de Escena IA</strong></div>
+        <div class="secTitle"><strong>Motor automático</strong></div>
         <div class="aiPanel" id="aiPanel">
-          <div class="aiHead">✦ Claude Vision</div>
-          <div class="aiScene" id="aiSceneLabel">Sin análisis todavía</div>
-          <div class="aiDesc" id="aiDescLabel">Captura una foto en modo IA para obtener el análisis semántico.</div>
+          <div class="aiHead">✦ Auto iPhone 8</div>
+          <div class="aiScene" id="aiSceneLabel">Auto iPhone 8 listo</div>
+          <div class="aiDesc" id="aiDescLabel">La escena se clasifica sola y aplica una receta de color tipo iPhone 8.</div>
           <div class="aiParams" id="aiTagsRow"></div>
         </div>
         <div class="secTitle" style="margin-top:12px"><strong>Modo de captura</strong></div>
         <div class="chipRow">
-          <button class="chip active" id="fastModeBtn">Foto rápida</button>
-          <button class="chip" id="qualityModeBtn">Calidad</button>
-          <button class="chip" id="aiModeBtn">🤖 IA (Claude)</button>
-          <button class="chip" id="nightModeBtn">Noche</button>
-          <button class="chip" id="portraitModeBtn">Retrato</button>
+          <button class="chip active" id="fastModeBtn">🍏 Auto iPhone 8</button>
+          <button class="chip" id="qualityModeBtn">⚙️ Pro</button>
+          <button class="chip" id="aiModeBtn">🤖 Auto IA</button>
+          <button class="chip" id="nightModeBtn">🌙 Noche</button>
+          <button class="chip" id="portraitModeBtn">🪞 Retrato</button>
         </div>
       </div>
 
@@ -582,8 +582,8 @@ input.hidden{display:none}
           <label><strong>Resolución</strong></label>
           <select id="sizePreset">
             <option value="1280">1280px ≈2MP</option>
-            <option value="1600" selected>1600px ≈3MP</option>
-            <option value="2400">2400px ≈6MP</option>
+            <option value="1600">1600px ≈3MP</option>
+            <option value="2400" selected>2400px ≈6MP</option>
             <option value="3200">3200px ≈12MP</option>
             <option value="4000">4000px ≈18MP</option>
             <option value="native">Nativa</option>
@@ -690,17 +690,25 @@ const presets = {
   soft:     { title:'Suave',       desc:'Mínimo procesado, máxima fidelidad.',          exposure:1.00, contrast:1.01, saturation:0.93, sharpness:0.05, noise:0.24, detail:0.22 }
 };
 const modePresets = {
-  fast:    { burst:1, output:'1600' },
-  quality: { burst:3, output:'3200' },
-  ai:      { burst:3, output:'3200' },
-  night:   { burst:5, output:'3200' },
-  portrait:{ burst:3, output:'2400' }
+  fast:    { burst:1, output:'2400' },
+  quality: { burst:2, output:'3200' },
+  ai:      { burst:1, output:'2400' },
+  night:   { burst:3, output:'2400' },
+  portrait:{ burst:1, output:'2400' }
 };
 const defaults = {
   preset:'balanced', mode:'fast', facing:'environment',
-  output:'1600', burst:1, exposure:1.00, contrast:1.05,
-  saturation:0.96, sharpness:0.18, noise:0.20, detail:0.52,
+  output:'2400', burst:1, exposure:1.00, contrast:1.03,
+  saturation:0.95, sharpness:0.16, noise:0.22, detail:0.50,
   autoSave:false, mirror:false, timerSec:0, showGrid:false
+};
+
+const modeLabels = {
+  fast:'Auto iPhone 8',
+  quality:'Pro',
+  ai:'Auto IA',
+  night:'Noche',
+  portrait:'Retrato'
 };
 
 /* ═══════════ STATE ═══════════ */
@@ -897,7 +905,7 @@ function loadSettings(){
 function syncUI(){
   const p=presets[state.preset];
   ui.profileBadge.textContent=p.title;
-  ui.modeBadge.textContent=`${state.mode} · ${ui.sizePreset.value==='native'?'nativa':ui.sizePreset.value+'px'}`;
+  ui.modeBadge.textContent=`${modeLabels[state.mode]||state.mode} · ${ui.sizePreset.value==='native'?'nativa':ui.sizePreset.value+'px'}`;
   ui.presetDesc.textContent=p.desc;
   ui.burstVal.textContent=ui.burstCount.value;
   ui.burstLabel.textContent=`${ui.burstCount.value} foto${+ui.burstCount.value===1?'':'s'}`;
@@ -938,7 +946,7 @@ function applyMode(mode){
   ui.sizePreset.value=m.output;
   ui.burstCount.value=m.burst;
   syncUI(); saveSettings();
-  toast(`Modo ${mode}`);
+  toast(`Modo ${modeLabels[mode]||mode}`);
 }
 function applyPreset(name){
   const p=presets[name];
@@ -1167,27 +1175,124 @@ function blobToBase64(blob){
   });
 }
 
-function showAIAnalysis(analysis){
-  if (!analysis) return;
-  state.lastAiAnalysis=analysis;
-  ui.aiSceneLabel.textContent=analysis.scene||'Escena desconocida';
-  ui.aiDescLabel.textContent=analysis.processingHints?.note||'Procesado optimizado por IA.';
-  ui.aiTagsRow.innerHTML='';
-  const tags=[
-    analysis.type, analysis.lighting,
-    analysis.hasFaces?`${analysis.skinTone} skin`:'sin caras',
-    analysis.shadowDetail==='poor'?'sombras recuperadas':null,
-    analysis.highlightClipping?'luces recortadas':null
+function showAIAnalysis(analysis, stats=null, facing=state.facing){
+  if (!analysis) return null;
+  const recipe = buildAutoRecipe(stats || analyzeSceneLocal(new Uint8ClampedArray([128,128,128,255])), analysis, facing);
+  showSceneRecipe(recipe, 'Claude');
+  return recipe;
+}
+
+const autoRecipes = {
+  portrait: {
+    scene:'Retrato iPhone 8', preset:'portrait', tag:'Retrato', note:'Suaviza piel y protege luces altas.',
+    exposure:1.00, contrast:1.03, saturation:0.92, sharpness:0.12, noiseReduction:0.30, clarity:0.36,
+    shadows:0.08, highlights:0.18, warmth:0.01, faceProtection:true
+  },
+  indoor: {
+    scene:'Interior natural', preset:'balanced', tag:'Interior', note:'Color neutro, contraste suave y detalle limpio.',
+    exposure:1.01, contrast:1.04, saturation:0.95, sharpness:0.16, noiseReduction:0.22, clarity:0.48,
+    shadows:0.05, highlights:0.16, warmth:0.00, faceProtection:false
+  },
+  lowlight: {
+    scene:'Noche limpia', preset:'night', tag:'Baja luz', note:'Levanta sombras sin romper color ni piel.',
+    exposure:1.10, contrast:1.00, saturation:0.90, sharpness:0.08, noiseReduction:0.56, clarity:0.28,
+    shadows:0.14, highlights:0.26, warmth:0.00, faceProtection:true
+  },
+  bright: {
+    scene:'Exterior limpio', preset:'vivid', tag:'Luz fuerte', note:'Controla altas luces y conserva color.',
+    exposure:0.96, contrast:1.05, saturation:0.99, sharpness:0.18, noiseReduction:0.12, clarity:0.50,
+    shadows:0.02, highlights:0.30, warmth:0.00, faceProtection:false
+  },
+  food: {
+    scene:'Comida con textura', preset:'vivid', tag:'Comida', note:'Más presencia de color y textura apetecible.',
+    exposure:1.00, contrast:1.07, saturation:1.03, sharpness:0.18, noiseReduction:0.18, clarity:0.52,
+    shadows:0.03, highlights:0.20, warmth:0.01, faceProtection:false
+  },
+  document: {
+    scene:'Documento claro', preset:'soft', tag:'Documento', note:'Busca lectura limpia y bordes definidos.',
+    exposure:1.02, contrast:1.12, saturation:0.88, sharpness:0.28, noiseReduction:0.10, clarity:0.62,
+    shadows:0.00, highlights:0.24, warmth:0.00, faceProtection:false
+  },
+  action: {
+    scene:'Acción rápida', preset:'balanced', tag:'Acción', note:'Prioriza velocidad y detalle estable.',
+    exposure:0.99, contrast:1.05, saturation:0.96, sharpness:0.20, noiseReduction:0.16, clarity:0.55,
+    shadows:0.04, highlights:0.18, warmth:0.00, faceProtection:false
+  }
+};
+
+function inferAutoKind(stats, analysis, facing){
+  const type=(analysis?.type||'').toLowerCase();
+  const lighting=(analysis?.lighting||'').toLowerCase();
+  if (analysis?.hasFaces || type==='portrait') return 'portrait';
+  if (type==='document') return 'document';
+  if (type==='food') return 'food';
+  if (type==='action') return 'action';
+  if (lighting==='very_dark' || stats.avgLum<0.20 || stats.shadowRatio>0.44) return 'lowlight';
+  if (lighting==='bright_outdoor' || stats.avgLum>0.68 || stats.highlightRatio>0.18) return 'bright';
+  if (facing==='user') return 'portrait';
+  return 'indoor';
+}
+
+function buildAutoRecipe(stats, analysis, facing){
+  const kind=inferAutoKind(stats, analysis, facing);
+  const base=autoRecipes[kind] || autoRecipes.indoor;
+  const dominant = Array.isArray(analysis?.dominantColors) && analysis.dominantColors.length
+    ? analysis.dominantColors.slice(0,2).join(' · ')
+    : (stats.avgLum<0.25 ? 'baja luz' : stats.avgLum>0.65 ? 'luz alta' : 'equilibrado');
+  const tags = [
+    base.tag,
+    analysis?.lighting || (stats.avgLum<0.25 ? 'muy oscuro' : stats.avgLum>0.65 ? 'brillante' : 'normal'),
+    dominant,
+    analysis?.hasFaces ? `caras ${analysis.skinTone||''}`.trim() : null
   ].filter(Boolean);
-  tags.forEach(t=>{
+
+  const hints = {
+    exposure:base.exposure,
+    contrast:base.contrast,
+    saturation:base.saturation,
+    sharpness:base.sharpness,
+    noiseReduction:base.noiseReduction,
+    clarity:base.clarity,
+    shadows:base.shadows,
+    highlights:base.highlights,
+    warmth:base.warmth,
+    faceProtection:!!base.faceProtection && !!analysis?.hasFaces,
+    note:base.note
+  };
+
+  return {
+    kind,
+    scene:base.scene,
+    preset:base.preset,
+    note:base.note,
+    hints,
+    tags
+  };
+}
+
+function showSceneRecipe(recipe, source='Auto'){
+  if (!recipe) return;
+  state.lastAiAnalysis = recipe;
+  ui.aiSceneLabel.textContent = recipe.scene || 'Auto iPhone 8';
+  ui.aiDescLabel.textContent = recipe.note || 'Procesado automático optimizado.';
+  ui.aiTagsRow.innerHTML = '';
+  const tags=[source==='Claude'?'Claude':null, ...(recipe.tags||[])].filter(Boolean);
+  tags.slice(0,4).forEach(t=>{
     const span=document.createElement('span');
-    span.className='aiTag'; span.textContent=t;
+    span.className='aiTag';
+    span.textContent=t;
     ui.aiTagsRow.appendChild(span);
   });
-  // Show badge on viewfinder
-  ui.aiBadge.textContent=`✦ ${analysis.scene}`;
+  ui.aiBadge.textContent=`✦ ${recipe.scene || 'Auto iPhone 8'}`;
   ui.aiBadge.classList.add('show');
   setTimeout(()=>ui.aiBadge.classList.remove('show'),4000);
+}
+
+function sceneFromStats(stats){
+  if (stats.avgLum<0.20) return 'lowlight';
+  if (stats.highlightRatio>0.20 || stats.avgLum>0.68) return 'bright';
+  if (stats.shadowRatio>0.42) return 'lowlight';
+  return 'indoor';
 }
 
 /* ═══════════ IMAGE PROCESSING PIPELINE ═══════════ */
@@ -1637,7 +1742,7 @@ async function processAndSave(rawData,width,height,aiHints,label){
   ui.exportCanvas.width=width; ui.exportCanvas.height=height;
   const ectx=ui.exportCanvas.getContext('2d',{willReadFrequently:true,alpha:false});
   ectx.putImageData(new ImageData(finished,width,height),0,0);
-  const quality=state.mode==='fast'?0.96:0.985;
+  const quality=state.mode==='fast'?0.965:state.mode==='ai'?0.98:0.985;
   const blob=await canvasToBlob(ui.exportCanvas,'image/jpeg',quality);
   if (!blob) throw new Error('Export fallido');
   state.currentBlob=blob;
@@ -1710,9 +1815,15 @@ async function capturePhoto(){
           ? scaled[0].getContext('2d',{willReadFrequently:true,alpha:false}).getImageData(0,0,outW,outH).data
           : averageFrames(scaled,outW,outH,jobFacing);
 
-        // AI analysis if in AI mode
+        const stats = analyzeSceneLocal(merged);
         let aiHints=null;
-        if (jobMode==='ai'){
+        let recipe=null;
+
+        if (jobMode==='fast'){
+          recipe = buildAutoRecipe(stats, null, jobFacing);
+          aiHints = recipe.hints;
+          showSceneRecipe(recipe, 'Auto');
+        } else if (jobMode==='ai'){
           setStatus('ai','Analizando con Claude…');
           ui.aiBadge.textContent='✦ Analizando escena…';
           ui.aiBadge.classList.add('show');
@@ -1721,8 +1832,10 @@ async function capturePhoto(){
               .putImageData(new ImageData(merged,outW,outH),0,0);
           const tmpBlob=await canvasToBlob(tmpC,'image/jpeg',0.82);
           const analysis=await analyzeSceneWithAI(tmpBlob);
-          if (analysis){ showAIAnalysis(analysis); aiHints=analysis.processingHints; }
-          else { ui.aiBadge.classList.remove('show'); }
+          recipe = buildAutoRecipe(stats, analysis, jobFacing);
+          if (analysis) showSceneRecipe(recipe, 'Claude');
+          else showSceneRecipe(recipe, 'Auto');
+          aiHints = recipe.hints;
         }
 
         // Tonemap + save
@@ -1765,11 +1878,20 @@ async function loadFile(file){
     wctx.imageSmoothingEnabled=true; wctx.imageSmoothingQuality='high';
     wctx.drawImage(ui.fileImage,crop.sx,crop.sy,crop.sw,crop.sh,0,0,outSize.width,outSize.height);
     const src=wctx.getImageData(0,0,outSize.width,outSize.height).data;
+    const stats = analyzeSceneLocal(src);
     let aiHints=null;
-    if (state.mode==='ai'){
+    let recipe=null;
+    if (state.mode==='fast'){
+      recipe = buildAutoRecipe(stats, null, state.facing);
+      aiHints = recipe.hints;
+      showSceneRecipe(recipe, 'Auto');
+    } else if (state.mode==='ai'){
       setStatus('ai','Analizando con Claude…');
       const analysis=await analyzeSceneWithAI(file);
-      if (analysis){ showAIAnalysis(analysis); aiHints=analysis.processingHints; }
+      recipe = buildAutoRecipe(stats, analysis, state.facing);
+      if (analysis) showSceneRecipe(recipe, 'Claude');
+      else showSceneRecipe(recipe, 'Auto');
+      aiHints = recipe.hints;
     }
     await processAndSave(src,outSize.width,outSize.height,aiHints,'archivo');
     URL.revokeObjectURL(url);
