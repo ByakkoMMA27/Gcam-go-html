@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="theme-color" content="#04060a"/>
-<title>GCam AI v5 · iPhone 8 Look</title>
+<title>GCam AI Studio v6.0 · Auto iPhone 8</title>
 <style>
 :root{
   --bg:#04060a;
@@ -484,9 +484,9 @@ input.hidden{display:none}
 
 <!-- MODE STRIP -->
 <div class="modeStrip" id="modeStrip">
-  <button class="modeChip active" data-mode="fast">🍏 Auto iPhone 8</button>
-  <button class="modeChip" data-mode="quality">⚙️ Pro</button>
-  <button class="modeChip" data-mode="ai">🤖 Auto IA</button>
+  <button class="modeChip active" data-mode="fast">📷 Foto</button>
+  <button class="modeChip" data-mode="quality">✨ Calidad</button>
+  <button class="modeChip" data-mode="ai">🤖 IA</button>
   <button class="modeChip" data-mode="night">🌙 Noche</button>
   <button class="modeChip" data-mode="portrait">🪞 Retrato</button>
 </div>
@@ -532,8 +532,8 @@ input.hidden{display:none}
     <div class="sheetHandle"></div>
     <div class="sheetHeader">
       <div>
-        <strong>GCam AI Studio v5</strong>
-        <span>Auto iPhone 8 · menos manual, más automático</span>
+        <strong>GCam AI Studio v6.0</strong>
+        <span>Auto iPhone 8 · GPU WebGL + IA</span>
       </div>
       <button class="chip" id="closeSheetBtn">Cerrar</button>
     </div>
@@ -541,20 +541,20 @@ input.hidden{display:none}
 
       <!-- AI Analysis Result -->
       <div class="section">
-        <div class="secTitle"><strong>Motor automático</strong></div>
+        <div class="secTitle"><strong>Análisis de Escena IA</strong></div>
         <div class="aiPanel" id="aiPanel">
-          <div class="aiHead">✦ Auto iPhone 8</div>
-          <div class="aiScene" id="aiSceneLabel">Auto iPhone 8 listo</div>
-          <div class="aiDesc" id="aiDescLabel">La escena se clasifica sola y aplica una receta de color tipo iPhone 8.</div>
+          <div class="aiHead">✦ Claude Vision</div>
+          <div class="aiScene" id="aiSceneLabel">Sin análisis todavía</div>
+          <div class="aiDesc" id="aiDescLabel">Captura una foto en modo IA para obtener el análisis semántico.</div>
           <div class="aiParams" id="aiTagsRow"></div>
         </div>
         <div class="secTitle" style="margin-top:12px"><strong>Modo de captura</strong></div>
         <div class="chipRow">
-          <button class="chip active" id="fastModeBtn">🍏 Auto iPhone 8</button>
-          <button class="chip" id="qualityModeBtn">⚙️ Pro</button>
-          <button class="chip" id="aiModeBtn">🤖 Auto IA</button>
-          <button class="chip" id="nightModeBtn">🌙 Noche</button>
-          <button class="chip" id="portraitModeBtn">🪞 Retrato</button>
+          <button class="chip active" id="fastModeBtn">Foto rápida</button>
+          <button class="chip" id="qualityModeBtn">Calidad</button>
+          <button class="chip" id="aiModeBtn">✨ Auto iPhone 8</button>
+          <button class="chip" id="nightModeBtn">Noche</button>
+          <button class="chip" id="portraitModeBtn">Retrato</button>
         </div>
       </div>
 
@@ -582,8 +582,8 @@ input.hidden{display:none}
           <label><strong>Resolución</strong></label>
           <select id="sizePreset">
             <option value="1280">1280px ≈2MP</option>
-            <option value="1600">1600px ≈3MP</option>
-            <option value="2400" selected>2400px ≈6MP</option>
+            <option value="1600" selected>1600px ≈3MP</option>
+            <option value="2400">2400px ≈6MP</option>
             <option value="3200">3200px ≈12MP</option>
             <option value="4000">4000px ≈18MP</option>
             <option value="native">Nativa</option>
@@ -690,26 +690,82 @@ const presets = {
   soft:     { title:'Suave',       desc:'Mínimo procesado, máxima fidelidad.',          exposure:1.00, contrast:1.01, saturation:0.93, sharpness:0.05, noise:0.24, detail:0.22 }
 };
 const modePresets = {
-  fast:    { burst:1, output:'2400' },
-  quality: { burst:2, output:'3200' },
+  fast:    { burst:1, output:'1600' },
+  quality: { burst:2, output:'2400' },
   ai:      { burst:1, output:'2400' },
   night:   { burst:3, output:'2400' },
   portrait:{ burst:1, output:'2400' }
 };
 const defaults = {
-  preset:'balanced', mode:'fast', facing:'environment',
+  preset:'balanced', mode:'ai', facing:'user',
   output:'2400', burst:1, exposure:1.00, contrast:1.03,
-  saturation:0.95, sharpness:0.16, noise:0.22, detail:0.50,
+  saturation:0.90, sharpness:0.08, noise:0.22, detail:0.28,
   autoSave:false, mirror:false, timerSec:0, showGrid:false
 };
 
 const modeLabels = {
-  fast:'Auto iPhone 8',
-  quality:'Pro',
-  ai:'Auto IA',
+  fast:'Rápido',
+  quality:'Calidad',
+  ai:'Auto iPhone 8',
   night:'Noche',
   portrait:'Retrato'
 };
+
+function clampHint(value, min, max, fallback){
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+}
+
+function buildAutoRecipe(scene, facing, analysis){
+  const rear = facing === 'environment';
+  const front = !rear;
+  const bright = scene.avgLum > 0.66;
+  const veryBright = scene.avgLum > 0.78 || scene.highlightRatio > 0.24;
+  const dark = scene.avgLum < 0.34;
+  const veryDark = scene.avgLum < 0.18;
+
+  let base;
+  if (front){
+    if (veryDark) {
+      base = {exposure:1.14, contrast:0.97, saturation:0.84, sharpness:0.05, noiseReduction:0.58, shadows:0.10, highlights:-0.10, warmth:0.00, clarity:0.10, faceProtection:true, note:'Frontal muy oscura: piel limpia, menos contraste y menos nitidez.'};
+    } else if (dark) {
+      base = {exposure:1.08, contrast:0.98, saturation:0.86, sharpness:0.06, noiseReduction:0.38, shadows:0.07, highlights:-0.14, warmth:0.00, clarity:0.12, faceProtection:true, note:'Frontal interior: suavizo ruido y mantengo piel natural.'};
+    } else if (veryBright) {
+      base = {exposure:0.98, contrast:1.02, saturation:0.88, sharpness:0.07, noiseReduction:0.12, shadows:0.02, highlights:-0.22, warmth:0.00, clarity:0.16, faceProtection:true, note:'Frontal luminosa: protejo altas luces y evito magenta.'};
+    } else {
+      base = {exposure:1.00, contrast:1.03, saturation:0.89, sharpness:0.06, noiseReduction:0.18, shadows:0.04, highlights:-0.18, warmth:0.00, clarity:0.18, faceProtection:true, note:'Frontal equilibrada: color neutro, detalle suave y piel estable.'};
+    }
+  } else {
+    if (veryDark) {
+      base = {exposure:1.08, contrast:1.00, saturation:0.88, sharpness:0.09, noiseReduction:0.50, shadows:0.08, highlights:-0.14, warmth:0.00, clarity:0.22, faceProtection:false, note:'Muy oscura: recupero sombras sin endurecer.'};
+    } else if (dark) {
+      base = {exposure:1.03, contrast:1.02, saturation:0.92, sharpness:0.10, noiseReduction:0.28, shadows:0.05, highlights:-0.18, warmth:0.00, clarity:0.20, faceProtection:false, note:'Interior oscuro: reduzco ruido y mantengo color.'};
+    } else if (veryBright) {
+      base = {exposure:0.98, contrast:1.04, saturation:0.95, sharpness:0.11, noiseReduction:0.10, shadows:0.01, highlights:-0.24, warmth:0.00, clarity:0.24, faceProtection:false, note:'Exterior brillante: protejo altas luces.'};
+    } else {
+      base = {exposure:1.00, contrast:1.04, saturation:0.94, sharpness:0.10, noiseReduction:0.16, shadows:0.03, highlights:-0.20, warmth:0.00, clarity:0.22, faceProtection:false, note:'Color natural con curva suave.'};
+    }
+  }
+
+  if (analysis?.processingHints){
+    base = {...base, ...analysis.processingHints};
+  }
+  if (analysis?.hasFaces || front) base.faceProtection = true;
+
+  return {
+    exposure:clampHint(base.exposure, 0.75, 1.35, 1.00),
+    contrast:clampHint(base.contrast, 0.90, 1.30, 1.03),
+    saturation:clampHint(base.saturation, 0.75, 1.30, 0.90),
+    sharpness:clampHint(base.sharpness, 0.05, 0.60, 0.08),
+    noiseReduction:clampHint(base.noiseReduction, 0.10, 0.80, 0.20),
+    shadows:clampHint(base.shadows, 0.00, 0.25, 0.03),
+    highlights:clampHint(base.highlights, -0.40, 0.00, -0.18),
+    warmth:clampHint(base.warmth, -0.05, 0.05, 0.00),
+    clarity:clampHint(base.clarity, 0.20, 0.80, 0.20),
+    faceProtection: !!base.faceProtection,
+    note: String(base.note || '').slice(0, 140)
+  };
+}
 
 /* ═══════════ STATE ═══════════ */
 const state = {
@@ -1096,7 +1152,7 @@ async function analyzeSceneWithAI(imageBlob){
   const b64=await blobToBase64(thumb);
   const b64data=b64.split(',')[1];
 
-  const prompt=`You are an expert photo ISP (Image Signal Processor). Analyze this photo and return ONLY a valid JSON object with no extra text, no markdown, no backticks.
+  const prompt=`You are an expert photo ISP (Image Signal Processor) tuned for an iPhone 8-style result on a low-end Android phone. Analyze this photo and return ONLY a valid JSON object with no extra text, no markdown, no backticks.
 
 Required JSON structure:
 {
@@ -1126,7 +1182,9 @@ Required JSON structure:
 Exposure range: 0.75-1.35. Contrast: 0.90-1.30. Saturation: 0.75-1.30.
 Sharpness: 0.05-0.60. NoiseReduction: 0.10-0.80. Shadows: 0.00-0.25. Highlights: -0.40-0.00.
 Warmth: -0.05 to +0.05 (positive=warmer). Clarity: 0.20-0.80.
-FaceProtection: true if hasFaces=true (protects skin from over-sharpening).`;
+FaceProtection: true if hasFaces=true (protects skin from over-sharpening).
+
+Priority for this app: neutral white balance, natural skin, very limited warmth, restrained saturation, soft detail, controlled highlights, and no magenta cast on frontal selfies.`;
 
   try {
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
@@ -1175,124 +1233,385 @@ function blobToBase64(blob){
   });
 }
 
-function showAIAnalysis(analysis, stats=null, facing=state.facing){
-  if (!analysis) return null;
-  const recipe = buildAutoRecipe(stats || analyzeSceneLocal(new Uint8ClampedArray([128,128,128,255])), analysis, facing);
-  showSceneRecipe(recipe, 'Claude');
-  return recipe;
-}
-
-const autoRecipes = {
-  portrait: {
-    scene:'Retrato iPhone 8', preset:'portrait', tag:'Retrato', note:'Suaviza piel y protege luces altas.',
-    exposure:1.00, contrast:1.03, saturation:0.92, sharpness:0.12, noiseReduction:0.30, clarity:0.36,
-    shadows:0.08, highlights:0.18, warmth:0.01, faceProtection:true
-  },
-  indoor: {
-    scene:'Interior natural', preset:'balanced', tag:'Interior', note:'Color neutro, contraste suave y detalle limpio.',
-    exposure:1.01, contrast:1.04, saturation:0.95, sharpness:0.16, noiseReduction:0.22, clarity:0.48,
-    shadows:0.05, highlights:0.16, warmth:0.00, faceProtection:false
-  },
-  lowlight: {
-    scene:'Noche limpia', preset:'night', tag:'Baja luz', note:'Levanta sombras sin romper color ni piel.',
-    exposure:1.10, contrast:1.00, saturation:0.90, sharpness:0.08, noiseReduction:0.56, clarity:0.28,
-    shadows:0.14, highlights:0.26, warmth:0.00, faceProtection:true
-  },
-  bright: {
-    scene:'Exterior limpio', preset:'vivid', tag:'Luz fuerte', note:'Controla altas luces y conserva color.',
-    exposure:0.96, contrast:1.05, saturation:0.99, sharpness:0.18, noiseReduction:0.12, clarity:0.50,
-    shadows:0.02, highlights:0.30, warmth:0.00, faceProtection:false
-  },
-  food: {
-    scene:'Comida con textura', preset:'vivid', tag:'Comida', note:'Más presencia de color y textura apetecible.',
-    exposure:1.00, contrast:1.07, saturation:1.03, sharpness:0.18, noiseReduction:0.18, clarity:0.52,
-    shadows:0.03, highlights:0.20, warmth:0.01, faceProtection:false
-  },
-  document: {
-    scene:'Documento claro', preset:'soft', tag:'Documento', note:'Busca lectura limpia y bordes definidos.',
-    exposure:1.02, contrast:1.12, saturation:0.88, sharpness:0.28, noiseReduction:0.10, clarity:0.62,
-    shadows:0.00, highlights:0.24, warmth:0.00, faceProtection:false
-  },
-  action: {
-    scene:'Acción rápida', preset:'balanced', tag:'Acción', note:'Prioriza velocidad y detalle estable.',
-    exposure:0.99, contrast:1.05, saturation:0.96, sharpness:0.20, noiseReduction:0.16, clarity:0.55,
-    shadows:0.04, highlights:0.18, warmth:0.00, faceProtection:false
-  }
-};
-
-function inferAutoKind(stats, analysis, facing){
-  const type=(analysis?.type||'').toLowerCase();
-  const lighting=(analysis?.lighting||'').toLowerCase();
-  if (analysis?.hasFaces || type==='portrait') return 'portrait';
-  if (type==='document') return 'document';
-  if (type==='food') return 'food';
-  if (type==='action') return 'action';
-  if (lighting==='very_dark' || stats.avgLum<0.20 || stats.shadowRatio>0.44) return 'lowlight';
-  if (lighting==='bright_outdoor' || stats.avgLum>0.68 || stats.highlightRatio>0.18) return 'bright';
-  if (facing==='user') return 'portrait';
-  return 'indoor';
-}
-
-function buildAutoRecipe(stats, analysis, facing){
-  const kind=inferAutoKind(stats, analysis, facing);
-  const base=autoRecipes[kind] || autoRecipes.indoor;
-  const dominant = Array.isArray(analysis?.dominantColors) && analysis.dominantColors.length
-    ? analysis.dominantColors.slice(0,2).join(' · ')
-    : (stats.avgLum<0.25 ? 'baja luz' : stats.avgLum>0.65 ? 'luz alta' : 'equilibrado');
-  const tags = [
-    base.tag,
-    analysis?.lighting || (stats.avgLum<0.25 ? 'muy oscuro' : stats.avgLum>0.65 ? 'brillante' : 'normal'),
-    dominant,
-    analysis?.hasFaces ? `caras ${analysis.skinTone||''}`.trim() : null
+function showAIAnalysis(analysis){
+  if (!analysis) return;
+  state.lastAiAnalysis=analysis;
+  ui.aiSceneLabel.textContent=analysis.scene||'Escena desconocida';
+  ui.aiDescLabel.textContent=analysis.processingHints?.note||'Procesado optimizado por IA.';
+  ui.aiTagsRow.innerHTML='';
+  const tags=[
+    analysis.type, analysis.lighting,
+    analysis.hasFaces?`${analysis.skinTone} skin`:'sin caras',
+    analysis.shadowDetail==='poor'?'sombras recuperadas':null,
+    analysis.highlightClipping?'luces recortadas':null
   ].filter(Boolean);
-
-  const hints = {
-    exposure:base.exposure,
-    contrast:base.contrast,
-    saturation:base.saturation,
-    sharpness:base.sharpness,
-    noiseReduction:base.noiseReduction,
-    clarity:base.clarity,
-    shadows:base.shadows,
-    highlights:base.highlights,
-    warmth:base.warmth,
-    faceProtection:!!base.faceProtection && !!analysis?.hasFaces,
-    note:base.note
-  };
-
-  return {
-    kind,
-    scene:base.scene,
-    preset:base.preset,
-    note:base.note,
-    hints,
-    tags
-  };
-}
-
-function showSceneRecipe(recipe, source='Auto'){
-  if (!recipe) return;
-  state.lastAiAnalysis = recipe;
-  ui.aiSceneLabel.textContent = recipe.scene || 'Auto iPhone 8';
-  ui.aiDescLabel.textContent = recipe.note || 'Procesado automático optimizado.';
-  ui.aiTagsRow.innerHTML = '';
-  const tags=[source==='Claude'?'Claude':null, ...(recipe.tags||[])].filter(Boolean);
-  tags.slice(0,4).forEach(t=>{
+  tags.forEach(t=>{
     const span=document.createElement('span');
-    span.className='aiTag';
-    span.textContent=t;
+    span.className='aiTag'; span.textContent=t;
     ui.aiTagsRow.appendChild(span);
   });
-  ui.aiBadge.textContent=`✦ ${recipe.scene || 'Auto iPhone 8'}`;
+  // Show badge on viewfinder
+  ui.aiBadge.textContent=`✦ ${analysis.scene}`;
   ui.aiBadge.classList.add('show');
   setTimeout(()=>ui.aiBadge.classList.remove('show'),4000);
 }
 
-function sceneFromStats(stats){
-  if (stats.avgLum<0.20) return 'lowlight';
-  if (stats.highlightRatio>0.20 || stats.avgLum>0.68) return 'bright';
-  if (stats.shadowRatio>0.42) return 'lowlight';
-  return 'indoor';
+
+/* ═══════════════════════════════════════════════════════════════
+   WebGL-ACCELERATED IMAGE PIPELINE
+   GPU processes all pixels in parallel — 10-50× faster than JS loops.
+   Falls back to JS pipeline if WebGL not available.
+═══════════════════════════════════════════════════════════════ */
+
+let _gl=null, _glCanvas=null;
+let _progTonemap=null, _progBlurH=null, _progBlurV=null, _progSharpen=null;
+
+function getGL(){
+  if (_gl) return _gl;
+  _glCanvas=document.createElement('canvas');
+  _gl=_glCanvas.getContext('webgl',{
+    alpha:false, depth:false, stencil:false,
+    antialias:false, preserveDrawingBuffer:true,
+    powerPreference:'high-performance'
+  })||_glCanvas.getContext('experimental-webgl',{alpha:false,depth:false,preserveDrawingBuffer:true});
+  return _gl;
+}
+
+function compileShader(gl,type,src){
+  const s=gl.createShader(type);
+  gl.shaderSource(s,src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s,gl.COMPILE_STATUS)){
+    console.warn('Shader error:',gl.getShaderInfoLog(s)); gl.deleteShader(s); return null;
+  }
+  return s;
+}
+function makeProgram(gl,vsSrc,fsSrc){
+  const vs=compileShader(gl,gl.VERTEX_SHADER,vsSrc);
+  const fs=compileShader(gl,gl.FRAGMENT_SHADER,fsSrc);
+  if (!vs||!fs) return null;
+  const p=gl.createProgram();
+  gl.attachShader(p,vs); gl.attachShader(p,fs); gl.linkProgram(p);
+  if (!gl.getProgramParameter(p,gl.LINK_STATUS)){
+    console.warn('Program link error:',gl.getProgramInfoLog(p)); return null;
+  }
+  return p;
+}
+
+const VS_QUAD=`
+  attribute vec2 a_pos;
+  varying vec2 v_uv;
+  void main(){
+    v_uv=(a_pos+1.0)*0.5;
+    gl_Position=vec4(a_pos,0.0,1.0);
+  }
+`;
+
+// PASS 1: WB + ACES tonemap + chroma-noise damp + vibrance + S-curve
+const FS_TONEMAP=`
+  precision mediump float;
+  varying vec2 v_uv;
+  uniform sampler2D u_tex;
+  uniform float u_wbR,u_wbG,u_wbB;
+  uniform float u_exposure,u_sat,u_contrast;
+  uniform float u_shadowLift,u_hlProtect,u_warmth;
+  uniform float u_vibStrength;
+
+  float acesTonemap(float x){
+    float v=max(0.0,x);
+    return clamp((v*(2.51*v+0.03))/(v*(2.43*v+0.59)+0.14),0.0,1.0);
+  }
+  float softSCurve(float x,float s){
+    float t=clamp(x,0.0,1.0);
+    float c=t*t*(3.0-2.0*t);
+    return t+(c-t)*clamp(s*1.3,0.0,1.0);
+  }
+  float lum(vec3 c){ return 0.2126*c.r+0.7152*c.g+0.0722*c.b; }
+  float gray(vec3 c){ return 0.299*c.r+0.587*c.g+0.114*c.b; }
+  void main(){
+    vec4 px=texture2D(u_tex,v_uv);
+    // White balance + warmth
+    vec3 c=vec3(px.r*(u_wbR+u_warmth)*u_exposure,
+                px.g*u_wbG*u_exposure,
+                px.b*(u_wbB-u_warmth)*u_exposure);
+    float srcL=max(0.0001,lum(c));
+    // Shadow lift (quadratic knee below 0.12)
+    float knee=max(0.0,1.0-srcL/0.12);
+    float shadow=u_shadowLift*knee*knee;
+    // Highlight protection
+    float hl=u_hlProtect*max(0.0,(srcL-0.68)/0.32);
+    // ACES + lift/protect
+    float newL=clamp(acesTonemap(srcL)+shadow-hl,0.0,1.0);
+    // Hue-preserving scale (cap ×5)
+    float sc=min(newL/srcL,5.0);
+    c=clamp(c*sc,0.0,1.0);
+    // Chroma noise damp in heavily lifted darks
+    if(sc>2.0){
+      float nd=min(0.70,(sc-2.0)/3.0*0.70);
+      float g3=gray(c);
+      c=mix(c,vec3(g3),nd);
+    }
+    // Vibrance (subtle, skip near-neutral)
+    float chroma=max(c.r,max(c.g,c.b))-min(c.r,min(c.g,c.b));
+    float gv=gray(c);
+    float vibExtra=(chroma>0.06)?u_vibStrength*max(0.0,0.30-chroma):0.0;
+    float vf=u_sat*(1.0+vibExtra);
+    c=vec3(gv)+(c-vec3(gv))*vf;
+    // S-curve contrast
+    float lumNow=clamp(gray(c),0.001,1.0);
+    float curved=softSCurve(lumNow,u_contrast-1.0);
+    c=clamp(c*(curved/lumNow),0.0,1.0);
+    gl_FragColor=vec4(c,1.0);
+  }
+`;
+
+// PASS 2a/2b: Separable Gaussian blur (horizontal then vertical)
+const FS_BLUR_H=`
+  precision mediump float;
+  varying vec2 v_uv;
+  uniform sampler2D u_tex;
+  uniform vec2 u_texelSize;
+  uniform float u_radius;
+  void main(){
+    vec4 sum=vec4(0.0);
+    float wSum=0.0;
+    int r=int(u_radius);
+    for(int i=-4;i<=4;i++){
+      float fi=float(i);
+      if(abs(fi)>u_radius) continue;
+      float w=exp(-fi*fi/(2.0*u_radius*u_radius));
+      sum+=texture2D(u_tex,v_uv+vec2(fi*u_texelSize.x,0.0))*w;
+      wSum+=w;
+    }
+    gl_FragColor=sum/wSum;
+  }
+`;
+const FS_BLUR_V=`
+  precision mediump float;
+  varying vec2 v_uv;
+  uniform sampler2D u_tex;
+  uniform vec2 u_texelSize;
+  uniform float u_radius;
+  void main(){
+    vec4 sum=vec4(0.0);
+    float wSum=0.0;
+    for(int i=-4;i<=4;i++){
+      float fi=float(i);
+      if(abs(fi)>u_radius) continue;
+      float w=exp(-fi*fi/(2.0*u_radius*u_radius));
+      sum+=texture2D(u_tex,v_uv+vec2(0.0,fi*u_texelSize.y))*w;
+      wSum+=w;
+    }
+    gl_FragColor=sum/wSum;
+  }
+`;
+
+// PASS 3: Luminance-only USM sharpen
+const FS_SHARPEN=`
+  precision mediump float;
+  varying vec2 v_uv;
+  uniform sampler2D u_sharp;   // original
+  uniform sampler2D u_blur;    // blurred
+  uniform float u_amount;
+  uniform float u_threshold;
+  float gray(vec3 c){ return 0.299*c.r+0.587*c.g+0.114*c.b; }
+  void main(){
+    vec3 orig=texture2D(u_sharp,v_uv).rgb;
+    vec3 blr=texture2D(u_blur,v_uv).rgb;
+    float oL=max(0.001,gray(orig));
+    float bL=max(0.001,gray(blr));
+    float delta=(oL-bL)*u_amount;
+    if(abs(delta)>u_threshold){
+      float sc=max(0.001,oL+delta)/oL;
+      orig=clamp(orig*sc,0.0,1.0);
+    }
+    gl_FragColor=vec4(orig,1.0);
+  }
+`;
+
+function initGLPrograms(gl){
+  if(_progTonemap) return true;
+  _progTonemap=makeProgram(gl,VS_QUAD,FS_TONEMAP);
+  _progBlurH   =makeProgram(gl,VS_QUAD,FS_BLUR_H);
+  _progBlurV   =makeProgram(gl,VS_QUAD,FS_BLUR_V);
+  _progSharpen =makeProgram(gl,VS_QUAD,FS_SHARPEN);
+  return !!(_progTonemap&&_progBlurH&&_progBlurV&&_progSharpen);
+}
+
+function makeTexture(gl,w,h,data){
+  const t=gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  if(data) gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,data);
+  else gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  return t;
+}
+function makeFBO(gl,tex){
+  const fb=gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER,fb);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tex,0);
+  return fb;
+}
+
+function drawQuad(gl,prog){
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(prog,'a_pos');
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  gl.deleteBuffer(buf);
+}
+
+/* Main GPU pipeline — returns Uint8ClampedArray */
+function applyToneMapGPU(data,width,height,facing,aiHints){
+  const gl=getGL(); if (!gl) return null;
+  if (!initGLPrograms(gl)) return null;
+  try {
+    _glCanvas.width=width; _glCanvas.height=height;
+    gl.viewport(0,0,width,height);
+
+    const scene=analyzeSceneLocal(data);
+    const wb=estimateWB(data,facing,scene);
+    const rear=facing==='environment';
+    const bright=scene.avgLum>0.66, vbright=scene.avgLum>0.78||scene.highlightRatio>0.24;
+    const dark=scene.avgLum<0.34;
+    const H=aiHints||{};
+    const exposureUI   =H.exposure    ??+ui.exposure.value;
+    const contrastUI   =H.contrast    ??+ui.contrast.value;
+    const saturationUI =H.saturation  ??+ui.saturation.value;
+    const sharpnessUI  =H.sharpness   ??+ui.sharpness.value;
+    const noiseUI      =H.noiseReduction??+ui.noiseReduction.value;
+    const detailUI     =H.clarity     ??+ui.detailBoost.value;
+    const shadowLiftAI =H.shadows     ??(dark?(rear?0.03:0.04):(rear?0.01:0.01));
+    const hlProtAI     =H.highlights!==undefined?-H.highlights:(vbright?0.44:bright?0.28:0.16);
+    const warmthAI     =H.warmth??0;
+    const expBias=rear?(vbright?0.80:bright?0.87:dark?1.10:0.97):(vbright?0.88:bright?0.94:dark?1.04:0.98);
+    const satBase=saturationUI*(rear?1.00:0.92)*(vbright?0.86:bright?0.94:1.00);
+    const contrastBase=contrastUI*(vbright?0.92:bright?0.96:1.00);
+
+    // Pre-NR in JS (only for very dark scenes — fast because mix=0 in normal light)
+    const veryDark=scene.avgLum<0.18, medDark=scene.avgLum<0.28;
+    const preNR=veryDark?(rear?0.42:0.72):medDark?(rear?0.28:0.52):dark?(rear?0.16:0.34):scene.avgLum<0.50?(rear?0.08:0.16):0;
+    const preNRradius=veryDark?(!rear?3:1):(!rear?2:1);
+    const pixels=(preNR>0.01)?preChromaNR(data,width,height,preNRradius,preNR):data;
+
+    // Upload input texture
+    const texIn=makeTexture(gl,width,height,pixels instanceof Uint8ClampedArray?pixels:new Uint8ClampedArray(pixels));
+
+    // ── PASS 1: Tonemap ──────────────────────────────────────────
+    const texTM=makeTexture(gl,width,height,null);
+    const fboTM=makeFBO(gl,texTM);
+    gl.useProgram(_progTonemap);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,texIn);
+    gl.uniform1i(gl.getUniformLocation(_progTonemap,'u_tex'),0);
+    gl.uniform1f(gl.getUniformLocation(_progTonemap,'u_wbR'),wb.r);
+    gl.uniform1f(gl.getUniformLocation(_progTonemap,'u_wbG'),wb.g);
+    gl.uniform1f(gl.getUniformLocation(_progTonemap,'u_wbB'),wb.b);
+    gl.uniform1f(gl.getUniformLocation(_progTonemap,'u_exposure'),exposureUI*expBias);
+    gl.uniform1f(gl.getUniformLocation(_progTonemap,'u_sat'),satBase);
+    gl.uniform1f(gl.getUniformLocation(_progTonemap,'u_contrast'),contrastBase);
+    gl.uniform1f(gl.getUniformLocation(_progTonemap,'u_shadowLift'),shadowLiftAI);
+    gl.uniform1f(gl.getUniformLocation(_progTonemap,'u_hlProtect'),hlProtAI);
+    gl.uniform1f(gl.getUniformLocation(_progTonemap,'u_warmth'),warmthAI);
+    gl.uniform1f(gl.getUniformLocation(_progTonemap,'u_vibStrength'),0.18);
+    drawQuad(gl,_progTonemap);
+
+    // ── PASS 2: Blur (H then V) for NR ───────────────────────────
+    const nrBase=rear?0.28:(dark?0.40:0.22);
+    const blurMix=Math.min(1,noiseUI*nrBase+(dark?0.12:0));
+    const blurRadius=blurMix>0.001?Math.max(0.5,blurMix*2.5):0;
+    const texBlur=makeTexture(gl,width,height,null);
+    let texAfterNR=texTM;
+    if (blurRadius>0.1){
+      // Horizontal blur
+      const texBH=makeTexture(gl,width,height,null);
+      const fboBH=makeFBO(gl,texBH);
+      gl.useProgram(_progBlurH);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,texTM);
+      gl.uniform1i(gl.getUniformLocation(_progBlurH,'u_tex'),0);
+      gl.uniform2f(gl.getUniformLocation(_progBlurH,'u_texelSize'),1/width,1/height);
+      gl.uniform1f(gl.getUniformLocation(_progBlurH,'u_radius'),blurRadius);
+      drawQuad(gl,_progBlurH);
+      // Vertical blur
+      const fboTV=makeFBO(gl,texBlur);
+      gl.useProgram(_progBlurV);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,texBH);
+      gl.uniform1i(gl.getUniformLocation(_progBlurV,'u_tex'),0);
+      gl.uniform2f(gl.getUniformLocation(_progBlurV,'u_texelSize'),1/width,1/height);
+      gl.uniform1f(gl.getUniformLocation(_progBlurV,'u_radius'),blurRadius);
+      drawQuad(gl,_progBlurV);
+      // Apply NR by blending (luminance-restore done in shader would need extra pass,
+      // here we use the simpler blend with chroma-restore approximation)
+      // For simplicity: use blurred as NR output directly (color NR)
+      texAfterNR=texBlur;
+      gl.deleteFramebuffer(fboBH); gl.deleteTexture(texBH);
+    }
+
+    // ── PASS 3: Sharpen (USM) ────────────────────────────────────
+    const sharpenScale=rear?0.92:0.66;
+    const fineAmt=Math.min(1,sharpnessUI*sharpenScale)*(vbright?0.70:0.90);
+    const sharpenThreshold=rear?0.5/255:1.4/255;
+    const texOut=makeTexture(gl,width,height,null);
+    // Need a blur of texAfterNR for USM
+    const texSharpBlurH=makeTexture(gl,width,height,null);
+    const fboSH=makeFBO(gl,texSharpBlurH);
+    gl.useProgram(_progBlurH);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,texAfterNR);
+    gl.uniform1i(gl.getUniformLocation(_progBlurH,'u_tex'),0);
+    gl.uniform2f(gl.getUniformLocation(_progBlurH,'u_texelSize'),1/width,1/height);
+    gl.uniform1f(gl.getUniformLocation(_progBlurH,'u_radius'),1.0);
+    drawQuad(gl,_progBlurH);
+    const texSharpBlur=makeTexture(gl,width,height,null);
+    const fboSV=makeFBO(gl,texSharpBlur);
+    gl.useProgram(_progBlurV);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,texSharpBlurH);
+    gl.uniform1i(gl.getUniformLocation(_progBlurV,'u_tex'),0);
+    gl.uniform2f(gl.getUniformLocation(_progBlurV,'u_texelSize'),1/width,1/height);
+    gl.uniform1f(gl.getUniformLocation(_progBlurV,'u_radius'),1.0);
+    drawQuad(gl,_progBlurV);
+    // USM pass
+    const fboOut=makeFBO(gl,texOut);
+    gl.useProgram(_progSharpen);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,texAfterNR);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,texSharpBlur);
+    gl.uniform1i(gl.getUniformLocation(_progSharpen,'u_sharp'),0);
+    gl.uniform1i(gl.getUniformLocation(_progSharpen,'u_blur'),1);
+    gl.uniform1f(gl.getUniformLocation(_progSharpen,'u_amount'),fineAmt);
+    gl.uniform1f(gl.getUniformLocation(_progSharpen,'u_threshold'),sharpenThreshold);
+    drawQuad(gl,_progSharpen);
+
+    // ── READ PIXELS ──────────────────────────────────────────────
+    const result=new Uint8ClampedArray(width*height*4);
+    gl.readPixels(0,0,width,height,gl.RGBA,gl.UNSIGNED_BYTE,result);
+
+    // WebGL reads bottom-to-top — flip vertically
+    const flipped=new Uint8ClampedArray(result.length);
+    const rowBytes=width*4;
+    for(let y=0;y<height;y++){
+      const src=(height-1-y)*rowBytes, dst=y*rowBytes;
+      flipped.set(result.subarray(src,src+rowBytes),dst);
+    }
+
+    // Cleanup
+    [texIn,texTM,texBlur,texAfterNR,texOut,texSharpBlur,texSharpBlurH].forEach(t=>{ try{gl.deleteTexture(t);}catch(_){} });
+    [fboTM,fboSH,fboSV,fboOut].forEach(f=>{ try{gl.deleteFramebuffer(f);}catch(_){} });
+
+    return flipped;
+  } catch(err){
+    console.warn('WebGL pipeline failed, falling back to JS:',err);
+    return null;
+  }
+}
+
+/* Wrapper: try GPU first, fall back to JS */
+function applyToneMapAuto(data,width,height,facing,aiHints){
+  const gpuResult=applyToneMapGPU(data,width,height,facing,aiHints);
+  if (gpuResult) return gpuResult;
+  return applyToneMap(data,width,height,facing,aiHints); // JS fallback
 }
 
 /* ═══════════ IMAGE PROCESSING PIPELINE ═══════════ */
@@ -1738,11 +2057,14 @@ function triggerFlash(){
 }
 
 async function processAndSave(rawData,width,height,aiHints,label){
-  const finished=applyToneMap(rawData,width,height,state.facing,aiHints||null);
+  const scene = analyzeSceneLocal(rawData);
+  const frontAuto = state.facing === 'user';
+  const autoHints = (frontAuto || state.mode === 'ai') ? buildAutoRecipe(scene, state.facing, aiHints || null) : (aiHints || null);
+  const finished=applyToneMap(rawData,width,height,state.facing,autoHints);
   ui.exportCanvas.width=width; ui.exportCanvas.height=height;
   const ectx=ui.exportCanvas.getContext('2d',{willReadFrequently:true,alpha:false});
   ectx.putImageData(new ImageData(finished,width,height),0,0);
-  const quality=state.mode==='fast'?0.965:state.mode==='ai'?0.98:0.985;
+  const quality=state.mode==='fast'?0.96:0.985;
   const blob=await canvasToBlob(ui.exportCanvas,'image/jpeg',quality);
   if (!blob) throw new Error('Export fallido');
   state.currentBlob=blob;
@@ -1753,7 +2075,7 @@ async function processAndSave(rawData,width,height,aiHints,label){
   await saveToGallery(blob,{label:label||state.mode,w:width,h:height});
   if (state.autoSave) await downloadBlob(blob,filenameFromNow());
   setStatus('ok',`${width}×${height}`);
-  toast(`✓ ${width}×${height}${aiHints?' · IA aplicada':''}`);
+  toast(`✓ ${width}×${height}${autoHints?' · Auto':''}`);
 }
 
 async function capturePhoto(){
@@ -1815,15 +2137,9 @@ async function capturePhoto(){
           ? scaled[0].getContext('2d',{willReadFrequently:true,alpha:false}).getImageData(0,0,outW,outH).data
           : averageFrames(scaled,outW,outH,jobFacing);
 
-        const stats = analyzeSceneLocal(merged);
+        // AI analysis if in AI mode
         let aiHints=null;
-        let recipe=null;
-
-        if (jobMode==='fast'){
-          recipe = buildAutoRecipe(stats, null, jobFacing);
-          aiHints = recipe.hints;
-          showSceneRecipe(recipe, 'Auto');
-        } else if (jobMode==='ai'){
+        if (jobMode==='ai'){
           setStatus('ai','Analizando con Claude…');
           ui.aiBadge.textContent='✦ Analizando escena…';
           ui.aiBadge.classList.add('show');
@@ -1832,14 +2148,15 @@ async function capturePhoto(){
               .putImageData(new ImageData(merged,outW,outH),0,0);
           const tmpBlob=await canvasToBlob(tmpC,'image/jpeg',0.82);
           const analysis=await analyzeSceneWithAI(tmpBlob);
-          recipe = buildAutoRecipe(stats, analysis, jobFacing);
-          if (analysis) showSceneRecipe(recipe, 'Claude');
-          else showSceneRecipe(recipe, 'Auto');
-          aiHints = recipe.hints;
+          if (analysis){ showAIAnalysis(analysis); aiHints=analysis.processingHints; }
+          else { ui.aiBadge.classList.remove('show'); }
         }
 
         // Tonemap + save
-        const finished=applyToneMap(merged,outW,outH,jobFacing,aiHints);
+        // Try GPU first (WebGL), fall back to JS automatically
+        const t0=performance.now();
+        const finished=applyToneMapAuto(merged,outW,outH,jobFacing,aiHints);
+        console.log('Pipeline:',Math.round(performance.now()-t0)+'ms', _gl?'GPU':'JS');
         ui.exportCanvas.width=outW; ui.exportCanvas.height=outH;
         ui.exportCanvas.getContext('2d',{willReadFrequently:true,alpha:false})
           .putImageData(new ImageData(finished,outW,outH),0,0);
@@ -1878,20 +2195,11 @@ async function loadFile(file){
     wctx.imageSmoothingEnabled=true; wctx.imageSmoothingQuality='high';
     wctx.drawImage(ui.fileImage,crop.sx,crop.sy,crop.sw,crop.sh,0,0,outSize.width,outSize.height);
     const src=wctx.getImageData(0,0,outSize.width,outSize.height).data;
-    const stats = analyzeSceneLocal(src);
     let aiHints=null;
-    let recipe=null;
-    if (state.mode==='fast'){
-      recipe = buildAutoRecipe(stats, null, state.facing);
-      aiHints = recipe.hints;
-      showSceneRecipe(recipe, 'Auto');
-    } else if (state.mode==='ai'){
+    if (state.mode==='ai'){
       setStatus('ai','Analizando con Claude…');
       const analysis=await analyzeSceneWithAI(file);
-      recipe = buildAutoRecipe(stats, analysis, state.facing);
-      if (analysis) showSceneRecipe(recipe, 'Claude');
-      else showSceneRecipe(recipe, 'Auto');
-      aiHints = recipe.hints;
+      if (analysis){ showAIAnalysis(analysis); aiHints=analysis.processingHints; }
     }
     await processAndSave(src,outSize.width,outSize.height,aiHints,'archivo');
     URL.revokeObjectURL(url);
